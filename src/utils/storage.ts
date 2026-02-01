@@ -10,7 +10,9 @@ export interface SavedSession {
     language: string;
     sets: any[]; // GeneratedSet[]
     audioBlob: Blob | null;
-    audioBlobSouth?: Blob | null;
+    audioMap?: { [key: number]: Blob }; // Store individual segment blobs
+    audioBlobSouth?: Blob | null; // Legacy single blob
+    audioMapSouth?: { [key: number]: Blob }; // Store individual segment blobs (South)
     offsets?: number[];
     offsetsSouth?: number[];
     lastAccent?: 'north' | 'south';

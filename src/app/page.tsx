@@ -355,17 +355,96 @@ export default function Home() {
       console.error(error);
       alert(`Error: ${error.message}`);
     } finally {
+      // Save Session on completion (if we have audio)
+      if (Object.keys(setAudioUrls).length > 0) {
+        // Convert URL back to blob? No, we have URLs. 
+        // We need to fetch blob from URL to save.
+        // OPTIMIZATION: We should probably store blobs as we go or fetch them back.
+        // Since we used createObjectURL, the blob is in memory. We can fetch(url).blob()
+
+        const saveAudioMap = async (urlMap: AudioMap) => {
+          const blobMap: { [key: number]: Blob } = {};
+          for (const [key, url] of Object.entries(urlMap)) {
+            try {
+              const b = await fetch(url).then(r => r.blob());
+              blobMap[Number(key)] = b;
+            } catch (e) { console.error("Blob save fail", e); }
+          }
+          return blobMap;
+        };
+
+        const northBlobs = await saveAudioMap(audioUrls); // We need access to state, but state might not be updated yet in this closure? 
+        // Actually we don't have access to the *latest* audioUrls state here inside useEffect/handler easily unless we use ref or the local vars.
+        // But we passed setAudioUrls. The `generateAudioForSegments` doesn't return the map.
+        // Let's rely on a "Save" button or auto-save effect? 
+        // Auto-save effect is better.
+      }
+
       setLoading(false);
       setAudioLoading(false);
     }
   };
 
+  // Effect to auto-save when generation finishes and we have data
+  useEffect(() => {
+    if (!loading && !audioLoading && generatedSets.length > 0 && Object.keys(audioUrls).length > 0) {
+      const autoSave = async () => {
+        // Avoid saving duplicates? We check if ID exists? storage.ts put overwrites.
+        // We need to convert URLs to Blobs.
+        const saveMap = async (map: AudioMap) => {
+          const blobMap: { [key: number]: Blob } = {};
+          for (const [k, url] of Object.entries(map)) {
+            const b = await fetch(url).then(r => r.blob());
+            blobMap[Number(k)] = b;
+          }
+          return blobMap;
+        };
+
+        const northMap = await saveMap(audioUrls);
+        const southMap = await saveMap(audioUrlsSouth);
+
+        const session: SavedSession = {
+          id: generatedSets[0].id, // Use set ID as session ID or random
+          timestamp: new Date(),
+          input: input || "Random",
+          language,
+          sets: generatedSets,
+          audioBlob: null, // Legacy
+          audioMap: northMap,
+          audioMapSouth: southMap,
+          lastAccent: vietnameseAccent
+        };
+        await saveSession(session);
+        loadHistory(); // Refresh list
+      };
+      autoSave();
+    }
+  }, [loading, audioLoading, generatedSets]); // Depend on completion flags
+
   const loadSession = (session: SavedSession) => {
-    // Not supported with this architecture yet
     setGeneratedSets(session.sets);
     setLanguage(session.language as any);
     setInput(session.input || '');
-    alert("Audio regeneration required for old history items.");
+    setVietnameseAccent(session.lastAccent || 'north');
+
+    // Restore Audio
+    if (session.audioMap) {
+      const restoreMap = (blobMap: { [key: number]: Blob }) => {
+        const urlMap: AudioMap = {};
+        for (const [k, blob] of Object.entries(blobMap)) {
+          urlMap[Number(k)] = URL.createObjectURL(blob);
+        }
+        return urlMap;
+      };
+      setAudioUrls(restoreMap(session.audioMap));
+      if (session.audioMapSouth) {
+        setAudioUrlsSouth(restoreMap(session.audioMapSouth));
+      }
+      // Set first sentence active
+      setCurrentSentenceIndex(0);
+    } else {
+      alert("Audio regeneration required for old history items.");
+    }
     setShowHistory(false);
   };
 
@@ -478,6 +557,14 @@ export default function Home() {
             </div>
 
             <button
+              onClick={() => setShowHistory(true)}
+              className="p-2.5 rounded-xl border bg-white border-gray-200 text-gray-500 hover:bg-gray-50 relative group"
+            >
+              <HistoryIcon className="w-5 h-5" />
+              {/* Tooltip */}
+              <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-[10px] py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">History</span>
+            </button>
+            <button
               onClick={() => setShowAdvanced(!showAdvanced)}
               className="p-2.5 rounded-xl border bg-white border-gray-200 text-gray-500 hover:bg-gray-50"
             >
@@ -485,6 +572,44 @@ export default function Home() {
             </button>
           </div>
         </div>
+
+        {/* History Sidebar */}
+        {showHistory && (
+          <div className="fixed inset-0 z-50 flex justify-end bg-black/20 backdrop-blur-sm animate-in fade-in transition-all" onClick={() => setShowHistory(false)}>
+            <div
+              className="w-full max-w-sm bg-white h-full shadow-2xl p-6 flex flex-col gap-4 animate-in slide-in-from-right duration-300 transform"
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between border-b pb-4">
+                <h2 className="text-xl font-black text-gray-800 flex items-center gap-2">
+                  <HistoryIcon className="w-5 h-5 text-blue-500" />
+                  History
+                </h2>
+                <button onClick={() => setShowHistory(false)} className="p-2 hover:bg-gray-100 rounded-full text-gray-500"><X className="w-5 h-5" /></button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto space-y-3 pr-2 scrollbar-thin">
+                {/* Empty State */}
+                {history.length === 0 && (
+                  <div className="text-center text-gray-400 py-10 text-sm">No history yet.</div>
+                )}
+
+                {history.map(session => (
+                  <div key={session.id} onClick={() => loadSession(session)} className="group p-4 rounded-xl border border-gray-100 hover:border-blue-200 hover:bg-blue-50/50 cursor-pointer transition-all relative">
+                    <div className="flex justify-between items-start mb-2">
+                      <span className="text-xs font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded-md uppercase tracking-wide">{session.language}</span>
+                      <button onClick={(e) => deleteHistoryItem(e, session.id)} className="opacity-0 group-hover:opacity-100 p-1.5 hover:bg-red-100 text-red-500 rounded-md transition-all"><Trash2 className="w-3.5 h-3.5" /></button>
+                    </div>
+                    <h3 className="font-bold text-gray-800 line-clamp-2 leading-snug mb-1">{session.input || "Random Topic"}</h3>
+                    <p className="text-[10px] text-gray-400 font-medium">{new Date(session.timestamp).toLocaleString()}</p>
+                    {/* Indicator for saved audio */}
+                    {session.audioMap && <div className="mt-2 flex items-center gap-1 text-[10px] text-green-600 font-bold"><Mic className="w-3 h-3" /> <span>Audio Saved</span></div>}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Collapsible Advanced Settings (Simplified) */}
         {showAdvanced && (

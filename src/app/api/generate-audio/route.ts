@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { EdgeTTS } from '@/utils/edge-tts';
-import * as googleTTS from 'google-tts-api';
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
@@ -17,13 +16,7 @@ function log(message: string) {
     console.log(message);
 }
 
-// Helper to download Google TTS audio to buffer directly
-async function downloadGoogleTTS(url: string, destPath: string): Promise<void> {
-    const response = await fetch(url);
-    const arrayBuffer = await response.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-    fs.writeFileSync(destPath, buffer);
-}
+
 
 async function generateSegment(
     segment: any,
@@ -33,36 +26,38 @@ async function generateSegment(
     speakers: any
 ) {
     const spk = segment.speaker;
-    const isEnglish = language === 'English';
-
-    // Force Google TTS for stability on Vercel
-    // EdgeTTS (node-edge-tts) tends to crash on Vercel Serverless
     const gender = speakers[spk]?.gender || 'female';
-    if (isEnglish) {
-        try {
-            // Use Edge TTS for English
-            const voice = gender === 'male' ? 'en-US-ChristopherNeural' : 'en-US-AriaNeural';
-            const tts = new EdgeTTS({
-                voice,
-                lang: 'en-US',
-                outputFormat: 'audio-24khz-96kbitrate-mono-mp3'
-            });
-            const result = await tts.call(segment.text);
-            fs.writeFileSync(filePath, result.data);
-            return;
-        } catch (e) {
-            console.error('EdgeTTS failed, falling back to Google', e);
+
+    // Map Voices
+    let voice = 'en-US-AriaNeural'; // Default
+    if (language === 'English') {
+        voice = gender === 'male' ? 'en-US-ChristopherNeural' : 'en-US-AriaNeural';
+    } else if (language === 'Vietnamese') {
+        // North: NamMinh (Male), HoaiMy (Female)
+        // South: An (Male), HoaiMy (Female - often used as standard)
+        // Let's refine based on user preference if passed, but for now strict mapping:
+
+        if (accentMode === 'south') {
+            // Microsoft doesn't have many purely South voices exposed easily publicly except HoaiMy (sometimes listed as South) or others.
+            // Let's use NamMinh as standard North and HoaiMy.
+            voice = gender === 'male' ? 'vi-VN-NamMinhNeural' : 'vi-VN-HoaiMyNeural';
+        } else {
+            voice = gender === 'male' ? 'vi-VN-NamMinhNeural' : 'vi-VN-HoaiMyNeural';
         }
     }
 
-    // Universal Google TTS Fallback
-    const langCode = isEnglish ? 'en' : 'vi';
-    const url = googleTTS.getAudioUrl(segment.text, {
-        lang: langCode,
-        slow: false,
-        host: 'https://translate.google.com',
-    });
-    await downloadGoogleTTS(url, filePath);
+    try {
+        const tts = new EdgeTTS({
+            voice,
+            lang: language === 'Vietnamese' ? 'vi-VN' : 'en-US',
+            outputFormat: 'audio-24khz-96kbitrate-mono-mp3'
+        });
+        const result = await tts.call(segment.text);
+        fs.writeFileSync(filePath, result.data);
+    } catch (e) {
+        console.error(`EdgeTTS failed for ${voice}`, e);
+        throw e; // Fail hard if TTS fails, no fallback
+    }
 }
 
 // Batch processing helper
