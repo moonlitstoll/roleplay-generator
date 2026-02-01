@@ -1,0 +1,40 @@
+const https = require('https');
+
+// We need the API key. Since we don't have it easily in env (it's in .env or passed from client), 
+// I will ask the user to provide it or try to grab from .env if possible.
+// Wait, the backend has been receiving it. I'll create a script that expects CLI arg or I'll try to find .env
+// For now, I'll write the script to just use a placeholder and I will try to run it if I can see the key in .env? 
+// No, I shouldn't peek at .env via cat if I can avoid it.
+// I will modify the script to read from process.env.GEMINI_API_KEY and I will try to run it.
+// If it fails, I will use a dummy one and see if it works? No.
+
+// Actually, I can use the existing `route.ts` logic to log the models if I hit a specific endpoint?
+// Or I can just write a script and run it with `GEMINI_API_KEY=... node list-models.js`.
+// But I don't have the key in my context openly.
+
+// Let's look at `d:\0. 안티그래비티\롤플레잉 생성기\roleplay-gen\.env` ? 
+// The user has `.env.example`. I don't know if `.env` exists.
+// Let's check `ls -a`.
+
+// Better idea: Modify the `test-edge-tts.js` to *also* try to fetch google translate TTS.
+// And I will try to fix Edge TTS 403 by adding headers.
+// "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Edg/120.0.0.0"
+// Sometimes that's enough.
+
+async function testEdgeWithHeaders() {
+    const { EdgeTTS } = require('@seepine/edge-tts');
+    const fs = require('fs');
+    
+    console.log("Testing Edge TTS with custom configuration (if supported)...");
+    // @seepine/edge-tts might not expose headers easily in constructor.
+    // Let's check source code I saw earlier.
+    // constructor({ voice, lang, outputFormat, proxy, rate, pitch, volume, timeout })
+    // It has `proxy`. It does NOT have `headers`.
+    
+    // However, I can try `google-translate-api` or simple `google-tts-api` package.
+    // `npm install google-tts-api`
+    // It provides slow=false (normal speed) audio url.
+}
+
+// Let's try to install `google-tts-api`.
+// It's a very small package.

@@ -1,0 +1,142 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { GoogleGenerativeAI, SchemaType } from '@google/generative-ai';
+
+export async function POST(req: NextRequest) {
+  try {
+    const { input, language, count, apiKey, model: modelName, accentMode = 'all-standard' } = await req.json();
+
+    console.log('[API] Request received:', { input, language, count, modelName });
+
+    const finalApiKey = apiKey || process.env.GEMINI_API_KEY;
+
+    if (!finalApiKey || finalApiKey === 'YOUR_GEMINI_API_KEY') {
+      return NextResponse.json({
+        error: 'Gemini API Key is currently missing.',
+        details: 'Please enter a valid API Key in the settings panel.'
+      }, { status: 400 });
+    }
+
+    const genAI = new GoogleGenerativeAI(finalApiKey);
+    const selectedModel = modelName || 'gemini-2.5-flash';
+
+    const schema: any = {
+      description: "Conversation script with speaker info",
+      type: SchemaType.OBJECT,
+      properties: {
+        speakers: {
+          type: SchemaType.OBJECT,
+          properties: {
+            A: {
+              type: SchemaType.OBJECT,
+              properties: {
+                gender: { type: SchemaType.STRING, enum: ["male", "female"], description: "Gender of speaker A" }
+              },
+              required: ["gender"]
+            },
+            B: {
+              type: SchemaType.OBJECT,
+              properties: {
+                gender: { type: SchemaType.STRING, enum: ["male", "female"], description: "Gender of speaker B" }
+              },
+              required: ["gender"]
+            }
+          },
+          required: ["A", "B"]
+        },
+        script: {
+          type: SchemaType.ARRAY,
+          items: {
+            type: SchemaType.OBJECT,
+            properties: {
+              speaker: { type: SchemaType.STRING, description: "Speaker identifier (A or B)" },
+              text: { type: SchemaType.STRING, description: "The spoken text in target language" },
+              translation: { type: SchemaType.STRING, description: "Korean translation" },
+              grammar_patterns: {
+                type: SchemaType.STRING,
+                description: "Key grammar/patterns used (in Korean only). No English."
+              },
+              word_analysis: {
+                type: SchemaType.STRING,
+                description: "Sequential breakdown of words with Korean meanings only. No English. Format: 'word: meaning, word: meaning...'"
+              },
+            },
+            required: ["speaker", "text", "translation", "grammar_patterns", "word_analysis"],
+          }
+        }
+      },
+      required: ["speakers", "script"]
+    };
+
+    const model = genAI.getGenerativeModel({
+      model: selectedModel,
+      generationConfig: {
+        responseMimeType: "application/json",
+        responseSchema: schema,
+      },
+    });
+
+    const isInputEmpty = !input || input.trim() === '';
+    const promptInput = isInputEmpty ? "Any interesting daily life or professional roleplay scenario" : input;
+
+    const prompt = `
+      You are an expert language conversation generator.
+      Create a roleplay script based on the following:
+      Input (Topic/Word/Scenario): "${promptInput}"
+      Target Language: ${language}
+      Accent/Dialect: General
+      Reference Language: Korean
+      Generate exactly ${count * 2} lines of conversation (alternating between speaker A and B).
+      
+      RANDOM GENERATION:
+      ${isInputEmpty ? "Since the input is empty, pick a random and engaging scenario (e.g., ordering food, job interview, checking into a hotel, meeting a friend, asking for directions)." : "Focus on the provided input."}
+
+      INPUT HANDLING STRATEGY:
+      1. **If Input is a Topic (e.g. 'Coffee Shop')**: Create a vivid, realistic situational drama.
+      2. **If Input is Vocabulary/Sentence**: Create a coherent dialogue that NATURALLY uses these words.
+
+      CRITICAL INSTRUCTION - NATURALNESS PRIORITY:
+      - **"Native-Level Polish"**: Even if the user's input contains awkward or grammatically incorrect target language, YOU MUST FIX IT.
+      - **Upgrade** the expressions to what a real native speaker would say in that situation.
+      - Usage of the input words must be natural, not forced.
+
+      KOREAN-ONLY EXPLANATIONS:
+      - All grammar explanations [grammar_patterns] MUST be in Korean.
+      - All word analyses [word_analysis] MUST be in Korean.
+      - DO NOT use English explanations at all.
+
+      GENDER ASSIGNMENT:
+      - Assign logical genders to Speakers A and B based on the scenario.
+      
+      DIALECT INSTRUCTIONS (Vietnamese):
+      - Use standard vocabulary that works for both regions if possible.
+      
+      CRITICAL INSTRUCTION:
+      If the user provides a dialogue script in the "Input", preserve those lines literally.
+      
+      [word_analysis] CRITICAL INSTRUCTIONS:
+      - Analyze meaningful chunks for language learners.
+      - GROUP idioms, phrasal verbs, and fixed expressions (e.g., "get up", "in front of") together. DO NOT split them.
+      - DO NOT include punctuation marks (., ?, !, etc.) as items to analyze.
+      - Explain the meaning/nuance in Korean.
+      - Format: "Word/Phrase (Korean meaning)"
+      - Format Example: 
+        • get up: 일어나다 (숙어)
+        • early: 일찍
+      - USE NEWLINES between items.
+      - Ensure the analysis flows sequentially.
+      - MUST BE INCLUDED for EVERY single line.
+    `;
+
+    const result = await model.generateContent(prompt);
+    const text = result.response.text();
+    const data = JSON.parse(text);
+
+    return NextResponse.json(data);
+  } catch (error: any) {
+    console.error('[API] Error generating script:', error);
+    return NextResponse.json({
+      error: 'Failed to generate script',
+      details: error.message
+    }, { status: 500 });
+  }
+}

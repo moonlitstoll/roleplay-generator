@@ -1,0 +1,405 @@
+[2026-02-01T15:55:13.064Z] Server Module Loaded
+[2026-02-01T15:55:13.065Z] FFmpeg Static Path: \ROOT\node_modules\ffmpeg-static\ffmpeg.exe
+[2026-02-01T15:55:13.065Z] FFprobe Static Path: \ROOT\node_modules\ffprobe-static\bin\win32\x64\ffprobe.exe
+[2026-02-01T15:55:13.069Z] POST Request Received
+[2026-02-01T15:55:13.070Z] Parsed Body: Lang=Vietnamese, Accent=all-standard, Segments=9
+[2026-02-01T15:55:13.618Z] Segment 0 generated: C:\Users\moong\AppData\Local\Temp\3945a360-aecf-4be6-b73d-add1b02005eb_0.mp3
+[2026-02-01T15:55:13.620Z] TTS Generation Error Stack: Error: spawn \ROOT\node_modules\ffprobe-static\bin\win32\x64\ffprobe.exe ENOENT
+    at ChildProcess._handle.onexit (node:internal/child_process:286:19)
+    at onErrorNT (node:internal/child_process:484:16)
+    at process.processTicksAndRejections (node:internal/process/task_queues:89:21)
+[2026-02-01T15:55:13.621Z] TTS Generation Error: spawn \ROOT\node_modules\ffprobe-static\bin\win32\x64\ffprobe.exe ENOENT
+[2026-02-01T15:57:28.533Z] Server Module Loaded
+[2026-02-01T15:57:28.534Z] FFmpeg Static Path: \ROOT\node_modules\ffmpeg-static\ffmpeg.exe
+[2026-02-01T15:57:28.534Z] FFprobe Static Path Raw: D:\0. 안티그래비티\롤플레잉 생성기\roleplay-gen\node_modules\ffprobe-static\bin\win32\x64\ffprobe.exe
+[2026-02-01T15:57:28.538Z] POST Request Received
+[2026-02-01T15:57:28.539Z] Parsed Body: Lang=Vietnamese, Accent=all-standard, Segments=9
+[2026-02-01T15:57:29.339Z] Segment 0 generated: C:\Users\moong\AppData\Local\Temp\e2ffa8a5-c78e-4b13-9bba-a35e16b24981_0.mp3
+[2026-02-01T15:57:29.383Z] Segment 0 duration: 3.072
+[2026-02-01T15:57:29.654Z] Segment 1 generated: C:\Users\moong\AppData\Local\Temp\e2ffa8a5-c78e-4b13-9bba-a35e16b24981_1.mp3
+[2026-02-01T15:57:29.702Z] Segment 1 duration: 3.72
+[2026-02-01T15:57:29.974Z] Segment 2 generated: C:\Users\moong\AppData\Local\Temp\e2ffa8a5-c78e-4b13-9bba-a35e16b24981_2.mp3
+[2026-02-01T15:57:30.027Z] Segment 2 duration: 5.472
+[2026-02-01T15:57:30.306Z] Segment 3 generated: C:\Users\moong\AppData\Local\Temp\e2ffa8a5-c78e-4b13-9bba-a35e16b24981_3.mp3
+[2026-02-01T15:57:30.350Z] Segment 3 duration: 1.752
+[2026-02-01T15:57:30.354Z] TTS Generation Error Stack: Error: spawn \ROOT\node_modules\ffmpeg-static\ffmpeg.exe ENOENT
+    at ChildProcess._handle.onexit (node:internal/child_process:286:19)
+    at onErrorNT (node:internal/child_process:484:16)
+    at process.processTicksAndRejections (node:internal/process/task_queues:89:21)
+[2026-02-01T15:57:30.355Z] TTS Generation Error: spawn \ROOT\node_modules\ffmpeg-static\ffmpeg.exe ENOENT
+[2026-02-01T15:58:54.052Z] Server Module Loaded
+[2026-02-01T15:58:54.053Z] FFmpeg Static Path Raw: \ROOT\node_modules\ffmpeg-static\ffmpeg.exe
+[2026-02-01T15:58:54.053Z] FFmpeg Resolved Path: D:\0. 안티그래비티\롤플레잉 생성기\roleplay-gen\node_modules\ffmpeg-static\ffmpeg.exe
+[2026-02-01T15:58:54.054Z] FFprobe Static Path Raw: \ROOT\node_modules\ffprobe-static\bin\win32\x64\ffprobe.exe
+[2026-02-01T15:58:54.054Z] FFprobe Resolved Path: D:\0. 안티그래비티\롤플레잉 생성기\roleplay-gen\node_modules\ffprobe-static\bin\win32\x64\ffprobe.exe
+[2026-02-01T15:58:54.057Z] POST Request Received
+[2026-02-01T15:58:54.058Z] Parsed Body: Lang=Vietnamese, Accent=all-standard, Segments=9
+[2026-02-01T15:58:54.483Z] Segment 0 generated: C:\Users\moong\AppData\Local\Temp\d7554ae7-bcce-4e78-ae30-b8ad997f8169_0.mp3
+[2026-02-01T15:58:54.524Z] Segment 0 duration: 4.272
+[2026-02-01T15:58:54.777Z] Segment 1 generated: C:\Users\moong\AppData\Local\Temp\d7554ae7-bcce-4e78-ae30-b8ad997f8169_1.mp3
+[2026-02-01T15:58:54.819Z] Segment 1 duration: 3.696
+[2026-02-01T15:58:55.052Z] Segment 2 generated: C:\Users\moong\AppData\Local\Temp\d7554ae7-bcce-4e78-ae30-b8ad997f8169_2.mp3
+[2026-02-01T15:58:55.085Z] Segment 2 duration: 6.696
+[2026-02-01T15:58:55.229Z] Segment 3 generated: C:\Users\moong\AppData\Local\Temp\d7554ae7-bcce-4e78-ae30-b8ad997f8169_3.mp3
+[2026-02-01T15:58:55.290Z] Segment 3 duration: 1.32
+[2026-02-01T15:58:55.783Z] Segment 4 duration: 2.037551
+[2026-02-01T15:58:55.981Z] Segment 5 generated: C:\Users\moong\AppData\Local\Temp\d7554ae7-bcce-4e78-ae30-b8ad997f8169_5.mp3
+[2026-02-01T15:58:56.027Z] Segment 5 duration: 3.312
+[2026-02-01T15:58:56.338Z] Segment 6 generated: C:\Users\moong\AppData\Local\Temp\d7554ae7-bcce-4e78-ae30-b8ad997f8169_6.mp3
+[2026-02-01T15:58:56.374Z] Segment 6 duration: 3.984
+[2026-02-01T15:58:56.676Z] Segment 7 generated: C:\Users\moong\AppData\Local\Temp\d7554ae7-bcce-4e78-ae30-b8ad997f8169_7.mp3
+[2026-02-01T15:58:56.710Z] Segment 7 duration: 5.016
+[2026-02-01T15:58:56.906Z] Segment 8 generated: C:\Users\moong\AppData\Local\Temp\d7554ae7-bcce-4e78-ae30-b8ad997f8169_8.mp3
+[2026-02-01T15:58:56.946Z] Segment 8 duration: 2.808
+[2026-02-01T15:58:57.196Z] POST Request Received
+[2026-02-01T15:58:57.197Z] Parsed Body: Lang=Vietnamese, Accent=south, Segments=9
+[2026-02-01T15:58:58.574Z] Segment 0 generated: C:\Users\moong\AppData\Local\Temp\8fad2161-644f-47c1-9f67-90491ae6faf7_0.mp3
+[2026-02-01T15:58:58.608Z] Segment 0 duration: 4.776
+[2026-02-01T15:58:59.941Z] Segment 1 generated: C:\Users\moong\AppData\Local\Temp\8fad2161-644f-47c1-9f67-90491ae6faf7_1.mp3
+[2026-02-01T15:58:59.973Z] Segment 1 duration: 4.344
+[2026-02-01T15:59:02.424Z] Segment 2 generated: C:\Users\moong\AppData\Local\Temp\8fad2161-644f-47c1-9f67-90491ae6faf7_2.mp3
+[2026-02-01T15:59:02.460Z] Segment 2 duration: 6.48
+[2026-02-01T15:59:03.149Z] Segment 3 generated: C:\Users\moong\AppData\Local\Temp\8fad2161-644f-47c1-9f67-90491ae6faf7_3.mp3
+[2026-02-01T15:59:03.184Z] Segment 3 duration: 1.776
+[2026-02-01T15:59:03.251Z] Segment 4 duration: 2.037551
+[2026-02-01T15:59:04.419Z] Segment 5 generated: C:\Users\moong\AppData\Local\Temp\8fad2161-644f-47c1-9f67-90491ae6faf7_5.mp3
+[2026-02-01T15:59:04.455Z] Segment 5 duration: 3.288
+[2026-02-01T15:59:05.990Z] Segment 6 generated: C:\Users\moong\AppData\Local\Temp\8fad2161-644f-47c1-9f67-90491ae6faf7_6.mp3
+[2026-02-01T15:59:06.023Z] Segment 6 duration: 4.584
+[2026-02-01T15:59:08.686Z] Segment 7 generated: C:\Users\moong\AppData\Local\Temp\8fad2161-644f-47c1-9f67-90491ae6faf7_7.mp3
+[2026-02-01T15:59:08.720Z] Segment 7 duration: 4.512
+[2026-02-01T15:59:09.999Z] Segment 8 generated: C:\Users\moong\AppData\Local\Temp\8fad2161-644f-47c1-9f67-90491ae6faf7_8.mp3
+[2026-02-01T15:59:10.032Z] Segment 8 duration: 2.856
+[2026-02-01T16:01:49.076Z] POST Request Received
+[2026-02-01T16:01:49.078Z] Parsed Body: Lang=English, Accent=standard-simulated, Segments=9
+[2026-02-01T16:01:49.742Z] Segment 0 generated: C:\Users\moong\AppData\Local\Temp\6cf73260-5cdf-452f-9cc6-1c85c4536814_0.mp3
+[2026-02-01T16:01:49.788Z] Segment 0 duration: 2.496
+[2026-02-01T16:01:51.251Z] Segment 1 generated: C:\Users\moong\AppData\Local\Temp\6cf73260-5cdf-452f-9cc6-1c85c4536814_1.mp3
+[2026-02-01T16:01:51.286Z] Segment 1 duration: 2.736
+[2026-02-01T16:01:52.098Z] Segment 2 generated: C:\Users\moong\AppData\Local\Temp\6cf73260-5cdf-452f-9cc6-1c85c4536814_2.mp3
+[2026-02-01T16:01:52.142Z] Segment 2 duration: 3.456
+[2026-02-01T16:01:53.396Z] Segment 3 generated: C:\Users\moong\AppData\Local\Temp\6cf73260-5cdf-452f-9cc6-1c85c4536814_3.mp3
+[2026-02-01T16:01:53.431Z] Segment 3 duration: 2.352
+[2026-02-01T16:01:53.502Z] Segment 4 duration: 2.037551
+[2026-02-01T16:01:54.283Z] Segment 5 generated: C:\Users\moong\AppData\Local\Temp\6cf73260-5cdf-452f-9cc6-1c85c4536814_5.mp3
+[2026-02-01T16:01:54.321Z] Segment 5 duration: 3.024
+[2026-02-01T16:01:56.824Z] Segment 6 generated: C:\Users\moong\AppData\Local\Temp\6cf73260-5cdf-452f-9cc6-1c85c4536814_6.mp3
+[2026-02-01T16:01:56.859Z] Segment 6 duration: 2.688
+[2026-02-01T16:01:57.519Z] Segment 7 generated: C:\Users\moong\AppData\Local\Temp\6cf73260-5cdf-452f-9cc6-1c85c4536814_7.mp3
+[2026-02-01T16:01:57.564Z] Segment 7 duration: 2.424
+[2026-02-01T16:01:58.807Z] Segment 8 generated: C:\Users\moong\AppData\Local\Temp\6cf73260-5cdf-452f-9cc6-1c85c4536814_8.mp3
+[2026-02-01T16:01:58.843Z] Segment 8 duration: 3.12
+[2026-02-01T16:03:29.342Z] POST Request Received
+[2026-02-01T16:03:29.343Z] Parsed Body: Lang=Vietnamese, Accent=all-standard, Segments=8
+[2026-02-01T16:03:29.663Z] Segment 0 generated: C:\Users\moong\AppData\Local\Temp\fedae4fe-9578-4e2e-894e-9406c04711e3_0.mp3
+[2026-02-01T16:03:29.699Z] Segment 0 duration: 2.928
+[2026-02-01T16:03:29.819Z] Segment 1 generated: C:\Users\moong\AppData\Local\Temp\fedae4fe-9578-4e2e-894e-9406c04711e3_1.mp3
+[2026-02-01T16:03:29.864Z] Segment 1 duration: 3.336
+[2026-02-01T16:03:30.034Z] Segment 2 generated: C:\Users\moong\AppData\Local\Temp\fedae4fe-9578-4e2e-894e-9406c04711e3_2.mp3
+[2026-02-01T16:03:30.087Z] Segment 2 duration: 2.952
+[2026-02-01T16:03:30.232Z] Segment 3 generated: C:\Users\moong\AppData\Local\Temp\fedae4fe-9578-4e2e-894e-9406c04711e3_3.mp3
+[2026-02-01T16:03:30.269Z] Segment 3 duration: 3.384
+[2026-02-01T16:03:30.463Z] Segment 4 generated: C:\Users\moong\AppData\Local\Temp\fedae4fe-9578-4e2e-894e-9406c04711e3_4.mp3
+[2026-02-01T16:03:30.516Z] Segment 4 duration: 4.296
+[2026-02-01T16:03:30.691Z] Segment 5 generated: C:\Users\moong\AppData\Local\Temp\fedae4fe-9578-4e2e-894e-9406c04711e3_5.mp3
+[2026-02-01T16:03:30.727Z] Segment 5 duration: 5.064
+[2026-02-01T16:03:30.877Z] Segment 6 generated: C:\Users\moong\AppData\Local\Temp\fedae4fe-9578-4e2e-894e-9406c04711e3_6.mp3
+[2026-02-01T16:03:30.914Z] Segment 6 duration: 2.88
+[2026-02-01T16:03:31.148Z] Segment 7 generated: C:\Users\moong\AppData\Local\Temp\fedae4fe-9578-4e2e-894e-9406c04711e3_7.mp3
+[2026-02-01T16:03:31.185Z] Segment 7 duration: 6.024
+[2026-02-01T16:03:31.437Z] POST Request Received
+[2026-02-01T16:03:31.438Z] Parsed Body: Lang=Vietnamese, Accent=south, Segments=8
+[2026-02-01T16:03:32.668Z] Segment 0 generated: C:\Users\moong\AppData\Local\Temp\2b6686e1-f8fd-4cbe-b157-05d1bfd856c8_0.mp3
+[2026-02-01T16:03:32.735Z] Segment 0 duration: 3.048
+[2026-02-01T16:03:33.785Z] Segment 1 generated: C:\Users\moong\AppData\Local\Temp\2b6686e1-f8fd-4cbe-b157-05d1bfd856c8_1.mp3
+[2026-02-01T16:03:33.844Z] Segment 1 duration: 3.312
+[2026-02-01T16:03:34.783Z] Segment 2 generated: C:\Users\moong\AppData\Local\Temp\2b6686e1-f8fd-4cbe-b157-05d1bfd856c8_2.mp3
+[2026-02-01T16:03:34.838Z] Segment 2 duration: 3.264
+[2026-02-01T16:03:36.322Z] Segment 3 generated: C:\Users\moong\AppData\Local\Temp\2b6686e1-f8fd-4cbe-b157-05d1bfd856c8_3.mp3
+[2026-02-01T16:03:36.373Z] Segment 3 duration: 3.624
+[2026-02-01T16:03:37.607Z] Segment 4 generated: C:\Users\moong\AppData\Local\Temp\2b6686e1-f8fd-4cbe-b157-05d1bfd856c8_4.mp3
+[2026-02-01T16:03:37.659Z] Segment 4 duration: 3.912
+[2026-02-01T16:03:40.364Z] Segment 5 generated: C:\Users\moong\AppData\Local\Temp\2b6686e1-f8fd-4cbe-b157-05d1bfd856c8_5.mp3
+[2026-02-01T16:03:40.406Z] Segment 5 duration: 4.44
+[2026-02-01T16:03:41.298Z] Segment 6 generated: C:\Users\moong\AppData\Local\Temp\2b6686e1-f8fd-4cbe-b157-05d1bfd856c8_6.mp3
+[2026-02-01T16:03:41.341Z] Segment 6 duration: 3.192
+[2026-02-01T16:03:43.380Z] Segment 7 generated: C:\Users\moong\AppData\Local\Temp\2b6686e1-f8fd-4cbe-b157-05d1bfd856c8_7.mp3
+[2026-02-01T16:03:43.437Z] Segment 7 duration: 5.112
+[2026-02-01T16:05:16.712Z] POST Request Received
+[2026-02-01T16:05:16.714Z] Parsed Body: Lang=Vietnamese, Accent=all-standard, Segments=10
+[2026-02-01T16:05:16.959Z] Segment 0 generated: C:\Users\moong\AppData\Local\Temp\80fb2c70-7119-4a36-8f02-96f3e0459cbe_0.mp3
+[2026-02-01T16:05:16.993Z] Segment 0 duration: 3.216
+[2026-02-01T16:05:17.130Z] Segment 1 generated: C:\Users\moong\AppData\Local\Temp\80fb2c70-7119-4a36-8f02-96f3e0459cbe_1.mp3
+[2026-02-01T16:05:17.179Z] Segment 1 duration: 4.272
+[2026-02-01T16:05:17.322Z] Segment 2 generated: C:\Users\moong\AppData\Local\Temp\80fb2c70-7119-4a36-8f02-96f3e0459cbe_2.mp3
+[2026-02-01T16:05:17.356Z] Segment 2 duration: 3.576
+[2026-02-01T16:05:17.538Z] Segment 3 generated: C:\Users\moong\AppData\Local\Temp\80fb2c70-7119-4a36-8f02-96f3e0459cbe_3.mp3
+[2026-02-01T16:05:17.571Z] Segment 3 duration: 4.584
+[2026-02-01T16:05:17.743Z] Segment 4 generated: C:\Users\moong\AppData\Local\Temp\80fb2c70-7119-4a36-8f02-96f3e0459cbe_4.mp3
+[2026-02-01T16:05:17.815Z] Segment 4 duration: 3.432
+[2026-02-01T16:05:18.023Z] Segment 5 generated: C:\Users\moong\AppData\Local\Temp\80fb2c70-7119-4a36-8f02-96f3e0459cbe_5.mp3
+[2026-02-01T16:05:18.057Z] Segment 5 duration: 2.88
+[2026-02-01T16:05:18.373Z] Segment 6 generated: C:\Users\moong\AppData\Local\Temp\80fb2c70-7119-4a36-8f02-96f3e0459cbe_6.mp3
+[2026-02-01T16:05:18.406Z] Segment 6 duration: 2.784
+[2026-02-01T16:05:18.598Z] Segment 7 generated: C:\Users\moong\AppData\Local\Temp\80fb2c70-7119-4a36-8f02-96f3e0459cbe_7.mp3
+[2026-02-01T16:05:18.631Z] Segment 7 duration: 4.488
+[2026-02-01T16:05:18.843Z] Segment 8 generated: C:\Users\moong\AppData\Local\Temp\80fb2c70-7119-4a36-8f02-96f3e0459cbe_8.mp3
+[2026-02-01T16:05:18.910Z] Segment 8 duration: 3.36
+[2026-02-01T16:05:19.038Z] Segment 9 generated: C:\Users\moong\AppData\Local\Temp\80fb2c70-7119-4a36-8f02-96f3e0459cbe_9.mp3
+[2026-02-01T16:05:19.072Z] Segment 9 duration: 2.688
+[2026-02-01T16:05:19.338Z] POST Request Received
+[2026-02-01T16:05:19.339Z] Parsed Body: Lang=Vietnamese, Accent=south, Segments=10
+[2026-02-01T16:05:20.622Z] Segment 0 generated: C:\Users\moong\AppData\Local\Temp\3638ae91-342d-4ee8-b336-f3f9e297ae4c_0.mp3
+[2026-02-01T16:05:20.663Z] Segment 0 duration: 3.432
+[2026-02-01T16:05:21.892Z] Segment 1 generated: C:\Users\moong\AppData\Local\Temp\3638ae91-342d-4ee8-b336-f3f9e297ae4c_1.mp3
+[2026-02-01T16:05:21.926Z] Segment 1 duration: 3.624
+[2026-02-01T16:05:24.477Z] Segment 2 generated: C:\Users\moong\AppData\Local\Temp\3638ae91-342d-4ee8-b336-f3f9e297ae4c_2.mp3
+[2026-02-01T16:05:24.518Z] Segment 2 duration: 4.392
+[2026-02-01T16:05:25.943Z] Segment 3 generated: C:\Users\moong\AppData\Local\Temp\3638ae91-342d-4ee8-b336-f3f9e297ae4c_3.mp3
+[2026-02-01T16:05:25.977Z] Segment 3 duration: 4.032
+[2026-02-01T16:05:26.947Z] Segment 4 generated: C:\Users\moong\AppData\Local\Temp\3638ae91-342d-4ee8-b336-f3f9e297ae4c_4.mp3
+[2026-02-01T16:05:26.996Z] Segment 4 duration: 3.192
+[2026-02-01T16:05:28.782Z] Segment 5 generated: C:\Users\moong\AppData\Local\Temp\3638ae91-342d-4ee8-b336-f3f9e297ae4c_5.mp3
+[2026-02-01T16:05:28.816Z] Segment 5 duration: 2.928
+[2026-02-01T16:05:30.685Z] Segment 6 generated: C:\Users\moong\AppData\Local\Temp\3638ae91-342d-4ee8-b336-f3f9e297ae4c_6.mp3
+[2026-02-01T16:05:30.720Z] Segment 6 duration: 2.928
+[2026-02-01T16:05:32.699Z] Segment 7 generated: C:\Users\moong\AppData\Local\Temp\3638ae91-342d-4ee8-b336-f3f9e297ae4c_7.mp3
+[2026-02-01T16:05:32.744Z] Segment 7 duration: 3.864
+[2026-02-01T16:05:34.201Z] Segment 8 generated: C:\Users\moong\AppData\Local\Temp\3638ae91-342d-4ee8-b336-f3f9e297ae4c_8.mp3
+[2026-02-01T16:05:34.275Z] Segment 8 duration: 3.288
+[2026-02-01T16:05:35.255Z] Segment 9 generated: C:\Users\moong\AppData\Local\Temp\3638ae91-342d-4ee8-b336-f3f9e297ae4c_9.mp3
+[2026-02-01T16:05:35.289Z] Segment 9 duration: 2.952
+[2026-02-01T16:08:32.207Z] POST Request Received
+[2026-02-01T16:08:32.208Z] Parsed Body: Lang=Vietnamese, Accent=all-standard, Segments=8
+[2026-02-01T16:08:33.014Z] Segment 0 generated: C:\Users\moong\AppData\Local\Temp\eecb02a8-bff2-4e41-86c1-0fed3af99673_0.mp3
+[2026-02-01T16:08:33.064Z] Segment 0 duration: 2.616
+[2026-02-01T16:08:33.475Z] Segment 1 generated: C:\Users\moong\AppData\Local\Temp\eecb02a8-bff2-4e41-86c1-0fed3af99673_1.mp3
+[2026-02-01T16:08:33.511Z] Segment 1 duration: 4.224
+[2026-02-01T16:08:33.755Z] Segment 2 generated: C:\Users\moong\AppData\Local\Temp\eecb02a8-bff2-4e41-86c1-0fed3af99673_2.mp3
+[2026-02-01T16:08:33.790Z] Segment 2 duration: 1.272
+[2026-02-01T16:08:34.016Z] Segment 3 generated: C:\Users\moong\AppData\Local\Temp\eecb02a8-bff2-4e41-86c1-0fed3af99673_3.mp3
+[2026-02-01T16:08:34.055Z] Segment 3 duration: 4.656
+[2026-02-01T16:08:34.291Z] Segment 4 generated: C:\Users\moong\AppData\Local\Temp\eecb02a8-bff2-4e41-86c1-0fed3af99673_4.mp3
+[2026-02-01T16:08:34.329Z] Segment 4 duration: 2.616
+[2026-02-01T16:08:34.549Z] Segment 5 generated: C:\Users\moong\AppData\Local\Temp\eecb02a8-bff2-4e41-86c1-0fed3af99673_5.mp3
+[2026-02-01T16:08:34.612Z] Segment 5 duration: 1.992
+[2026-02-01T16:08:34.842Z] Segment 6 generated: C:\Users\moong\AppData\Local\Temp\eecb02a8-bff2-4e41-86c1-0fed3af99673_6.mp3
+[2026-02-01T16:08:34.880Z] Segment 6 duration: 2.088
+[2026-02-01T16:08:35.189Z] Segment 7 generated: C:\Users\moong\AppData\Local\Temp\eecb02a8-bff2-4e41-86c1-0fed3af99673_7.mp3
+[2026-02-01T16:08:35.225Z] Segment 7 duration: 1.344
+[2026-02-01T16:08:35.425Z] POST Request Received
+[2026-02-01T16:08:35.426Z] Parsed Body: Lang=Vietnamese, Accent=south, Segments=8
+[2026-02-01T16:08:36.579Z] Segment 0 generated: C:\Users\moong\AppData\Local\Temp\76302e57-5008-4b04-a1af-95aee932d5d7_0.mp3
+[2026-02-01T16:08:36.624Z] Segment 0 duration: 2.952
+[2026-02-01T16:08:38.574Z] Segment 1 generated: C:\Users\moong\AppData\Local\Temp\76302e57-5008-4b04-a1af-95aee932d5d7_1.mp3
+[2026-02-01T16:08:38.621Z] Segment 1 duration: 4.896
+[2026-02-01T16:08:39.540Z] Segment 2 generated: C:\Users\moong\AppData\Local\Temp\76302e57-5008-4b04-a1af-95aee932d5d7_2.mp3
+[2026-02-01T16:08:39.595Z] Segment 2 duration: 1.776
+[2026-02-01T16:08:41.930Z] Segment 3 generated: C:\Users\moong\AppData\Local\Temp\76302e57-5008-4b04-a1af-95aee932d5d7_3.mp3
+[2026-02-01T16:08:41.986Z] Segment 3 duration: 4.176
+[2026-02-01T16:08:43.081Z] Segment 4 generated: C:\Users\moong\AppData\Local\Temp\76302e57-5008-4b04-a1af-95aee932d5d7_4.mp3
+[2026-02-01T16:08:43.127Z] Segment 4 duration: 2.952
+[2026-02-01T16:08:44.605Z] Segment 5 generated: C:\Users\moong\AppData\Local\Temp\76302e57-5008-4b04-a1af-95aee932d5d7_5.mp3
+[2026-02-01T16:08:44.655Z] Segment 5 duration: 2.208
+[2026-02-01T16:08:46.086Z] Segment 6 generated: C:\Users\moong\AppData\Local\Temp\76302e57-5008-4b04-a1af-95aee932d5d7_6.mp3
+[2026-02-01T16:08:46.135Z] Segment 6 duration: 2.376
+[2026-02-01T16:08:46.958Z] Segment 7 generated: C:\Users\moong\AppData\Local\Temp\76302e57-5008-4b04-a1af-95aee932d5d7_7.mp3
+[2026-02-01T16:08:47.017Z] Segment 7 duration: 1.992
+[2026-02-01T16:10:04.487Z] POST Request Received
+[2026-02-01T16:10:04.488Z] Parsed Body: Lang=Vietnamese, Accent=all-standard, Segments=8
+[2026-02-01T16:10:04.876Z] Segment 0 generated: C:\Users\moong\AppData\Local\Temp\0c186f5d-a33b-4074-8235-a39fc3ba046c_0.mp3
+[2026-02-01T16:10:04.916Z] Segment 0 duration: 3.264
+[2026-02-01T16:10:05.198Z] Segment 1 generated: C:\Users\moong\AppData\Local\Temp\0c186f5d-a33b-4074-8235-a39fc3ba046c_1.mp3
+[2026-02-01T16:10:05.244Z] Segment 1 duration: 3.24
+[2026-02-01T16:10:05.391Z] Segment 2 generated: C:\Users\moong\AppData\Local\Temp\0c186f5d-a33b-4074-8235-a39fc3ba046c_2.mp3
+[2026-02-01T16:10:05.445Z] Segment 2 duration: 2.688
+[2026-02-01T16:10:05.681Z] Segment 3 generated: C:\Users\moong\AppData\Local\Temp\0c186f5d-a33b-4074-8235-a39fc3ba046c_3.mp3
+[2026-02-01T16:10:05.716Z] Segment 3 duration: 2.832
+[2026-02-01T16:10:05.894Z] Segment 4 generated: C:\Users\moong\AppData\Local\Temp\0c186f5d-a33b-4074-8235-a39fc3ba046c_4.mp3
+[2026-02-01T16:10:05.929Z] Segment 4 duration: 1.704
+[2026-02-01T16:10:06.125Z] Segment 5 generated: C:\Users\moong\AppData\Local\Temp\0c186f5d-a33b-4074-8235-a39fc3ba046c_5.mp3
+[2026-02-01T16:10:06.159Z] Segment 5 duration: 2.064
+[2026-02-01T16:10:06.337Z] Segment 6 generated: C:\Users\moong\AppData\Local\Temp\0c186f5d-a33b-4074-8235-a39fc3ba046c_6.mp3
+[2026-02-01T16:10:06.376Z] Segment 6 duration: 1.248
+[2026-02-01T16:10:06.611Z] Segment 7 generated: C:\Users\moong\AppData\Local\Temp\0c186f5d-a33b-4074-8235-a39fc3ba046c_7.mp3
+[2026-02-01T16:10:06.646Z] Segment 7 duration: 4.32
+[2026-02-01T16:10:06.851Z] POST Request Received
+[2026-02-01T16:10:06.852Z] Parsed Body: Lang=Vietnamese, Accent=south, Segments=8
+[2026-02-01T16:10:08.076Z] Segment 0 generated: C:\Users\moong\AppData\Local\Temp\c122f839-3e41-4a4a-a375-627d10c630ab_0.mp3
+[2026-02-01T16:10:08.131Z] Segment 0 duration: 3.384
+[2026-02-01T16:10:09.779Z] Segment 1 generated: C:\Users\moong\AppData\Local\Temp\c122f839-3e41-4a4a-a375-627d10c630ab_1.mp3
+[2026-02-01T16:10:09.831Z] Segment 1 duration: 3.888
+[2026-02-01T16:10:10.868Z] Segment 2 generated: C:\Users\moong\AppData\Local\Temp\c122f839-3e41-4a4a-a375-627d10c630ab_2.mp3
+[2026-02-01T16:10:10.916Z] Segment 2 duration: 2.688
+[2026-02-01T16:10:12.516Z] Segment 3 generated: C:\Users\moong\AppData\Local\Temp\c122f839-3e41-4a4a-a375-627d10c630ab_3.mp3
+[2026-02-01T16:10:12.562Z] Segment 3 duration: 3.216
+[2026-02-01T16:10:13.403Z] Segment 4 generated: C:\Users\moong\AppData\Local\Temp\c122f839-3e41-4a4a-a375-627d10c630ab_4.mp3
+[2026-02-01T16:10:13.453Z] Segment 4 duration: 2.256
+[2026-02-01T16:10:14.190Z] Segment 5 generated: C:\Users\moong\AppData\Local\Temp\c122f839-3e41-4a4a-a375-627d10c630ab_5.mp3
+[2026-02-01T16:10:14.234Z] Segment 5 duration: 2.304
+[2026-02-01T16:10:14.973Z] Segment 6 generated: C:\Users\moong\AppData\Local\Temp\c122f839-3e41-4a4a-a375-627d10c630ab_6.mp3
+[2026-02-01T16:10:15.051Z] Segment 6 duration: 1.776
+[2026-02-01T16:10:18.867Z] Segment 7 generated: C:\Users\moong\AppData\Local\Temp\c122f839-3e41-4a4a-a375-627d10c630ab_7.mp3
+[2026-02-01T16:10:18.905Z] Segment 7 duration: 4.68
+[2026-02-01T16:11:21.186Z] POST Request Received
+[2026-02-01T16:11:21.187Z] Parsed Body: Lang=English, Accent=standard-simulated, Segments=8
+[2026-02-01T16:11:21.764Z] Segment 0 generated: C:\Users\moong\AppData\Local\Temp\322b99a4-9e6b-435e-9ffa-6fe97378359e_0.mp3
+[2026-02-01T16:11:21.802Z] Segment 0 duration: 2.328
+[2026-02-01T16:11:23.084Z] Segment 1 generated: C:\Users\moong\AppData\Local\Temp\322b99a4-9e6b-435e-9ffa-6fe97378359e_1.mp3
+[2026-02-01T16:11:23.122Z] Segment 1 duration: 2.664
+[2026-02-01T16:11:23.854Z] Segment 2 generated: C:\Users\moong\AppData\Local\Temp\322b99a4-9e6b-435e-9ffa-6fe97378359e_2.mp3
+[2026-02-01T16:11:23.909Z] Segment 2 duration: 3.48
+[2026-02-01T16:11:25.375Z] Segment 3 generated: C:\Users\moong\AppData\Local\Temp\322b99a4-9e6b-435e-9ffa-6fe97378359e_3.mp3
+[2026-02-01T16:11:25.408Z] Segment 3 duration: 3.264
+[2026-02-01T16:11:26.002Z] Segment 4 generated: C:\Users\moong\AppData\Local\Temp\322b99a4-9e6b-435e-9ffa-6fe97378359e_4.mp3
+[2026-02-01T16:11:26.039Z] Segment 4 duration: 3.168
+[2026-02-01T16:11:27.832Z] Segment 5 generated: C:\Users\moong\AppData\Local\Temp\322b99a4-9e6b-435e-9ffa-6fe97378359e_5.mp3
+[2026-02-01T16:11:27.878Z] Segment 5 duration: 3.12
+[2026-02-01T16:11:28.571Z] Segment 6 generated: C:\Users\moong\AppData\Local\Temp\322b99a4-9e6b-435e-9ffa-6fe97378359e_6.mp3
+[2026-02-01T16:11:28.616Z] Segment 6 duration: 2.664
+[2026-02-01T16:11:30.071Z] Segment 7 generated: C:\Users\moong\AppData\Local\Temp\322b99a4-9e6b-435e-9ffa-6fe97378359e_7.mp3
+[2026-02-01T16:11:30.107Z] Segment 7 duration: 3.216
+[2026-02-01T16:12:57.131Z] POST Request Received
+[2026-02-01T16:12:57.132Z] Parsed Body: Lang=Vietnamese, Accent=all-standard, Segments=8
+[2026-02-01T16:12:57.502Z] Segment 0 generated: C:\Users\moong\AppData\Local\Temp\cc424509-0cb9-4ab4-b369-432ac98d7fb1_0.mp3
+[2026-02-01T16:12:57.538Z] Segment 0 duration: 1.968
+[2026-02-01T16:12:57.840Z] Segment 1 generated: C:\Users\moong\AppData\Local\Temp\cc424509-0cb9-4ab4-b369-432ac98d7fb1_1.mp3
+[2026-02-01T16:12:57.874Z] Segment 1 duration: 2.184
+[2026-02-01T16:12:58.082Z] Segment 2 generated: C:\Users\moong\AppData\Local\Temp\cc424509-0cb9-4ab4-b369-432ac98d7fb1_2.mp3
+[2026-02-01T16:12:58.130Z] Segment 2 duration: 3.312
+[2026-02-01T16:12:58.386Z] Segment 3 generated: C:\Users\moong\AppData\Local\Temp\cc424509-0cb9-4ab4-b369-432ac98d7fb1_3.mp3
+[2026-02-01T16:12:58.421Z] Segment 3 duration: 3.384
+[2026-02-01T16:12:58.740Z] Segment 4 generated: C:\Users\moong\AppData\Local\Temp\cc424509-0cb9-4ab4-b369-432ac98d7fb1_4.mp3
+[2026-02-01T16:12:58.797Z] Segment 4 duration: 1.8
+[2026-02-01T16:12:59.081Z] Segment 5 generated: C:\Users\moong\AppData\Local\Temp\cc424509-0cb9-4ab4-b369-432ac98d7fb1_5.mp3
+[2026-02-01T16:12:59.115Z] Segment 5 duration: 3.384
+[2026-02-01T16:12:59.351Z] Segment 6 generated: C:\Users\moong\AppData\Local\Temp\cc424509-0cb9-4ab4-b369-432ac98d7fb1_6.mp3
+[2026-02-01T16:12:59.386Z] Segment 6 duration: 3.312
+[2026-02-01T16:12:59.697Z] Segment 7 generated: C:\Users\moong\AppData\Local\Temp\cc424509-0cb9-4ab4-b369-432ac98d7fb1_7.mp3
+[2026-02-01T16:12:59.741Z] Segment 7 duration: 2.976
+[2026-02-01T16:12:59.949Z] POST Request Received
+[2026-02-01T16:12:59.949Z] Parsed Body: Lang=Vietnamese, Accent=south, Segments=8
+[2026-02-01T16:13:00.985Z] Segment 0 generated: C:\Users\moong\AppData\Local\Temp\af64818e-3420-491e-b0d3-ce043bc7356e_0.mp3
+[2026-02-01T16:13:01.048Z] Segment 0 duration: 2.232
+[2026-02-01T16:13:03.398Z] Segment 1 generated: C:\Users\moong\AppData\Local\Temp\af64818e-3420-491e-b0d3-ce043bc7356e_1.mp3
+[2026-02-01T16:13:03.443Z] Segment 1 duration: 3.168
+[2026-02-01T16:13:04.458Z] Segment 2 generated: C:\Users\moong\AppData\Local\Temp\af64818e-3420-491e-b0d3-ce043bc7356e_2.mp3
+[2026-02-01T16:13:04.505Z] Segment 2 duration: 3.504
+[2026-02-01T16:13:05.733Z] Segment 3 generated: C:\Users\moong\AppData\Local\Temp\af64818e-3420-491e-b0d3-ce043bc7356e_3.mp3
+[2026-02-01T16:13:05.779Z] Segment 3 duration: 3.984
+[2026-02-01T16:13:06.683Z] Segment 4 generated: C:\Users\moong\AppData\Local\Temp\af64818e-3420-491e-b0d3-ce043bc7356e_4.mp3
+[2026-02-01T16:13:06.730Z] Segment 4 duration: 2.232
+[2026-02-01T16:13:07.825Z] Segment 5 generated: C:\Users\moong\AppData\Local\Temp\af64818e-3420-491e-b0d3-ce043bc7356e_5.mp3
+[2026-02-01T16:13:07.875Z] Segment 5 duration: 4.032
+[2026-02-01T16:13:08.849Z] Segment 6 generated: C:\Users\moong\AppData\Local\Temp\af64818e-3420-491e-b0d3-ce043bc7356e_6.mp3
+[2026-02-01T16:13:08.895Z] Segment 6 duration: 3.336
+[2026-02-01T16:13:09.983Z] Segment 7 generated: C:\Users\moong\AppData\Local\Temp\af64818e-3420-491e-b0d3-ce043bc7356e_7.mp3
+[2026-02-01T16:13:10.035Z] Segment 7 duration: 4.032
+[2026-02-01T16:17:39.059Z] POST Request Received
+[2026-02-01T16:17:39.061Z] Parsed Body: Lang=Vietnamese, Accent=south, Segments=8
+[2026-02-01T16:17:40.063Z] Segment 0 generated: C:\Users\moong\AppData\Local\Temp\2a6cf83f-3836-43c6-be8f-67088e1693da_0.mp3
+[2026-02-01T16:17:40.116Z] Segment 0 duration: 3.408
+[2026-02-01T16:17:41.547Z] Segment 1 generated: C:\Users\moong\AppData\Local\Temp\2a6cf83f-3836-43c6-be8f-67088e1693da_1.mp3
+[2026-02-01T16:17:41.607Z] Segment 1 duration: 5.232
+[2026-02-01T16:17:43.379Z] Segment 2 generated: C:\Users\moong\AppData\Local\Temp\2a6cf83f-3836-43c6-be8f-67088e1693da_2.mp3
+[2026-02-01T16:17:43.414Z] Segment 2 duration: 4.608
+[2026-02-01T16:17:45.841Z] Segment 3 generated: C:\Users\moong\AppData\Local\Temp\2a6cf83f-3836-43c6-be8f-67088e1693da_3.mp3
+[2026-02-01T16:17:45.888Z] Segment 3 duration: 7.344
+[2026-02-01T16:17:47.555Z] Segment 4 generated: C:\Users\moong\AppData\Local\Temp\2a6cf83f-3836-43c6-be8f-67088e1693da_4.mp3
+[2026-02-01T16:17:47.590Z] Segment 4 duration: 5.928
+[2026-02-01T16:17:49.915Z] Segment 5 generated: C:\Users\moong\AppData\Local\Temp\2a6cf83f-3836-43c6-be8f-67088e1693da_5.mp3
+[2026-02-01T16:17:49.951Z] Segment 5 duration: 7.344
+[2026-02-01T16:17:51.482Z] Segment 6 generated: C:\Users\moong\AppData\Local\Temp\2a6cf83f-3836-43c6-be8f-67088e1693da_6.mp3
+[2026-02-01T16:17:51.533Z] Segment 6 duration: 5.592
+[2026-02-01T16:17:53.262Z] Segment 7 generated: C:\Users\moong\AppData\Local\Temp\2a6cf83f-3836-43c6-be8f-67088e1693da_7.mp3
+[2026-02-01T16:17:53.307Z] Segment 7 duration: 5.424
+[2026-02-01T16:17:53.610Z] POST Request Received
+[2026-02-01T16:17:53.611Z] Parsed Body: Lang=Vietnamese, Accent=all-standard, Segments=8
+[2026-02-01T16:17:53.921Z] Segment 0 generated: C:\Users\moong\AppData\Local\Temp\ad87e218-7141-404e-ae47-831aac231a87_0.mp3
+[2026-02-01T16:17:53.968Z] Segment 0 duration: 3.456
+[2026-02-01T16:17:54.195Z] Segment 1 generated: C:\Users\moong\AppData\Local\Temp\ad87e218-7141-404e-ae47-831aac231a87_1.mp3
+[2026-02-01T16:17:54.236Z] Segment 1 duration: 6.96
+[2026-02-01T16:17:54.410Z] Segment 2 generated: C:\Users\moong\AppData\Local\Temp\ad87e218-7141-404e-ae47-831aac231a87_2.mp3
+[2026-02-01T16:17:54.445Z] Segment 2 duration: 5.424
+[2026-02-01T16:17:54.643Z] Segment 3 generated: C:\Users\moong\AppData\Local\Temp\ad87e218-7141-404e-ae47-831aac231a87_3.mp3
+[2026-02-01T16:17:54.679Z] Segment 3 duration: 8.4
+[2026-02-01T16:17:54.883Z] Segment 4 generated: C:\Users\moong\AppData\Local\Temp\ad87e218-7141-404e-ae47-831aac231a87_4.mp3
+[2026-02-01T16:17:54.919Z] Segment 4 duration: 7.44
+[2026-02-01T16:17:55.148Z] Segment 5 generated: C:\Users\moong\AppData\Local\Temp\ad87e218-7141-404e-ae47-831aac231a87_5.mp3
+[2026-02-01T16:17:55.184Z] Segment 5 duration: 7.896
+[2026-02-01T16:17:55.507Z] Segment 6 generated: C:\Users\moong\AppData\Local\Temp\ad87e218-7141-404e-ae47-831aac231a87_6.mp3
+[2026-02-01T16:17:55.543Z] Segment 6 duration: 7.176
+[2026-02-01T16:17:55.742Z] Segment 7 generated: C:\Users\moong\AppData\Local\Temp\ad87e218-7141-404e-ae47-831aac231a87_7.mp3
+[2026-02-01T16:17:55.782Z] Segment 7 duration: 6.696
+[2026-02-01T16:21:54.589Z] POST Request Received
+[2026-02-01T16:21:54.593Z] Parsed Body: Lang=English, Accent=standard-simulated, Segments=8
+[2026-02-01T16:21:55.448Z] Segment 0 generated: C:\Users\moong\AppData\Local\Temp\b361b811-a696-4f84-b7f1-673ee4852b7f_0.mp3
+[2026-02-01T16:21:55.540Z] Segment 0 duration: 6.12
+[2026-02-01T16:21:57.976Z] Segment 1 generated: C:\Users\moong\AppData\Local\Temp\b361b811-a696-4f84-b7f1-673ee4852b7f_1.mp3
+[2026-02-01T16:21:58.012Z] Segment 1 duration: 7.08
+[2026-02-01T16:21:59.464Z] Segment 2 generated: C:\Users\moong\AppData\Local\Temp\b361b811-a696-4f84-b7f1-673ee4852b7f_2.mp3
+[2026-02-01T16:21:59.500Z] Segment 2 duration: 7.176
+[2026-02-01T16:22:03.245Z] Segment 3 generated: C:\Users\moong\AppData\Local\Temp\b361b811-a696-4f84-b7f1-673ee4852b7f_3.mp3
+[2026-02-01T16:22:03.279Z] Segment 3 duration: 7.056
+[2026-02-01T16:22:05.191Z] Segment 4 generated: C:\Users\moong\AppData\Local\Temp\b361b811-a696-4f84-b7f1-673ee4852b7f_4.mp3
+[2026-02-01T16:22:05.256Z] Segment 4 duration: 7.08
+[2026-02-01T16:22:07.435Z] Segment 5 generated: C:\Users\moong\AppData\Local\Temp\b361b811-a696-4f84-b7f1-673ee4852b7f_5.mp3
+[2026-02-01T16:22:07.481Z] Segment 5 duration: 6.6
+[2026-02-01T16:22:08.478Z] Segment 6 generated: C:\Users\moong\AppData\Local\Temp\b361b811-a696-4f84-b7f1-673ee4852b7f_6.mp3
+[2026-02-01T16:22:08.512Z] Segment 6 duration: 7.272
+[2026-02-01T16:22:10.124Z] Segment 7 generated: C:\Users\moong\AppData\Local\Temp\b361b811-a696-4f84-b7f1-673ee4852b7f_7.mp3
+[2026-02-01T16:22:10.158Z] Segment 7 duration: 6.072
+[2026-02-01T16:30:29.165Z] POST Request Received
+[2026-02-01T16:30:29.166Z] Parsed Body: Lang=Vietnamese, Accent=south, Segments=8
+[2026-02-01T16:30:30.471Z] Segment 0 generated: C:\Users\moong\AppData\Local\Temp\78481d68-b54c-45c1-b9c6-bc28dd33cb53_0.mp3
+[2026-02-01T16:30:30.521Z] Segment 0 duration: 3.216
+[2026-02-01T16:30:33.500Z] Segment 1 generated: C:\Users\moong\AppData\Local\Temp\78481d68-b54c-45c1-b9c6-bc28dd33cb53_1.mp3
+[2026-02-01T16:30:33.548Z] Segment 1 duration: 7.368
+[2026-02-01T16:30:36.161Z] Segment 2 generated: C:\Users\moong\AppData\Local\Temp\78481d68-b54c-45c1-b9c6-bc28dd33cb53_2.mp3
+[2026-02-01T16:30:36.195Z] Segment 2 duration: 5.736
+[2026-02-01T16:30:38.370Z] Segment 3 generated: C:\Users\moong\AppData\Local\Temp\78481d68-b54c-45c1-b9c6-bc28dd33cb53_3.mp3
+[2026-02-01T16:30:38.420Z] Segment 3 duration: 5.904
+[2026-02-01T16:30:40.907Z] Segment 4 generated: C:\Users\moong\AppData\Local\Temp\78481d68-b54c-45c1-b9c6-bc28dd33cb53_4.mp3
+[2026-02-01T16:30:40.944Z] Segment 4 duration: 6.576
+[2026-02-01T16:30:42.586Z] Segment 5 generated: C:\Users\moong\AppData\Local\Temp\78481d68-b54c-45c1-b9c6-bc28dd33cb53_5.mp3
+[2026-02-01T16:30:42.650Z] Segment 5 duration: 5.904
+[2026-02-01T16:30:45.522Z] Segment 6 generated: C:\Users\moong\AppData\Local\Temp\78481d68-b54c-45c1-b9c6-bc28dd33cb53_6.mp3
+[2026-02-01T16:30:45.571Z] Segment 6 duration: 7.464
+[2026-02-01T16:30:47.738Z] Segment 7 generated: C:\Users\moong\AppData\Local\Temp\78481d68-b54c-45c1-b9c6-bc28dd33cb53_7.mp3
+[2026-02-01T16:30:47.776Z] Segment 7 duration: 6.24
+[2026-02-01T16:30:48.096Z] POST Request Received
+[2026-02-01T16:30:48.097Z] Parsed Body: Lang=Vietnamese, Accent=all-standard, Segments=8
+[2026-02-01T16:30:48.751Z] Segment 0 generated: C:\Users\moong\AppData\Local\Temp\6da3316a-e30f-4521-b283-5647bb6637c7_0.mp3
+[2026-02-01T16:30:48.785Z] Segment 0 duration: 3.096
+[2026-02-01T16:30:49.085Z] Segment 1 generated: C:\Users\moong\AppData\Local\Temp\6da3316a-e30f-4521-b283-5647bb6637c7_1.mp3
+[2026-02-01T16:30:49.119Z] Segment 1 duration: 8.544
+[2026-02-01T16:30:49.297Z] Segment 2 generated: C:\Users\moong\AppData\Local\Temp\6da3316a-e30f-4521-b283-5647bb6637c7_2.mp3
+[2026-02-01T16:30:49.331Z] Segment 2 duration: 6.192
+[2026-02-01T16:30:49.622Z] Segment 3 generated: C:\Users\moong\AppData\Local\Temp\6da3316a-e30f-4521-b283-5647bb6637c7_3.mp3
+[2026-02-01T16:30:49.656Z] Segment 3 duration: 7.392
+[2026-02-01T16:30:50.164Z] Segment 4 generated: C:\Users\moong\AppData\Local\Temp\6da3316a-e30f-4521-b283-5647bb6637c7_4.mp3
+[2026-02-01T16:30:50.199Z] Segment 4 duration: 7.32
+[2026-02-01T16:30:50.453Z] Segment 5 generated: C:\Users\moong\AppData\Local\Temp\6da3316a-e30f-4521-b283-5647bb6637c7_5.mp3
+[2026-02-01T16:30:50.489Z] Segment 5 duration: 7.344
+[2026-02-01T16:30:50.707Z] Segment 6 generated: C:\Users\moong\AppData\Local\Temp\6da3316a-e30f-4521-b283-5647bb6637c7_6.mp3
+[2026-02-01T16:30:50.741Z] Segment 6 duration: 8.16
+[2026-02-01T16:30:51.050Z] Segment 7 generated: C:\Users\moong\AppData\Local\Temp\6da3316a-e30f-4521-b283-5647bb6637c7_7.mp3
+[2026-02-01T16:30:51.086Z] Segment 7 duration: 7.848
+[2026-02-01T16:31:33.066Z] POST Request Received
+[2026-02-01T16:31:33.067Z] Parsed Body: Lang=English, Accent=standard-simulated, Segments=8
+[2026-02-01T16:31:34.597Z] Segment 0 generated: C:\Users\moong\AppData\Local\Temp\cd5faa7c-8fdd-4181-8b9c-19a6d013ccbf_0.mp3
+[2026-02-01T16:31:34.633Z] Segment 0 duration: 5.4
+[2026-02-01T16:31:37.267Z] Segment 1 generated: C:\Users\moong\AppData\Local\Temp\cd5faa7c-8fdd-4181-8b9c-19a6d013ccbf_1.mp3
+[2026-02-01T16:31:37.304Z] Segment 1 duration: 7.056
+[2026-02-01T16:31:39.220Z] Segment 2 generated: C:\Users\moong\AppData\Local\Temp\cd5faa7c-8fdd-4181-8b9c-19a6d013ccbf_2.mp3
+[2026-02-01T16:31:39.256Z] Segment 2 duration: 5.472
+[2026-02-01T16:31:41.311Z] Segment 3 generated: C:\Users\moong\AppData\Local\Temp\cd5faa7c-8fdd-4181-8b9c-19a6d013ccbf_3.mp3
+[2026-02-01T16:31:41.361Z] Segment 3 duration: 6.768
+[2026-02-01T16:31:45.084Z] Segment 4 generated: C:\Users\moong\AppData\Local\Temp\cd5faa7c-8fdd-4181-8b9c-19a6d013ccbf_4.mp3
+[2026-02-01T16:31:45.118Z] Segment 4 duration: 7.176
+[2026-02-01T16:31:48.201Z] Segment 5 generated: C:\Users\moong\AppData\Local\Temp\cd5faa7c-8fdd-4181-8b9c-19a6d013ccbf_5.mp3
+[2026-02-01T16:31:48.242Z] Segment 5 duration: 6.24
+[2026-02-01T16:31:50.121Z] Segment 6 generated: C:\Users\moong\AppData\Local\Temp\cd5faa7c-8fdd-4181-8b9c-19a6d013ccbf_6.mp3
+[2026-02-01T16:31:50.167Z] Segment 6 duration: 7.68
+[2026-02-01T16:31:52.909Z] Segment 7 generated: C:\Users\moong\AppData\Local\Temp\cd5faa7c-8fdd-4181-8b9c-19a6d013ccbf_7.mp3
+[2026-02-01T16:31:52.944Z] Segment 7 duration: 5.784

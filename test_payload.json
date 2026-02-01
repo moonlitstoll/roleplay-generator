@@ -1,0 +1,15 @@
+{
+    "segments": [
+        {
+            "text": "Testing audio generation",
+            "speaker": "A"
+        }
+    ],
+    "speakers": {
+        "A": {
+            "gender": "female"
+        }
+    },
+    "language": "Vietnamese",
+    "accentMode": "south"
+}
