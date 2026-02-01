@@ -6,9 +6,6 @@ import path from 'path';
 import os from 'os';
 import { v4 as uuidv4 } from 'uuid';
 
-// Use require for CommonJS compatibility
-const mp3Duration = require('mp3-duration');
-
 // --- CONSTANTS ---
 // ~100ms of Silence (MPEG 1 Layer III, 44.1kHz, 64kbps) - valid MP3 frame
 const SILENCE_FRAME_BASE64 = "//NExAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq";
@@ -19,24 +16,6 @@ const SILENCE_DURATION_SEC = 0.1; // Approx duration of one frame above
 function log(message: string) {
     console.log(message);
 }
-
-// Get duration of an audio buffer in seconds using pure JS
-const getBufferDuration = (buffer: Buffer): Promise<number> => {
-    return new Promise((resolve) => {
-        try {
-            mp3Duration(buffer, (err: any, duration: number) => {
-                if (err || !duration) {
-                    console.error("mp3Duration error/empty:", err);
-                    return resolve(0.1);
-                }
-                resolve(duration);
-            });
-        } catch (e) {
-            console.error("mp3Duration crash:", e);
-            resolve(0.1);
-        }
-    });
-};
 
 // Helper to download Google TTS audio to buffer directly
 async function downloadGoogleTTS(url: string, destPath: string): Promise<void> {
@@ -121,7 +100,7 @@ export async function POST(req: NextRequest) {
                 const count = Math.ceil(pauseSec / SILENCE_DURATION_SEC);
                 // Concat silence frames
                 const silenceChunk = Buffer.concat(Array(count).fill(SILENCE_FRAME_BUFFER));
-                // Accurate duration calculation is just pauseSec (logic) or analyze buffer
+                // Client handles actual duration via audio element metadata
                 return { buffer: silenceChunk, duration: pauseSec };
             }
 
@@ -133,8 +112,8 @@ export async function POST(req: NextRequest) {
                     if (fs.existsSync(filePath)) {
                         const buf = fs.readFileSync(filePath);
                         fs.unlinkSync(filePath); // Delete immediately to save space
-                        const dur = await getBufferDuration(buf);
-                        return { buffer: buf, duration: dur };
+                        // No server-side duration calc needed safely
+                        return { buffer: buf, duration: 0 };
                     }
                 } catch (e) {
                     console.error(`Gen error seg ${index}`, e);
@@ -153,7 +132,8 @@ export async function POST(req: NextRequest) {
         const mergedBuffer = Buffer.concat(allBuffers);
         const mergedBase64 = mergedBuffer.toString('base64');
 
-        // Calculate Offsets
+        // Basic offsets (duration will be 0 for TTS segments, but client logic ignores this
+        // as strictly segment-based fetching is now used in page.tsx)
         const offsets: number[] = [];
         let currentOffset = 0;
         results.forEach(r => {
