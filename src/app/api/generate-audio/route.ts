@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { EdgeTTS } from 'node-edge-tts';
+import { EdgeTTS } from '@/utils/edge-tts';
 import * as googleTTS from 'google-tts-api';
 import fs from 'fs';
 import path from 'path';
@@ -37,12 +37,23 @@ async function generateSegment(
 
     // Force Google TTS for stability on Vercel
     // EdgeTTS (node-edge-tts) tends to crash on Vercel Serverless
-    /* 
     const gender = speakers[spk]?.gender || 'female';
     if (isEnglish) {
-       // ... EdgeTTS logic commented out for stability ...
-    } 
-    */
+        try {
+            // Use Edge TTS for English
+            const voice = gender === 'male' ? 'en-US-ChristopherNeural' : 'en-US-AriaNeural';
+            const tts = new EdgeTTS({
+                voice,
+                lang: 'en-US',
+                outputFormat: 'audio-24khz-96kbitrate-mono-mp3'
+            });
+            const result = await tts.call(segment.text);
+            fs.writeFileSync(filePath, result.data);
+            return;
+        } catch (e) {
+            console.error('EdgeTTS failed, falling back to Google', e);
+        }
+    }
 
     // Universal Google TTS Fallback
     const langCode = isEnglish ? 'en' : 'vi';
