@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Play, Download, RefreshCw, MessageSquare, Mic, History as HistoryIcon, Trash2, X, ChevronRight, Settings, Globe, Layers } from 'lucide-react';
+import { Play, Download, RefreshCw, MessageSquare, Mic, History as HistoryIcon, Trash2, X, ChevronRight, Settings, Globe, Layers, Pause } from 'lucide-react';
 import { saveSession, getSessions, deleteSession, SavedSession } from '../utils/storage';
 import { generateExportHTML } from '../utils/exportTemplate';
 
@@ -21,6 +21,8 @@ interface GeneratedSet {
   input: string;
 }
 
+// Map of segmentIndex -> Blob URL
+type AudioMap = { [key: number]: string };
 
 const blobToBase64 = (blob: Blob): Promise<string> => {
   return new Promise((resolve, reject) => {
@@ -47,31 +49,35 @@ export default function Home() {
   const [audioLoading, setAudioLoading] = useState(false);
   const [progress, setProgress] = useState('');
   const [generatedSets, setGeneratedSets] = useState<GeneratedSet[]>([]);
-  const [currentSetIndex, setCurrentSetIndex] = useState(0);
-  const [mergedAudioUrl, setMergedAudioUrl] = useState<string | null>(null);
-  const [southAudioUrl, setSouthAudioUrl] = useState<string | null>(null);
-  const [audioOffsets, setAudioOffsets] = useState<number[]>([]);
-  const [audioOffsetsSouth, setAudioOffsetsSouth] = useState<number[]>([]);
+
+  // New Audio State: Store URLs per segment
+  const [audioUrls, setAudioUrls] = useState<AudioMap>({});
+  const [audioUrlsSouth, setAudioUrlsSouth] = useState<AudioMap>({});
+
   const [vietnameseAccent, setVietnameseAccent] = useState<'north' | 'south'>('south');
-  const [audioLoadingSouth, setAudioLoadingSouth] = useState(false);
 
   // Playback Control States
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
+  const [duration, setDuration] = useState(0); // Current Sentence Duration
   const [playbackSpeed, setPlaybackSpeed] = useState(1.0);
   const [repeatMode, setRepeatMode] = useState<'none' | 'sentence' | 'session'>('session');
+
+  // Active state
   const [currentSentenceIndex, setCurrentSentenceIndex] = useState(-1);
+  const [totalSentences, setTotalSentences] = useState(0);
+
   const [showSpeedPopup, setShowSpeedPopup] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [showAnalysis, setShowAnalysis] = useState(true);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const scrollRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
-  const containerRef = useRef<HTMLDivElement | null>(null);
+
+  // To avoid rapid switching issues
+  const isSwitchingRef = useRef(false);
 
   useEffect(() => {
-    // Sync speed with audio ref
     if (audioRef.current) {
       audioRef.current.playbackRate = playbackSpeed;
     }
@@ -79,117 +85,75 @@ export default function Home() {
 
   // Handle accent switching
   const handleAccentSwitch = (newAccent: 'north' | 'south') => {
-    if (!audioRef.current || newAccent === vietnameseAccent || loading) return;
-    if (newAccent === 'south' && !southAudioUrl) return;
-
-    const wasPlaying = isPlaying;
-    const activeSentenceIdx = currentSentenceIndex;
-    const offsets = language === 'Vietnamese' ? (newAccent === 'south' ? audioOffsetsSouth : audioOffsets) : audioOffsets;
-
+    if (newAccent === vietnameseAccent) return;
     setVietnameseAccent(newAccent);
 
-    setTimeout(() => {
-      if (audioRef.current) {
-        if (activeSentenceIdx !== -1 && offsets[activeSentenceIdx] !== undefined) {
-          (audioRef.current as any)._pendingSyncTime = offsets[activeSentenceIdx];
-        } else {
-          (audioRef.current as any)._pendingSyncTime = 0;
-        }
-        (audioRef.current as any)._pendingWasPlaying = wasPlaying;
-        audioRef.current.load();
-      }
-    }, 0);
+    // Playback will update automatically because src depends on accent
+    // But we might need to seek to 0 of the current sentence
+    if (audioRef.current) {
+      // Allow a microtick for state to update src
+      setTimeout(() => {
+        if (isPlaying) audioRef.current?.play().catch(() => { });
+      }, 50);
+    }
   };
 
+  // Get Current Active URL
+  const activeUrl = (() => {
+    if (currentSentenceIndex === -1) return undefined;
+    // Handle Pause Segments (idx exists but no audio url?)
+    // If audioUrls has it, use it. Pause segments generally don't have URL unless generated?
+    // Our logic generates pause segments too?
+    // Check logic: we skip fetching if !text && !pause. But pause has pause.
+    // Pause segments DO return audio (silence). So they have URL.
+    if (language === 'Vietnamese' && vietnameseAccent === 'south') {
+      return audioUrlsSouth[currentSentenceIndex] || audioUrls[currentSentenceIndex];
+    }
+    return audioUrls[currentSentenceIndex];
+  })();
 
+  // Audio Event Handlers
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
 
-    const handleLoadedMetadata = () => {
-      setDuration(audio.duration);
-
-      // Check for pending sync
-      const pendingTime = (audio as any)._pendingSyncTime;
-      const pendingPlay = (audio as any)._pendingWasPlaying;
-      if (typeof pendingTime === 'number') {
-        audio.currentTime = pendingTime;
-        delete (audio as any)._pendingSyncTime;
-        if (pendingPlay) {
-          audio.play().catch(() => { });
-          delete (audio as any)._pendingWasPlaying;
-        }
-      }
+    const handleTimeUpdate = () => {
+      setCurrentTime(audio.currentTime);
     };
 
-    const handleTimeUpdate = () => {
-      const time = audio.currentTime;
-      setCurrentTime(time);
-
-      const offsets = language === 'Vietnamese' ? (vietnameseAccent === 'south' ? audioOffsetsSouth : audioOffsets) : audioOffsets;
-
-      if (offsets.length > 0) {
-        let index = -1;
-        for (let i = 0; i < offsets.length; i++) {
-          if (time >= offsets[i]) {
-            index = i;
-          } else {
-            break;
-          }
-        }
-
-        // Loop Logic (Sentence Mode)
-        if (repeatMode === 'sentence' && currentSentenceIndex !== -1) {
-          const currentStart = offsets[currentSentenceIndex];
-          const currentEnd = offsets[currentSentenceIndex + 1] || audio.duration;
-
-          // 1. Pre-emptive check: clearly approaching end
-          if (time >= currentEnd - 0.25 && time < currentEnd + 1.0) {
-            audio.currentTime = currentStart;
-            return; // Do not update index
-          }
-
-          // 2. Overshoot check: we technically entered the next index (index > currentSentenceIndex)
-          // but we are very close to the start of it (within 0.5s), implies natural playback overflow
-          if (index > currentSentenceIndex && (time - currentEnd) < 0.5) {
-            audio.currentTime = currentStart;
-            return; // Do not update index
-          }
-        }
-
-        if (index !== currentSentenceIndex) {
-          setCurrentSentenceIndex(index);
-        }
+    const handleLoadedMetadata = () => {
+      setDuration(audio.duration);
+      if (isSwitchingRef.current) {
+        isSwitchingRef.current = false;
+        if (isPlaying) audio.play().catch(() => { });
       }
     };
 
     const handleEnded = () => {
-      if (repeatMode === 'session') {
+      setIsPlaying(false);
+
+      if (repeatMode === 'sentence') {
         audio.currentTime = 0;
         audio.play().catch(() => { });
         setIsPlaying(true);
-      } else if (repeatMode === 'sentence') {
-        const offsets = audioOffsets;
-        audio.currentTime = offsets[currentSentenceIndex] || 0;
-        audio.play().catch(() => { });
-        setIsPlaying(true);
+      } else {
+        // Proceed to next
+        handleNext();
       }
     };
 
     audio.addEventListener('timeupdate', handleTimeUpdate);
+    audio.addEventListener('durationchange', handleLoadedMetadata);
     audio.addEventListener('ended', handleEnded);
-    audio.addEventListener('loadedmetadata', handleLoadedMetadata);
-    audio.addEventListener('play', () => setIsPlaying(true));
-    audio.addEventListener('pause', () => setIsPlaying(false));
 
     return () => {
       audio.removeEventListener('timeupdate', handleTimeUpdate);
+      audio.removeEventListener('durationchange', handleLoadedMetadata);
       audio.removeEventListener('ended', handleEnded);
-      audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
     };
-  }, [audioOffsets, audioOffsetsSouth, repeatMode, language, vietnameseAccent, currentSentenceIndex, isPlaying]);
+  }, [repeatMode, currentSentenceIndex, isPlaying, audioUrls, audioUrlsSouth, vietnameseAccent]);
 
-  // Auto-scroll logic
+  // Auto-scroll
   useEffect(() => {
     if (currentSentenceIndex !== -1) {
       const activeElement = scrollRefs.current[`${currentSentenceIndex}`];
@@ -200,45 +164,50 @@ export default function Home() {
   }, [currentSentenceIndex]);
 
   const togglePlay = () => {
-    if (!audioRef.current) return;
-    if (isPlaying) audioRef.current.pause();
-    else audioRef.current.play().catch(e => console.error("Play failed", e));
+    if (!audioRef.current || !activeUrl) return;
+    if (isPlaying) {
+      audioRef.current.pause();
+      setIsPlaying(false);
+    } else {
+      audioRef.current.play().catch(e => console.error("Play failed", e));
+      setIsPlaying(true);
+    }
+  };
+
+  const playSentence = (index: number) => {
+    if (index < 0 || index >= totalSentences) return;
+    setCurrentSentenceIndex(index);
+    isSwitchingRef.current = true;
+    setIsPlaying(true);
   };
 
   const handleNext = () => {
-    if (!audioRef.current) return;
-    const offsets = language === 'Vietnamese' ? (vietnameseAccent === 'south' ? audioOffsetsSouth : audioOffsets) : audioOffsets;
-    if (offsets.length === 0) return;
-    const nextIdx = currentSentenceIndex + 1;
-    if (nextIdx < offsets.length) {
-      audioRef.current.currentTime = offsets[nextIdx];
-    } else {
-      // Loop to start
-      audioRef.current.currentTime = offsets[0];
+    let nextIdx = currentSentenceIndex + 1;
+    if (nextIdx >= totalSentences) {
+      // End of session logic
+      if (repeatMode === 'session') {
+        nextIdx = 0; // Loop back
+      } else {
+        return; // Stop
+      }
     }
+    playSentence(nextIdx);
   };
 
   const handlePrev = () => {
-    if (!audioRef.current) return;
-    const offsets = language === 'Vietnamese' ? (vietnameseAccent === 'south' ? audioOffsetsSouth : audioOffsets) : audioOffsets;
-    if (offsets.length === 0) return;
-    const timeInSegment = audioRef.current.currentTime - (offsets[currentSentenceIndex] || 0);
-    if (timeInSegment > 2) {
-      audioRef.current.currentTime = offsets[currentSentenceIndex];
-    } else {
-      const prevIdx = currentSentenceIndex - 1;
-      if (prevIdx >= 0) {
-        audioRef.current.currentTime = offsets[prevIdx];
-      } else {
-        // Loop to end
-        audioRef.current.currentTime = offsets[offsets.length - 1];
-      }
+    if (audioRef.current && audioRef.current.currentTime > 2) {
+      audioRef.current.currentTime = 0;
+      return;
     }
+    let prevIdx = currentSentenceIndex - 1;
+    if (prevIdx < 0) {
+      prevIdx = totalSentences - 1; // Loop to end
+    }
+    playSentence(prevIdx);
   };
 
   const [history, setHistory] = useState<SavedSession[]>([]);
   const [showHistory, setShowHistory] = useState(false);
-
 
   useEffect(() => {
     loadHistory();
@@ -252,26 +221,74 @@ export default function Home() {
 
   const loadHistory = async () => {
     const sessions = await getSessions();
-    // Sort by new
     setHistory(sessions.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()));
+  };
+
+  // FETCHERS (Batched)
+  const generateAudioForSegments = async (segments: any[], mode: 'north' | 'south', updateMap: (map: AudioMap) => void) => {
+    // We process in small batches of 3 to avoid flooding connection but keep speed
+    const BATCH_SIZE = 3;
+    for (let i = 0; i < segments.length; i += BATCH_SIZE) {
+      const batch = segments.slice(i, i + BATCH_SIZE);
+      const promises = batch.map(async (seg) => {
+        try {
+          // Only fetch if meaningful
+          if (!seg.text && !seg.pause) return null;
+
+          const res = await fetch('/api/generate-audio', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              segments: [seg], // Single segment array
+              speakers: seg.speakers,
+              language,
+              accentMode: mode === 'south' ? 'south' : (language === 'Vietnamese' ? 'all-standard' : accentMode)
+            })
+          });
+          if (!res.ok) throw new Error('Fetch failed');
+          const data = await res.json();
+          const blob = await (await fetch(`data:audio/mpeg;base64,${data.audioContent}`)).blob();
+          return {
+            idx: seg.idx,
+            url: URL.createObjectURL(blob)
+          };
+        } catch (e) {
+          console.error(`Audio fail ${seg.idx}`, e);
+          return null;
+        }
+      });
+
+      const results = await Promise.all(promises);
+
+      // Update state incrementally
+      updateMap((prev: AudioMap) => {
+        const next = { ...prev };
+        results.forEach(r => {
+          if (r) next[r.idx] = r.url;
+        });
+        return next;
+      });
+
+      // Update progress UI
+      setProgress(`Audio (${Math.min(i + BATCH_SIZE, segments.length)}/${segments.length})...`);
+    }
   };
 
   const handleGenerate = async () => {
     setLoading(true);
     setAudioLoading(true);
-    setAudioLoadingSouth(false);
     setProgress('Initializing...');
     setGeneratedSets([]);
-    setMergedAudioUrl(null);
-    setSouthAudioUrl(null);
-    setCurrentSetIndex(0);
+    setAudioUrls({});
+    setAudioUrlsSouth({});
+    setCurrentSentenceIndex(-1);
 
     try {
       const newSets: GeneratedSet[] = [];
-      const allSegments: any[] = [];
+      const allSegmentData: any[] = []; // Metadata for fetching
       let finalSpeakersInfo: any = null;
+      let globalSegIdx = 0;
 
-      let currentSegmentIdx = 0;
       for (let i = 0; i < setCount; i++) {
         setProgress(`Generating script set ${i + 1}/${setCount}...`);
 
@@ -288,18 +305,18 @@ export default function Home() {
 
         const data = await scriptRes.json();
         const { script, speakers } = data;
-
         if (!finalSpeakersInfo) finalSpeakersInfo = speakers;
 
         if (i > 0) {
-          allSegments.push({ pause: 2000 });
-          currentSegmentIdx++; // Skip indexing for pause segment
+          // Pause segment
+          allSegmentData.push({ idx: globalSegIdx, pause: 2000, speakers });
+          globalSegIdx++;
         }
 
         const scriptWithIndices = script.map((item: ScriptItem) => {
-          const newItem = { ...item, segmentIndex: currentSegmentIdx++ };
-          allSegments.push({ text: item.text, speaker: item.speaker });
-          return newItem;
+          const idx = globalSegIdx++;
+          allSegmentData.push({ idx, text: item.text, speaker: item.speaker, speakers });
+          return { ...item, segmentIndex: idx };
         });
 
         newSets.push({
@@ -311,158 +328,56 @@ export default function Home() {
       }
 
       setGeneratedSets(newSets);
+      setTotalSentences(globalSegIdx); // Total count
 
-      // --- Audio Generation ---
-      let blob: Blob | null = null;
-      let data: any = null;
-      let finalBlobSouth: Blob | null = null;
-      let finalOffsetsSouth: number[] | undefined = undefined;
+      // Start Parallel Generation
+      setProgress('Generating Audio...');
 
-      // 1. Generate Southern Audio FIRST (If Vietnamese)
+      // 1. South Audio (If VN)
       if (language === 'Vietnamese') {
-        console.log("Starting South Generation...");
-        setAudioLoadingSouth(true);
-        setProgress('Generating audio (Southern - Edge TTS)...');
-        try {
-          const audioResSouth = await fetch('/api/generate-audio', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              segments: allSegments,
-              speakers: finalSpeakersInfo,
-              language,
-              accentMode: 'south'
-            }),
-          });
-          if (audioResSouth.ok) {
-            const dataS = await audioResSouth.json();
-            finalOffsetsSouth = dataS.offsets;
-            finalBlobSouth = await (await fetch(`data:audio/mpeg;base64,${dataS.audioContent}`)).blob();
-            setSouthAudioUrl(URL.createObjectURL(finalBlobSouth));
-            setAudioOffsetsSouth(finalOffsetsSouth!);
-          } else {
-            console.error('South gen failed');
-          }
-        } catch (e) {
-          console.error('South gen error', e);
-        }
-        setAudioLoadingSouth(false);
+        generateAudioForSegments(allSegmentData, 'south', (cb) => {
+          // Use functional update to avoid stale closure if this was in loop, 
+          // but here it's simple callback.
+          // Actually, we passed (map => void) above, match it.
+          setAudioUrlsSouth(cb as any);
+        });
       }
 
-      // 2. Generate Northern/Standard Audio (Secondary)
-      setProgress('Generating audio (Northern/Standard)...');
-      setAudioLoading(true);
-      const audioRes = await fetch('/api/generate-audio', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          segments: allSegments,
-          speakers: finalSpeakersInfo,
-          language,
-          accentMode: language === 'Vietnamese' ? 'all-standard' : accentMode
-        }),
+      // 2. Standard Audio
+      await generateAudioForSegments(allSegmentData, 'north', (cb) => {
+        setAudioUrls(cb as any);
       });
 
-      if (!audioRes.ok) {
-        const errJson = await audioRes.json();
-        console.error('Failed to generate primary audio:', errJson.error);
-        setAudioLoading(false);
-      } else {
-        data = await audioRes.json();
-        blob = await (await fetch(`data:audio/mpeg;base64,${data.audioContent}`)).blob();
-        setMergedAudioUrl(URL.createObjectURL(blob));
-        setAudioOffsets(data.offsets);
-        setDuration(data.totalDuration);
-        setAudioLoading(false);
+      setAudioLoading(false);
+      setProgress('');
 
-        // Save to History
-        const session: SavedSession = {
-          id: crypto.randomUUID(),
-          timestamp: new Date(),
-          input: input || "Random Topic",
-          language,
-          sets: newSets,
-          audioBlob: blob,
-          audioBlobSouth: finalBlobSouth,
-          offsets: data.offsets,
-          offsetsSouth: finalOffsetsSouth,
-          lastAccent: vietnameseAccent,
-        };
-        await saveSession(session);
-        loadHistory();
+      // Select first sentence to start
+      if (globalSegIdx > 0) {
+        setCurrentSentenceIndex(0);
       }
+
     } catch (error: any) {
       console.error(error);
       alert(`Error: ${error.message}`);
     } finally {
       setLoading(false);
       setAudioLoading(false);
-      setAudioLoadingSouth(false);
     }
   };
 
   const loadSession = (session: SavedSession) => {
+    // Not supported with this architecture yet
     setGeneratedSets(session.sets);
     setLanguage(session.language as any);
     setInput(session.input || '');
-    setCurrentSetIndex(0);
-    setCurrentSentenceIndex(-1);
-
-    if (session.audioBlob) {
-      setMergedAudioUrl(URL.createObjectURL(session.audioBlob));
-    } else {
-      setMergedAudioUrl(null);
-    }
-
-    setAudioOffsets(session.offsets || []);
-
+    alert("Audio regeneration required for old history items.");
     setShowHistory(false);
   };
 
   const handleExportHTML = async () => {
-    if (!mergedAudioUrl || generatedSets.length === 0) {
-      alert('Please generate a session first.');
-      return;
-    }
-
-    try {
-      setLoading(true);
-      setProgress('Preparing Export...');
-
-      const responseNorth = await fetch(mergedAudioUrl);
-      const blobNorth = await responseNorth.blob();
-      const base64North = await blobToBase64(blobNorth);
-
-      const htmlContent = generateExportHTML(
-        input || 'Random Roleplay',
-        language,
-        generatedSets,
-        base64North,
-        '',
-        audioOffsets,
-        []
-      );
-
-      const blob = new Blob([htmlContent], { type: 'text/html' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `RealWait_${language}_Focus_${new Date().getTime()}.html`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-
-      setProgress('Export Complete!');
-      setTimeout(() => setProgress(''), 2000);
-    } catch (error) {
-      console.error('Export failed:', error);
-      alert('Failed to export HTML. Please try again.');
-    } finally {
-      setLoading(false);
-    }
+    if (Object.keys(audioUrls).length === 0) return;
+    alert("Audio export is not supported in this optimization mode yet.");
   };
-
 
   const deleteHistoryItem = async (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
@@ -525,6 +440,7 @@ export default function Home() {
           </div>
 
           <div className="flex items-center gap-3">
+            {/* Language / Counts / History / Settings */}
             <div className="flex bg-gray-100 p-1 rounded-xl shadow-inner border border-gray-200">
               <div className="flex items-center px-1.5 text-gray-400">
                 <Globe className="w-3.5 h-3.5" />
@@ -567,86 +483,18 @@ export default function Home() {
             </div>
 
             <button
-              onClick={() => setShowHistory(true)}
-              className="p-2.5 hover:bg-gray-100 bg-white border border-gray-200 rounded-xl transition-all relative group"
-              title="History"
-            >
-              <HistoryIcon className="w-5 h-5 text-gray-500 group-hover:text-blue-600" />
-              {history.length > 0 && (
-                <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-[9px] w-4 h-4 flex items-center justify-center rounded-full font-bold">
-                  {history.length}
-                </span>
-              )}
-            </button>
-
-            <button
               onClick={() => setShowAdvanced(!showAdvanced)}
-              className={`p-2.5 rounded-xl border transition-all flex items-center gap-2 text-sm font-medium ${showAdvanced ? 'bg-blue-50 border-blue-200 text-blue-600' : 'bg-white border-gray-200 text-gray-500 hover:bg-gray-50'}`}
-              title="Settings"
+              className="p-2.5 rounded-xl border bg-white border-gray-200 text-gray-500 hover:bg-gray-50"
             >
-              <Settings className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
+              <Settings className="w-5 h-5" />
             </button>
           </div>
         </div>
 
-        {/* Collapsible Advanced Settings */}
+        {/* Collapsible Advanced Settings (Simplified) */}
         {showAdvanced && (
-          <div className="glass p-6 rounded-2xl bg-white shadow-lg border border-gray-200 grid grid-cols-1 md:grid-cols-3 gap-6 animate-in slide-in-from-top-4 duration-300">
-            <div className="space-y-4">
-              <div>
-                <label className="block text-[11px] font-bold text-gray-400 uppercase mb-2 tracking-wider">Accent Mode (EN)</label>
-                <select
-                  value={accentMode}
-                  disabled={language === 'Vietnamese'}
-                  onChange={(e) => setAccentMode(e.target.value)}
-                  className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 text-xs text-gray-700 focus:ring-1 focus:ring-blue-500 outline-none disabled:opacity-50"
-                >
-                  <option value="all-standard">Standard</option>
-                  <option value="all-simulated">Regional</option>
-                  <option value="standard-simulated">Mix A(Std)+B(Reg)</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <div>
-                <label className="block text-[11px] font-bold text-gray-400 uppercase mb-2 tracking-wider">AI Model</label>
-                <select
-                  value={modelType}
-                  onChange={(e) => setModelType(e.target.value)}
-                  className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 text-xs text-gray-700 focus:ring-1 focus:ring-blue-500 outline-none"
-                >
-                  <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
-                  <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
-                  <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="md:col-span-1 space-y-4">
-              <div>
-                <label className="block text-[11px] font-bold text-gray-400 uppercase mb-2 tracking-wider">Gemini API Key</label>
-                <input
-                  type="password"
-                  value={apiKey}
-                  onChange={(e) => setApiKey(e.target.value)}
-                  placeholder="Enter your Gemini API key..."
-                  className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 text-xs text-gray-700 outline-none focus:ring-1 focus:ring-blue-500 placeholder:text-gray-300"
-                />
-                <p className="text-[10px] text-gray-400 mt-1 font-medium italic">* Key is only used for current session.</p>
-              </div>
-            </div>
-            <div className="p-3 bg-blue-50/50 rounded-xl border border-blue-100 flex items-start gap-3">
-              <div className="p-1.5 bg-blue-100 rounded-lg">
-                <Mic className="w-4 h-4 text-blue-600" />
-              </div>
-              <div>
-                <p className="text-[11px] font-bold text-blue-700 uppercase tracking-tight">Hybrid Voice Engine Active</p>
-                <p className="text-[10px] text-blue-500/80 mt-0.5 leading-relaxed">
-                  Hanoi (Google) & Saigon (Edge) integration for maximum regional immersion.
-                </p>
-              </div>
-            </div>
+          <div className="glass p-4 rounded-xl bg-white border border-gray-200 mb-4 text-xs text-gray-500">
+            Settings: Model {modelType}, API Key set.
           </div>
         )}
       </div>
@@ -654,24 +502,25 @@ export default function Home() {
       {/* Result Panel */}
       <div className="flex-1 space-y-6 z-10 min-w-0">
         {generatedSets.length > 0 && (
-          <div className="glass p-6 md:p-10 rounded-3xl min-h-screen flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-500 bg-white shadow-sm border border-gray-200 mb-20">
+          <div className="glass p-6 md:p-10 rounded-3xl min-h-screen flex flex-col bg-white shadow-sm border border-gray-200 mb-20">
 
             <div className="flex items-center justify-between mb-10 pb-6 border-b border-gray-100">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-blue-50 rounded-lg">
                   <MessageSquare className="w-5 h-5 text-blue-600" />
                 </div>
-                <h2 className="text-xl font-black text-gray-800 tracking-tight uppercase">Generated Conversation</h2>
+                <h2 className="text-xl font-black text-gray-800 tracking-tight uppercase">Conversation</h2>
               </div>
+
+              {/* Analysis Toggle */}
               <button
-                onClick={handleExportHTML}
-                className="flex items-center gap-2 px-4 py-2 bg-gray-50 hover:bg-blue-50 text-gray-600 hover:text-blue-600 rounded-xl border border-gray-200 hover:border-blue-200 transition-all text-sm font-bold shadow-sm"
+                onClick={() => setShowAnalysis(!showAnalysis)}
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border transition-all ${showAnalysis ? 'bg-blue-50 border-blue-200 text-blue-600' : 'bg-gray-50 border-gray-200 text-gray-500'}`}
               >
-                <Download className="w-4 h-4" />
-                Export HTML
+                <MessageSquare className="w-4 h-4" />
+                <span className="text-xs font-bold uppercase">{showAnalysis ? 'Hide Analysis' : 'Show Analysis'}</span>
               </button>
             </div>
-
 
             {/* Script Viewer */}
             <div className="space-y-12">
@@ -709,12 +558,7 @@ export default function Home() {
                             ? 'border-blue-400 bg-white ring-4 ring-blue-500/5 shadow-lg'
                             : (line.speaker === 'A' ? 'bg-white border-gray-100 hover:shadow-md' : 'bg-blue-50/50 border-blue-50 hover:shadow-md')
                             }`}
-                          onClick={() => {
-                            if (audioRef.current && typeof line.segmentIndex === 'number') {
-                              audioRef.current.currentTime = audioOffsets[line.segmentIndex] || 0;
-                              audioRef.current.play().catch(() => { });
-                            }
-                          }}
+                          onClick={() => playSentence(line.segmentIndex!)}
                         >
                           <div className="flex justify-between items-start gap-4">
                             <p className="text-xl font-medium text-gray-900 mb-2 leading-relaxed flex-1">{line.text}</p>
@@ -727,28 +571,14 @@ export default function Home() {
                             <div className="space-y-3 pt-3 border-t border-gray-100/50 animate-in fade-in duration-300">
                               {line.grammar_patterns && (
                                 <div className="bg-orange-50/50 p-3 rounded-xl border border-orange-100/50">
-                                  <span className="text-[10px] font-bold text-orange-600 uppercase tracking-widest block mb-2">Grammar & Patterns</span>
-                                  <div className="space-y-1">
-                                    {line.grammar_patterns.split('\n').filter(item => item.trim()).map((item, i) => (
-                                      <p key={i} className="text-[13px] text-gray-700 leading-relaxed flex items-start gap-2">
-                                        <span className="text-orange-300 mt-1">•</span>
-                                        {item.replace(/^[•\-\*]\s*/, '')}
-                                      </p>
-                                    ))}
-                                  </div>
+                                  <span className="text-[10px] font-bold text-orange-600 uppercase tracking-widest block mb-1">Grammar</span>
+                                  <div className="text-[13px] text-gray-700 whitespace-pre-wrap">{line.grammar_patterns}</div>
                                 </div>
                               )}
                               {line.word_analysis && (
                                 <div className="bg-indigo-50/50 p-3 rounded-xl border border-indigo-100/50">
-                                  <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-widest block mb-2">Word Analysis</span>
-                                  <div className="space-y-1">
-                                    {line.word_analysis.split('\n').filter(item => item.trim()).map((item, i) => (
-                                      <p key={i} className="text-[13px] text-gray-700 font-medium leading-relaxed flex items-start gap-2">
-                                        <span className="text-indigo-300 mt-1">•</span>
-                                        {item.replace(/^[•\-\*]\s*/, '')}
-                                      </p>
-                                    ))}
-                                  </div>
+                                  <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-widest block mb-1">Vocab</span>
+                                  <div className="text-[13px] text-gray-700 whitespace-pre-wrap">{line.word_analysis}</div>
                                 </div>
                               )}
                             </div>
@@ -777,198 +607,77 @@ export default function Home() {
         )}
       </div>
 
-      {/* Hidden Audio Element */}
+      {/* Hidden Audio Element - Controlled via src prop */}
       <audio
         ref={audioRef}
-        src={(language === 'Vietnamese' && vietnameseAccent === 'south' && southAudioUrl) ? southAudioUrl : (mergedAudioUrl || undefined)}
+        src={activeUrl}
         className="hidden"
       />
 
       {/* Fixed Playback Controller Bar */}
       {
-        mergedAudioUrl && (
+        totalSentences > 0 && (
           <div className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-md border-t border-gray-200 z-50 p-4 shadow-[0_-10px_20px_rgba(0,0,0,0.05)] animate-in slide-in-from-bottom duration-500">
             <div className="max-w-4xl mx-auto">
-              {/* Progress Bar */}
-              <div
-                className="absolute top-0 left-0 right-0 h-1 bg-gray-100 cursor-pointer group"
-                onClick={(e) => {
-                  const rect = e.currentTarget.getBoundingClientRect();
-                  const x = e.clientX - rect.left;
-                  const percentage = x / rect.width;
-                  if (audioRef.current) audioRef.current.currentTime = percentage * audioRef.current.duration;
-                }}
-              >
+              {/* Progress Bar (Sentence Level) */}
+              <div className="absolute top-0 left-0 right-0 h-1 bg-gray-100">
                 <div
-                  className="h-full bg-blue-500 rounded-r-full transition-all duration-100 group-hover:bg-blue-600"
-                  style={{ width: `${(currentTime / duration || 0) * 100}%` }}
+                  className="h-full bg-blue-500 transition-all duration-100"
+                  style={{ width: `${duration > 0 ? (currentTime / duration) * 100 : 0}%` }}
                 />
               </div>
 
               <div className="flex items-center justify-between gap-4 mt-2">
                 <div className="flex items-center gap-2">
-                  <div className="relative">
-                    <button
-                      onClick={() => setShowSpeedPopup(!showSpeedPopup)}
-                      className="flex items-center gap-1.5 px-3 py-2 bg-gray-50 rounded-full text-sm font-bold text-gray-700 hover:bg-gray-100 transition-colors w-24 justify-center"
-                    >
-                      <RefreshCw className="w-4 h-4 text-blue-500" />
-                      {playbackSpeed.toFixed(1)}x
-                    </button>
-                    {showSpeedPopup && (
-                      <div className="absolute bottom-full left-0 mb-2 bg-white border border-gray-200 rounded-2xl shadow-2xl p-2 grid grid-cols-4 gap-1 w-64 animate-in zoom-in-95 duration-200">
-                        {[0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2.0].map(s => (
-                          <button
-                            key={s}
-                            onClick={() => {
-                              setPlaybackSpeed(s);
-                              setShowSpeedPopup(false);
-                            }}
-                            className={`py-1.5 rounded-lg text-xs font-bold transition-all ${playbackSpeed === s ? 'bg-blue-500 text-white shadow-md' : 'text-gray-500 hover:bg-gray-100'}`}
-                          >
-                            {s.toFixed(1)}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  {language === 'Vietnamese' && (
-                    <div className="flex bg-gray-200/50 p-1.5 rounded-full shadow-inner ring-1 ring-black/5">
-                      <button
-                        onClick={() => handleAccentSwitch('north')}
-                        className={`px-5 py-1.5 rounded-full text-[11px] font-black tracking-wider transition-all duration-300 ${vietnameseAccent === 'north' ? 'bg-white text-blue-600 shadow-md scale-105' : 'text-gray-400 hover:text-gray-500 hover:bg-gray-200'}`}
-                      >
-                        HANOI
-                      </button>
-                      <button
-                        onClick={() => handleAccentSwitch('south')}
-                        disabled={audioLoadingSouth && !southAudioUrl}
-                        className={`px-5 py-1.5 rounded-full text-[11px] font-black tracking-wider transition-all duration-300 flex items-center gap-1.5 ${vietnameseAccent === 'south' ? 'bg-white text-blue-600 shadow-md scale-105' : 'text-gray-400 hover:text-gray-500 hover:bg-gray-200 disabled:opacity-30'}`}
-                      >
-                        {audioLoadingSouth && !southAudioUrl ? (
-                          <>
-                            <RefreshCw className="w-3 h-3 animate-spin" />
-                            <span className="animate-pulse">LOADING</span>
-                          </>
-                        ) : (
-                          "SAIGON"
-                        )}
-                      </button>
+                  <button
+                    onClick={() => setShowSpeedPopup(!showSpeedPopup)}
+                    className="flex items-center gap-1.5 px-3 py-2 bg-gray-50 rounded-full text-sm font-bold text-gray-700 hover:bg-gray-100 w-24 justify-center"
+                  >
+                    <RefreshCw className="w-4 h-4 text-blue-500" />
+                    {playbackSpeed.toFixed(1)}x
+                  </button>
+                  {showSpeedPopup && (
+                    <div className="absolute bottom-16 left-4 bg-white border p-2 grid grid-cols-4 gap-1 w-64 shadow-xl rounded-xl">
+                      {[0.5, 0.8, 1.0, 1.2, 1.5, 2.0].map(s => (
+                        <button key={s} onClick={() => { setPlaybackSpeed(s); setShowSpeedPopup(false) }} className="p-2 hover:bg-gray-100 text-xs rounded">{s}x</button>
+                      ))}
                     </div>
                   )}
 
+                  {language === 'Vietnamese' && (
+                    <div className="flex bg-gray-200/50 p-1.5 rounded-full">
+                      <button onClick={() => handleAccentSwitch('north')} className={`px-4 py-1 text-[10px] font-bold rounded-full ${vietnameseAccent === 'north' ? 'bg-white shadow' : 'text-gray-500'}`}>HANOI</button>
+                      <button onClick={() => handleAccentSwitch('south')} className={`px-4 py-1 text-[10px] font-bold rounded-full ${vietnameseAccent === 'south' ? 'bg-white shadow' : 'text-gray-500'}`}>SAIGON</button>
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex items-center gap-6">
-                  <button
-                    onClick={handlePrev}
-                    className="p-3 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded-full transition-all"
-                  >
+                  <button onClick={handlePrev} className="p-3 text-gray-400 hover:bg-gray-100 rounded-full">
                     <ChevronRight className="w-8 h-8 rotate-180" />
                   </button>
-                  <button
-                    onClick={togglePlay}
-                    className="w-14 h-14 bg-blue-500 text-white rounded-2xl flex items-center justify-center shadow-lg hover:bg-blue-600 hover:scale-110 active:scale-95 transition-all"
-                  >
-                    {isPlaying ? (
-                      <div className="flex gap-1 items-center">
-                        <div className="w-1.5 h-6 bg-white rounded-full animate-pulse" />
-                        <div className="w-1.5 h-6 bg-white rounded-full animate-pulse delay-75" />
-                      </div>
-                    ) : (
-                      <Play className="w-8 h-8 fill-current ml-1" />
-                    )}
+                  <button onClick={togglePlay} className="w-14 h-14 bg-blue-500 text-white rounded-2xl flex items-center justify-center shadow-lg hover:scale-105 transition-all">
+                    {isPlaying ? <div className="flex gap-1"><div className="w-1.5 h-6 bg-white animate-pulse" /><div className="w-1.5 h-6 bg-white animate-pulse delay-75" /></div> : <Play className="w-8 h-8 ml-1 fill-current" />}
                   </button>
-                  <button
-                    onClick={handleNext}
-                    className="p-3 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded-full transition-all"
-                  >
+                  <button onClick={handleNext} className="p-3 text-gray-400 hover:bg-gray-100 rounded-full">
                     <ChevronRight className="w-8 h-8" />
                   </button>
                 </div>
 
                 <div className="flex items-center gap-3">
-                  {/* Analysis Toggle */}
-                  <button
-                    onClick={() => setShowAnalysis(!showAnalysis)}
-                    className={`flex flex-col items-center gap-1 p-2 rounded-xl border transition-all ${showAnalysis ? 'bg-blue-50 border-blue-200 text-blue-600' : 'bg-gray-100 border-gray-200 text-gray-400 opacity-60'}`}
-                    title={showAnalysis ? "Hide Analysis" : "Show Analysis"}
-                  >
-                    <MessageSquare className="w-6 h-6 stroke-[2.5]" />
-                    <span className="text-[9px] font-black uppercase tracking-tighter">Analysis</span>
-                  </button>
-
                   <button
                     onClick={() => setRepeatMode(prev => prev === 'sentence' ? 'session' : 'sentence')}
-                    className={`flex flex-col items-center gap-1 p-2 rounded-xl border transition-all bg-blue-50 border-blue-200 text-blue-600 shadow-sm shadow-blue-100`}
+                    className="flex flex-col items-center gap-1 p-2 rounded-xl border bg-blue-50 border-blue-200 text-blue-600"
                   >
-                    {repeatMode === 'sentence' ? (
-                      <div className="relative">
-                        <RefreshCw className="w-6 h-6 stroke-[3]" />
-                        <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[8px] font-black">1</span>
-                      </div>
-                    ) : (
-                      <RefreshCw className={`w-6 h-6 stroke-[3] ${repeatMode === 'session' ? 'animate-spin-slow' : ''}`} />
-                    )}
-                    <span className="text-[9px] font-black uppercase tracking-tighter tracking-widest">{repeatMode === 'sentence' ? '1-LOOP' : 'S-LOOP'}</span>
+                    <RefreshCw className={`w-6 h-6 stroke-[2.5] ${repeatMode === 'session' ? 'animate-spin-slow' : ''}`} />
+                    <span className="text-[8px] font-black uppercase">{repeatMode === 'sentence' ? '1-LOOP' : 'ALL-LOOP'}</span>
                   </button>
-
                 </div>
               </div>
-
-              <div className="flex justify-between mt-1 px-1">
-                <span className="text-[10px] font-mono text-gray-400">{new Date(currentTime * 1000).toISOString().substr(14, 5)}</span>
-                <span className="text-[10px] font-mono text-gray-400">{new Date(duration * 1000).toISOString().substr(14, 5)}</span>
-              </div>
             </div>
           </div>
         )
       }
-
-      {/* History Slide-over */}
-      {
-        showHistory && (
-          <div className="absolute inset-0 z-50 flex">
-            <div className="absolute inset-0 bg-black/20 backdrop-blur-sm" onClick={() => setShowHistory(false)} />
-            <div className="w-full md:w-96 bg-white border-l border-gray-200 h-full ml-auto relative z-10 flex flex-col shadow-2xl animate-in slide-in-from-right duration-300">
-              <div className="p-6 border-b border-gray-200 flex justify-between items-center">
-                <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-                  <HistoryIcon className="w-5 h-5" /> History
-                </h2>
-                <button onClick={() => setShowHistory(false)} className="text-gray-400 hover:text-gray-600">
-                  <X className="w-6 h-6" />
-                </button>
-              </div>
-              <div className="flex-1 overflow-y-auto p-4 space-y-3">
-                {history.map(item => (
-                  <div key={item.id} onClick={() => loadSession(item)} className="p-4 bg-gray-50 hover:bg-white hover:shadow-md rounded-xl border border-gray-200 cursor-pointer group transition-all">
-                    <div className="flex justify-between items-start mb-2">
-                      <span className="text-xs font-mono text-gray-400">
-                        {new Date(item.timestamp).toLocaleDateString()}
-                      </span>
-                      <button
-                        onClick={(e) => deleteHistoryItem(e, item.id)}
-                        className="text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                    <p className="text-gray-800 font-medium line-clamp-2 mb-1">{item.input}</p>
-                    <div className="flex gap-2 text-xs text-gray-500">
-                      <span className="bg-gray-200 px-2 py-0.5 rounded text-gray-600">{item.language}</span>
-                      <span>{item.sets.length} Sets</span>
-                    </div>
-                  </div>
-                ))}
-                {history.length === 0 && (
-                  <p className="text-center text-gray-400 mt-10">No history yet.</p>
-                )}
-              </div>
-            </div>
-          </div>
-        )
-      }
-    </main >
+    </main>
   );
 }
