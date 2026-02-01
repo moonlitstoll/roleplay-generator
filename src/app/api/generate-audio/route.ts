@@ -26,32 +26,32 @@ let ffprobePath = ffprobeStatic.path;
 let ffmpegPath = ffmpegStatic;
 
 // Debug and fix potential raw module path issues
-if (ffprobePath && ffprobePath.includes('\\ROOT')) {
-    ffprobePath = ffprobePath.replace('\\ROOT', process.cwd());
-}
-if (ffprobePath && !fs.existsSync(ffprobePath)) {
-    // Fallback: try to find it in node_modules explicitly if the above failed
-    const possiblePath = path.join(process.cwd(), 'node_modules', 'ffprobe-static', 'bin', 'win32', 'x64', 'ffprobe.exe');
-    if (fs.existsSync(possiblePath)) {
-        ffprobePath = possiblePath;
+if (os.platform() === 'win32') {
+    if (ffprobePath && ffprobePath.includes('\\ROOT')) {
+        ffprobePath = ffprobePath.replace('\\ROOT', process.cwd());
     }
-}
+    if (ffprobePath && !fs.existsSync(ffprobePath)) {
+        // Fallback: try to find it in node_modules explicitly if the above failed
+        const possiblePath = path.join(process.cwd(), 'node_modules', 'ffprobe-static', 'bin', 'win32', 'x64', 'ffprobe.exe');
+        if (fs.existsSync(possiblePath)) {
+            ffprobePath = possiblePath;
+        }
+    }
 
-if (ffmpegPath && ffmpegPath.includes('\\ROOT')) {
-    ffmpegPath = ffmpegPath.replace('\\ROOT', process.cwd());
-}
-if (ffmpegPath && !fs.existsSync(ffmpegPath)) {
-    // Fallback for ffmpeg
-    const possiblePath = path.join(process.cwd(), 'node_modules', 'ffmpeg-static', 'ffmpeg.exe');
-    if (fs.existsSync(possiblePath)) {
-        ffmpegPath = possiblePath;
+    if (ffmpegPath && ffmpegPath.includes('\\ROOT')) {
+        ffmpegPath = ffmpegPath.replace('\\ROOT', process.cwd());
+    }
+    if (ffmpegPath && !fs.existsSync(ffmpegPath)) {
+        // Fallback for ffmpeg
+        const possiblePath = path.join(process.cwd(), 'node_modules', 'ffmpeg-static', 'ffmpeg.exe');
+        if (fs.existsSync(possiblePath)) {
+            ffmpegPath = possiblePath;
+        }
     }
 }
 
 log("FFmpeg Static Path Raw: " + ffmpegStatic);
 log("FFmpeg Resolved Path: " + ffmpegPath);
-log("FFprobe Static Path Raw: " + ffprobeStatic.path);
-log("FFprobe Resolved Path: " + ffprobePath);
 
 if (ffmpegPath) {
     ffmpeg.setFfmpegPath(ffmpegPath);
@@ -126,23 +126,52 @@ async function generateSegment(
     }
 }
 
+// Helper for batch processing
+async function processInBatches<T, R>(items: T[], batchSize: number, fn: (item: T, index: number) => Promise<R>): Promise<R[]> {
+    const results: R[] = [];
+    for (let i = 0; i < items.length; i += batchSize) {
+        const batch = items.slice(i, i + batchSize);
+        const batchResults = await Promise.all(batch.map((item, idx) => fn(item, i + idx)));
+        results.push(...batchResults);
+    }
+    return results;
+}
+
 export async function POST(req: NextRequest) {
     log("POST Request Received");
     try {
-        const { segments, speakers, language, accentMode = 'north' } = await req.json();
+        const body = await req.json();
+        const { segments, speakers, language, accentMode = 'north' } = body;
         log(`Parsed Body: Lang=${language}, Accent=${accentMode}, Segments=${segments?.length}`);
 
         if (!segments || !Array.isArray(segments)) {
             return NextResponse.json({ error: 'Invalid segments' }, { status: 400 });
         }
 
+        // --- PATH FIX LOGIC (OS AWARE) ---
+        if (os.platform() === 'win32') {
+            // Windows-specific fixes (Local Dev)
+            if (ffprobePath && ffprobePath.includes('\\ROOT')) {
+                ffprobePath = ffprobePath.replace('\\ROOT', process.cwd());
+            }
+            if (ffmpegPath && ffmpegPath.includes('\\ROOT')) {
+                ffmpegPath = ffmpegPath.replace('\\ROOT', process.cwd());
+            }
+            // Fallbacks for Windows are already handled in global scope, 
+            // but we ensure they don't break Linux by being inside this block or generic checks.
+        }
+
+        // Linux/Vercel: Usually ffmpegStatic is correct. 
+        // If it's null on Vercel, we might need a specific buildpack, but usually it works.
+        if (ffmpegPath) ffmpeg.setFfmpegPath(ffmpegPath);
+        if (ffprobePath) ffmpeg.setFfprobePath(ffprobePath);
+        // --------------------------------
+
         const tempDir = os.tmpdir();
         const sessionId = uuidv4();
-        const filePaths: string[] = [];
-        const segmentOffsets: number[] = [];
-        let currentOffset = 0;
 
-        for (const [index, segment] of segments.entries()) {
+        // Parallel Processing
+        const processSegment = async (segment: any, index: number) => {
             const filePath = path.join(tempDir, `${sessionId}_${index}.mp3`);
 
             if (segment.pause) {
@@ -157,15 +186,28 @@ export async function POST(req: NextRequest) {
                 });
             } else if (segment.text && segment.speaker) {
                 await generateSegment(segment, filePath, language, accentMode, speakers);
-                log(`Segment ${index} generated: ${filePath}`);
             }
 
+            // Get duration immediately to keep mapping consistent
             const duration = await getAudioDuration(filePath);
-            log(`Segment ${index} duration: ${duration}`);
+            return { filePath, duration };
+        };
+
+        // Batch size 5 to avoid Rate Limits/Memory overload
+        log("Starting Parallel Generation...");
+        const results = await processInBatches(segments, 5, processSegment);
+        log("Generation Complete. Merging...");
+
+        const filePaths = results.map(r => r.filePath);
+        const durations = results.map(r => r.duration);
+
+        // Calculate offsets
+        const segmentOffsets: number[] = [];
+        let currentOffset = 0;
+        durations.forEach(d => {
             segmentOffsets.push(currentOffset);
-            currentOffset += duration;
-            filePaths.push(filePath);
-        }
+            currentOffset += d;
+        });
 
         const outputFileName = `${sessionId}_merged.mp3`;
         const outputPath = path.join(tempDir, outputFileName);
