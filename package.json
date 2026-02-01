@@ -21,6 +21,7 @@
     "google-tts-api": "^2.0.2",
     "idb": "^8.0.3",
     "lucide-react": "^0.563.0",
+    "mp3-duration": "^1.1.0",
     "next": "16.1.6",
     "node-edge-tts": "^1.2.9",
     "react": "19.2.3",

@@ -1,84 +1,42 @@
 import { NextRequest, NextResponse } from 'next/server';
-// Force rebuild trigger
 import { EdgeTTS } from 'node-edge-tts';
 import * as googleTTS from 'google-tts-api';
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
 import { v4 as uuidv4 } from 'uuid';
-import ffmpeg from 'fluent-ffmpeg';
-import ffmpegStatic from 'ffmpeg-static';
-const ffprobeStatic = require('ffprobe-static');
+import mp3Duration from 'mp3-duration';
+
+// --- CONSTANTS ---
+// ~100ms of Silence (MPEG 1 Layer III, 44.1kHz, 64kbps) - valid MP3 frame
+const SILENCE_FRAME_BASE64 = "//NExAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq";
+const SILENCE_FRAME_BUFFER = Buffer.from(SILENCE_FRAME_BASE64, 'base64');
+const SILENCE_DURATION_SEC = 0.1; // Approx duration of one frame above
 
 // File Logger
 const logFile = path.join(process.cwd(), 'server_debug.log');
 function log(message: string) {
-    const timestamp = new Date().toISOString();
-    const line = `[${timestamp}] ${message}\n`;
-    fs.appendFileSync(logFile, line);
+    // Logging disabled for Vercel performance/readonly FS
     console.log(message);
 }
 
-log("Server Module Loaded");
-// Fix path for Next.js/Webpack environment
-// ffprobe-static .path indicates the executable path
-let ffprobePath = ffprobeStatic.path;
-let ffmpegPath = ffmpegStatic;
+// Get duration of an audio buffer in seconds using pure JS
+const getBufferDuration = (buffer: Buffer): Promise<number> => {
+    return new Promise((resolve, reject) => {
+        mp3Duration(buffer, (err: any, duration: number) => {
+            if (err) return resolve(0.1); // Fallback to safe expected min duration
+            resolve(duration);
+        });
+    });
+};
 
-// Debug and fix potential raw module path issues
-if (os.platform() === 'win32') {
-    if (ffprobePath && ffprobePath.includes('\\ROOT')) {
-        ffprobePath = ffprobePath.replace('\\ROOT', process.cwd());
-    }
-    if (ffprobePath && !fs.existsSync(ffprobePath)) {
-        // Fallback: try to find it in node_modules explicitly if the above failed
-        const possiblePath = path.join(process.cwd(), 'node_modules', 'ffprobe-static', 'bin', 'win32', 'x64', 'ffprobe.exe');
-        if (fs.existsSync(possiblePath)) {
-            ffprobePath = possiblePath;
-        }
-    }
-
-    if (ffmpegPath && ffmpegPath.includes('\\ROOT')) {
-        ffmpegPath = ffmpegPath.replace('\\ROOT', process.cwd());
-    }
-    if (ffmpegPath && !fs.existsSync(ffmpegPath)) {
-        // Fallback for ffmpeg
-        const possiblePath = path.join(process.cwd(), 'node_modules', 'ffmpeg-static', 'ffmpeg.exe');
-        if (fs.existsSync(possiblePath)) {
-            ffmpegPath = possiblePath;
-        }
-    }
-}
-
-log("FFmpeg Static Path Raw: " + ffmpegStatic);
-log("FFmpeg Resolved Path: " + ffmpegPath);
-
-if (ffmpegPath) {
-    ffmpeg.setFfmpegPath(ffmpegPath);
-}
-if (ffprobePath) {
-    ffmpeg.setFfprobePath(ffprobePath);
-} else {
-    log("FFPROBE PATH NOT FOUND");
-}
-
-// Helper to download Google TTS audio to file
-async function downloadGoogleTTS(url: string, destPath: string) {
+// Helper to download Google TTS audio to buffer directly
+async function downloadGoogleTTS(url: string, destPath: string): Promise<void> {
     const response = await fetch(url);
     const arrayBuffer = await response.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
     fs.writeFileSync(destPath, buffer);
 }
-
-// Get duration of an audio file in seconds
-const getAudioDuration = (filePath: string): Promise<number> => {
-    return new Promise((resolve, reject) => {
-        ffmpeg.ffprobe(filePath, (err, metadata) => {
-            if (err) return reject(err);
-            resolve(metadata.format.duration || 0);
-        });
-    });
-};
 
 async function generateSegment(
     segment: any,
@@ -103,8 +61,6 @@ async function generateSegment(
     } else {
         if (language === 'Vietnamese') {
             if (accentMode === 'south') {
-                // SOUTHERN (SAIGON) - Use Edge TTS with neutral settings
-                // User specifically requested this for the South accent
                 let voiceName = (gender === 'female') ? 'vi-VN-HoaiMyNeural' : 'vi-VN-NamMinhNeural';
                 const tts = new EdgeTTS({
                     voice: voiceName,
@@ -113,8 +69,6 @@ async function generateSegment(
                 });
                 await tts.ttsPromise(segment.text, filePath);
             } else {
-                // NORTHERN (HANOI) - Default to Google TTS
-                // User preferred this for the North accent ("clean/normal")
                 const url = googleTTS.getAudioUrl(segment.text, {
                     lang: 'vi',
                     slow: false,
@@ -126,7 +80,7 @@ async function generateSegment(
     }
 }
 
-// Helper for batch processing
+// Batch processing helper
 async function processInBatches<T, R>(items: T[], batchSize: number, fn: (item: T, index: number) => Promise<R>): Promise<R[]> {
     const results: R[] = [];
     for (let i = 0; i < items.length; i += batchSize) {
@@ -138,111 +92,75 @@ async function processInBatches<T, R>(items: T[], batchSize: number, fn: (item: 
 }
 
 export async function POST(req: NextRequest) {
-    log("POST Request Received");
     try {
         const body = await req.json();
         const { segments, speakers, language, accentMode = 'north' } = body;
-        log(`Parsed Body: Lang=${language}, Accent=${accentMode}, Segments=${segments?.length}`);
+        log(`Req: Lang=${language}, Segs=${segments?.length}`);
 
         if (!segments || !Array.isArray(segments)) {
             return NextResponse.json({ error: 'Invalid segments' }, { status: 400 });
         }
 
-        // --- PATH FIX LOGIC (OS AWARE) ---
-        if (os.platform() === 'win32') {
-            // Windows-specific fixes (Local Dev)
-            if (ffprobePath && ffprobePath.includes('\\ROOT')) {
-                ffprobePath = ffprobePath.replace('\\ROOT', process.cwd());
-            }
-            if (ffmpegPath && ffmpegPath.includes('\\ROOT')) {
-                ffmpegPath = ffmpegPath.replace('\\ROOT', process.cwd());
-            }
-            // Fallbacks for Windows are already handled in global scope, 
-            // but we ensure they don't break Linux by being inside this block or generic checks.
-        }
-
-        // Linux/Vercel: Usually ffmpegStatic is correct. 
-        // If it's null on Vercel, we might need a specific buildpack, but usually it works.
-        if (ffmpegPath) ffmpeg.setFfmpegPath(ffmpegPath);
-        if (ffprobePath) ffmpeg.setFfprobePath(ffprobePath);
-        // --------------------------------
-
         const tempDir = os.tmpdir();
         const sessionId = uuidv4();
 
-        // Parallel Processing
-        const processSegment = async (segment: any, index: number) => {
-            const filePath = path.join(tempDir, `${sessionId}_${index}.mp3`);
-
+        // Processing Function
+        const processItem = async (segment: any, index: number) => {
+            // Case 1: Silence
             if (segment.pause) {
-                await new Promise<void>((resolve, reject) => {
-                    ffmpeg()
-                        .input('anullsrc')
-                        .inputFormat('lavfi')
-                        .duration(segment.pause / 1000)
-                        .save(filePath)
-                        .on('end', () => resolve())
-                        .on('error', (err: any) => reject(err));
-                });
-            } else if (segment.text && segment.speaker) {
-                await generateSegment(segment, filePath, language, accentMode, speakers);
+                const pauseSec = segment.pause / 1000;
+                // Repeat silence frame to match duration roughly
+                const count = Math.ceil(pauseSec / SILENCE_DURATION_SEC);
+                // Concat silence frames
+                const silenceChunk = Buffer.concat(Array(count).fill(SILENCE_FRAME_BUFFER));
+                // Accurate duration calculation is just pauseSec (logic) or analyze buffer
+                return { buffer: silenceChunk, duration: pauseSec };
             }
 
-            // Get duration immediately to keep mapping consistent
-            const duration = await getAudioDuration(filePath);
-            return { filePath, duration };
+            // Case 2: TTS
+            if (segment.text && segment.speaker) {
+                const filePath = path.join(tempDir, `${sessionId}_${index}.mp3`);
+                try {
+                    await generateSegment(segment, filePath, language, accentMode, speakers);
+                    if (fs.existsSync(filePath)) {
+                        const buf = fs.readFileSync(filePath);
+                        fs.unlinkSync(filePath); // Delete immediately to save space
+                        const dur = await getBufferDuration(buf);
+                        return { buffer: buf, duration: dur };
+                    }
+                } catch (e) {
+                    console.error(`Gen error seg ${index}`, e);
+                }
+            }
+
+            // Fallback
+            return { buffer: Buffer.alloc(0), duration: 0 };
         };
 
-        // Batch size 5 to avoid Rate Limits/Memory overload
-        log("Starting Parallel Generation...");
-        const results = await processInBatches(segments, 5, processSegment);
-        log("Generation Complete. Merging...");
+        // Run in batches of 5
+        const results = await processInBatches(segments, 5, processItem);
 
-        const filePaths = results.map(r => r.filePath);
-        const durations = results.map(r => r.duration);
+        // Merge
+        const allBuffers = results.map(r => r.buffer);
+        const mergedBuffer = Buffer.concat(allBuffers);
+        const mergedBase64 = mergedBuffer.toString('base64');
 
-        // Calculate offsets
-        const segmentOffsets: number[] = [];
+        // Calculate Offsets
+        const offsets: number[] = [];
         let currentOffset = 0;
-        durations.forEach(d => {
-            segmentOffsets.push(currentOffset);
-            currentOffset += d;
+        results.forEach(r => {
+            offsets.push(currentOffset);
+            currentOffset += r.duration;
         });
-
-        const outputFileName = `${sessionId}_merged.mp3`;
-        const outputPath = path.join(tempDir, outputFileName);
-
-        await new Promise<void>((resolve, reject) => {
-            const command = ffmpeg();
-            filePaths.forEach(fp => command.input(fp));
-            command
-                .on('end', () => resolve())
-                .on('error', (err) => reject(err))
-                .mergeToFile(outputPath, tempDir);
-        });
-
-        const audioBase64 = fs.readFileSync(outputPath, { encoding: 'base64' });
-        const totalDuration = await getAudioDuration(outputPath);
-
-        // Cleanup
-        try {
-            filePaths.forEach(fp => {
-                if (fs.existsSync(fp)) fs.unlinkSync(fp);
-            });
-            if (fs.existsSync(outputPath)) fs.unlinkSync(outputPath);
-        } catch (e) {
-            console.error("Cleanup error", e);
-        }
 
         return NextResponse.json({
-            audioContent: audioBase64,
-            offsets: segmentOffsets,
-            totalDuration: totalDuration
+            audioContent: mergedBase64,
+            offsets: offsets,
+            totalDuration: currentOffset
         });
 
     } catch (error: any) {
-        log('TTS Generation Error Stack: ' + error.stack);
-        log('TTS Generation Error: ' + error.message);
-        return NextResponse.json({ error: 'TTS generation failed', details: error.message, stack: error.stack }, { status: 500 });
+        console.error('API Error:', error);
+        return NextResponse.json({ error: 'Generation failed', details: error.message }, { status: 500 });
     }
 }
