@@ -5,7 +5,9 @@ import fs from 'fs';
 import path from 'path';
 import os from 'os';
 import { v4 as uuidv4 } from 'uuid';
-import mp3Duration from 'mp3-duration';
+
+// Use require for CommonJS compatibility
+const mp3Duration = require('mp3-duration');
 
 // --- CONSTANTS ---
 // ~100ms of Silence (MPEG 1 Layer III, 44.1kHz, 64kbps) - valid MP3 frame
@@ -14,19 +16,25 @@ const SILENCE_FRAME_BUFFER = Buffer.from(SILENCE_FRAME_BASE64, 'base64');
 const SILENCE_DURATION_SEC = 0.1; // Approx duration of one frame above
 
 // File Logger
-const logFile = path.join(process.cwd(), 'server_debug.log');
 function log(message: string) {
-    // Logging disabled for Vercel performance/readonly FS
     console.log(message);
 }
 
 // Get duration of an audio buffer in seconds using pure JS
 const getBufferDuration = (buffer: Buffer): Promise<number> => {
-    return new Promise((resolve, reject) => {
-        mp3Duration(buffer, (err: any, duration: number) => {
-            if (err) return resolve(0.1); // Fallback to safe expected min duration
-            resolve(duration);
-        });
+    return new Promise((resolve) => {
+        try {
+            mp3Duration(buffer, (err: any, duration: number) => {
+                if (err || !duration) {
+                    console.error("mp3Duration error/empty:", err);
+                    return resolve(0.1);
+                }
+                resolve(duration);
+            });
+        } catch (e) {
+            console.error("mp3Duration crash:", e);
+            resolve(0.1);
+        }
     });
 };
 
@@ -137,7 +145,7 @@ export async function POST(req: NextRequest) {
             return { buffer: Buffer.alloc(0), duration: 0 };
         };
 
-        // Run in batches of 5
+        // Run in batches of 5 (Though page.tsx calls with 1 usually)
         const results = await processInBatches(segments, 5, processItem);
 
         // Merge
