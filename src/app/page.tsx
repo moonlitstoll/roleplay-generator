@@ -225,7 +225,8 @@ export default function Home() {
   };
 
   // FETCHERS (Batched)
-  const generateAudioForSegments = async (segments: any[], mode: 'north' | 'south', updateMap: (map: AudioMap) => void) => {
+  // Fix: accept React state setter signature
+  const generateAudioForSegments = async (segments: any[], mode: 'north' | 'south', updateMap: React.Dispatch<React.SetStateAction<AudioMap>>) => {
     // We process in small batches of 3 to avoid flooding connection but keep speed
     const BATCH_SIZE = 3;
     for (let i = 0; i < segments.length; i += BATCH_SIZE) {
@@ -261,7 +262,7 @@ export default function Home() {
       const results = await Promise.all(promises);
 
       // Update state incrementally
-      updateMap((prev: AudioMap) => {
+      updateMap((prev) => {
         const next = { ...prev };
         results.forEach(r => {
           if (r) next[r.idx] = r.url;
@@ -335,18 +336,12 @@ export default function Home() {
 
       // 1. South Audio (If VN)
       if (language === 'Vietnamese') {
-        generateAudioForSegments(allSegmentData, 'south', (cb) => {
-          // Use functional update to avoid stale closure if this was in loop, 
-          // but here it's simple callback.
-          // Actually, we passed (map => void) above, match it.
-          setAudioUrlsSouth(cb as any);
-        });
+        // Pass the setter directly
+        generateAudioForSegments(allSegmentData, 'south', setAudioUrlsSouth);
       }
 
       // 2. Standard Audio
-      await generateAudioForSegments(allSegmentData, 'north', (cb) => {
-        setAudioUrls(cb as any);
-      });
+      await generateAudioForSegments(allSegmentData, 'north', setAudioUrls);
 
       setAudioLoading(false);
       setProgress('');
@@ -644,7 +639,9 @@ export default function Home() {
                     </div>
                   )}
 
-                  {language === 'Vietnamese' && (
+                  {/* Accent selector hidden in Safe Mode (Google TTS Only) 
+                        Note: We conditionally render empty here to keep cleanup logic simple */}
+                  {language === 'Vietnamese' && false && (
                     <div className="flex bg-gray-200/50 p-1.5 rounded-full">
                       <button onClick={() => handleAccentSwitch('north')} className={`px-4 py-1 text-[10px] font-bold rounded-full ${vietnameseAccent === 'north' ? 'bg-white shadow' : 'text-gray-500'}`}>HANOI</button>
                       <button onClick={() => handleAccentSwitch('south')} className={`px-4 py-1 text-[10px] font-bold rounded-full ${vietnameseAccent === 'south' ? 'bg-white shadow' : 'text-gray-500'}`}>SAIGON</button>

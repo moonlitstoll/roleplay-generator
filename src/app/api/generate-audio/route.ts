@@ -32,39 +32,26 @@ async function generateSegment(
     accentMode: string,
     speakers: any
 ) {
-    const spk = segment.speaker; // 'A' or 'B'
-    const gender = speakers[spk]?.gender || 'female';
+    const spk = segment.speaker;
     const isEnglish = language === 'English';
 
+    // Force Google TTS for stability on Vercel
+    // EdgeTTS (node-edge-tts) tends to crash on Vercel Serverless
+    /* 
+    const gender = speakers[spk]?.gender || 'female';
     if (isEnglish) {
-        let voiceName = '';
-        if (gender === 'female') {
-            voiceName = (spk === 'A') ? 'en-US-AvaNeural' : 'en-US-EmmaNeural';
-        } else {
-            voiceName = (spk === 'A') ? 'en-US-AndrewNeural' : 'en-US-BrianNeural';
-        }
-        const tts = new EdgeTTS({ voice: voiceName });
-        await tts.ttsPromise(segment.text, filePath);
-    } else {
-        if (language === 'Vietnamese') {
-            if (accentMode === 'south') {
-                let voiceName = (gender === 'female') ? 'vi-VN-HoaiMyNeural' : 'vi-VN-NamMinhNeural';
-                const tts = new EdgeTTS({
-                    voice: voiceName,
-                    pitch: '+0Hz',
-                    rate: '+0%'
-                });
-                await tts.ttsPromise(segment.text, filePath);
-            } else {
-                const url = googleTTS.getAudioUrl(segment.text, {
-                    lang: 'vi',
-                    slow: false,
-                    host: 'https://translate.google.com',
-                });
-                await downloadGoogleTTS(url, filePath);
-            }
-        }
-    }
+       // ... EdgeTTS logic commented out for stability ...
+    } 
+    */
+
+    // Universal Google TTS Fallback
+    const langCode = isEnglish ? 'en' : 'vi';
+    const url = googleTTS.getAudioUrl(segment.text, {
+        lang: langCode,
+        slow: false,
+        host: 'https://translate.google.com',
+    });
+    await downloadGoogleTTS(url, filePath);
 }
 
 // Batch processing helper
