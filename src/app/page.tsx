@@ -112,6 +112,69 @@ export default function Home() {
     return audioUrls[currentSentenceIndex];
   })();
 
+
+
+  // Auto-scroll
+  useEffect(() => {
+    if (currentSentenceIndex !== -1) {
+      const activeElement = scrollRefs.current[`${currentSentenceIndex}`];
+      if (activeElement) {
+        activeElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+  }, [currentSentenceIndex]);
+
+  const togglePlay = () => {
+    if (!audioRef.current || !activeUrl) return;
+    if (isPlaying) {
+      audioRef.current.pause();
+      setIsPlaying(false);
+    } else {
+      audioRef.current.play().catch(e => console.error("Play failed", e));
+      setIsPlaying(true);
+    }
+  };
+
+  const playSentence = (index: number) => {
+    if (index < 0 || index >= totalSentences) return;
+    setCurrentSentenceIndex(index);
+    isSwitchingRef.current = true;
+    setIsPlaying(true);
+  };
+
+  const handleNext = React.useCallback(() => {
+    let nextIdx = currentSentenceIndex + 1;
+    if (nextIdx >= totalSentences) {
+      if (repeatMode === 'session') {
+        nextIdx = 0;
+      } else {
+        return;
+      }
+    }
+
+    const getSetIndex = (idx: number) => generatedSets.findIndex(set => set.script.some(line => line.segmentIndex === idx));
+    const currentSetIdx = getSetIndex(currentSentenceIndex);
+    const nextSetIdx = getSetIndex(nextIdx);
+
+    if (currentSetIdx !== -1 && nextSetIdx !== -1 && currentSetIdx !== nextSetIdx) {
+      setTimeout(() => playSentence(nextIdx), 2000);
+    } else {
+      playSentence(nextIdx);
+    }
+  }, [currentSentenceIndex, totalSentences, repeatMode, generatedSets]);
+
+  const handlePrev = React.useCallback(() => {
+    if (audioRef.current && audioRef.current.currentTime > 2) {
+      audioRef.current.currentTime = 0;
+      return;
+    }
+    let prevIdx = currentSentenceIndex - 1;
+    if (prevIdx < 0) {
+      prevIdx = totalSentences - 1;
+    }
+    playSentence(prevIdx);
+  }, [currentSentenceIndex, totalSentences]);
+
   // Audio Event Handlers
   useEffect(() => {
     const audio = audioRef.current;
@@ -151,71 +214,7 @@ export default function Home() {
       audio.removeEventListener('durationchange', handleLoadedMetadata);
       audio.removeEventListener('ended', handleEnded);
     };
-  }, [repeatMode, currentSentenceIndex, isPlaying, audioUrls, audioUrlsSouth, vietnameseAccent]);
-
-  // Auto-scroll
-  useEffect(() => {
-    if (currentSentenceIndex !== -1) {
-      const activeElement = scrollRefs.current[`${currentSentenceIndex}`];
-      if (activeElement) {
-        activeElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    }
-  }, [currentSentenceIndex]);
-
-  const togglePlay = () => {
-    if (!audioRef.current || !activeUrl) return;
-    if (isPlaying) {
-      audioRef.current.pause();
-      setIsPlaying(false);
-    } else {
-      audioRef.current.play().catch(e => console.error("Play failed", e));
-      setIsPlaying(true);
-    }
-  };
-
-  const playSentence = (index: number) => {
-    if (index < 0 || index >= totalSentences) return;
-    setCurrentSentenceIndex(index);
-    isSwitchingRef.current = true;
-    setIsPlaying(true);
-  };
-
-  const handleNext = () => {
-    let nextIdx = currentSentenceIndex + 1;
-    if (nextIdx >= totalSentences) {
-      // End of session logic
-      if (repeatMode === 'session') {
-        nextIdx = 0; // Loop back
-      } else {
-        return; // Stop
-      }
-    }
-
-    // Check Set Boundary for Pause
-    const getSetIndex = (idx: number) => generatedSets.findIndex(set => set.script.some(line => line.segmentIndex === idx));
-    const currentSetIdx = getSetIndex(currentSentenceIndex);
-    const nextSetIdx = getSetIndex(nextIdx);
-
-    if (currentSetIdx !== -1 && nextSetIdx !== -1 && currentSetIdx !== nextSetIdx) {
-      // Crossing Set Boundary - Add 2s Delay
-      setTimeout(() => playSentence(nextIdx), 2000);
-    } else {
-      playSentence(nextIdx);
-    }
-  };
-
-  const handlePrev = () => {
-    if (audioRef.current && audioRef.current.currentTime > 2) {
-      audioRef.current.currentTime = 0;
-      return;
-    }
-    let prevIdx = currentSentenceIndex - 1;
-    if (prevIdx < 0) {
-      prevIdx = totalSentences - 1; // Loop to end
-    }
-    playSentence(prevIdx);
-  };
+  }, [repeatMode, handleNext, isPlaying]); // Depend on handleNext which is now stable via useCallback
 
   const [history, setHistory] = useState<SavedSession[]>([]);
   const [showHistory, setShowHistory] = useState(false);
@@ -428,6 +427,11 @@ export default function Home() {
       if (session.audioMapSouth) {
         setAudioUrlsSouth(restoreMap(session.audioMapSouth));
       }
+
+      // Fix: Recalculate and set total sentences for history items
+      const totalCount = session.sets.reduce((sum, s) => sum + s.script.length, 0);
+      setTotalSentences(totalCount);
+
       // Set first sentence active
       setCurrentSentenceIndex(0);
     } else {
