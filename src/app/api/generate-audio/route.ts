@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { EdgeTTS } from '@/utils/edge-tts';
+import { EdgeTTS } from '@seepine/edge-tts';
 
 // --- CONSTANTS ---
 // ~100ms of Silence (MPEG 1 Layer III, 44.1kHz, 64kbps) - valid MP3 frame

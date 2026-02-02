@@ -357,27 +357,12 @@ export default function Home() {
     } finally {
       // Save Session on completion (if we have audio)
       if (Object.keys(setAudioUrls).length > 0) {
-        // Convert URL back to blob? No, we have URLs. 
-        // We need to fetch blob from URL to save.
-        // OPTIMIZATION: We should probably store blobs as we go or fetch them back.
-        // Since we used createObjectURL, the blob is in memory. We can fetch(url).blob()
-
-        const saveAudioMap = async (urlMap: AudioMap) => {
-          const blobMap: { [key: number]: Blob } = {};
-          for (const [key, url] of Object.entries(urlMap)) {
-            try {
-              const b = await fetch(url).then(r => r.blob());
-              blobMap[Number(key)] = b;
-            } catch (e) { console.error("Blob save fail", e); }
-          }
-          return blobMap;
-        };
-
-        const northBlobs = await saveAudioMap(audioUrls); // We need access to state, but state might not be updated yet in this closure? 
-        // Actually we don't have access to the *latest* audioUrls state here inside useEffect/handler easily unless we use ref or the local vars.
-        // But we passed setAudioUrls. The `generateAudioForSegments` doesn't return the map.
-        // Let's rely on a "Save" button or auto-save effect? 
-        // Auto-save effect is better.
+        // ... (existing save logic can stay, or we rely on the effect)
+      } else {
+        // If we expected audio (South or North) but got none
+        if (language === 'Vietnamese' || language === 'English') {
+          alert("Warning: Audio generation likely failed. No audio URLs received from server. Please check logs.");
+        }
       }
 
       setLoading(false);
