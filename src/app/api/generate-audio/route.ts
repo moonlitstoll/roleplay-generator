@@ -52,8 +52,28 @@ async function generateSegment(
         const result = await tts.call(segment.text);
         return result.data;
     } catch (e) {
-        console.error(`EdgeTTS failed for ${voice}`, e);
-        throw e;
+        console.error(`EdgeTTS failed for ${voice}, trying Google Fallback`, e);
+
+        // Fallback to Google Translate TTS (Free)
+        try {
+            // Import dynamically or assume it's available since verified
+            const googleTTS = require('google-tts-api');
+            const url = googleTTS.getAudioUrl(segment.text, {
+                lang: language === 'Vietnamese' ? 'vi' : 'en',
+                slow: false,
+                host: 'https://translate.google.com',
+            });
+
+            // Fetch the audio URL and convert to Buffer
+            const res = await fetch(url);
+            if (!res.ok) throw new Error(`Google TTS Fetch failed: ${res.statusText}`);
+            const arrayBuffer = await res.arrayBuffer();
+            return Buffer.from(arrayBuffer);
+
+        } catch (fallbackError) {
+            console.error("Google Fallback also failed", fallbackError);
+            throw e; // Throw original error or fallback error? Throwing E is better to know root cause.
+        }
     }
 }
 
