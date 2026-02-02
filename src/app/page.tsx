@@ -522,26 +522,26 @@ export default function Home() {
 
       {/* Top Header & Controls */}
       <div className="w-full space-y-4 z-10 transition-all">
-        <div className="glass px-4 md:px-6 py-4 rounded-2xl flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 bg-white shadow-sm border border-gray-200">
-          <div className="flex flex-col md:flex-row items-stretch md:items-center gap-4 md:gap-6">
+        <div className="glass px-4 lg:px-6 py-4 rounded-2xl flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4 bg-white shadow-sm border border-gray-200">
+          <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-4 lg:gap-6">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-xl md:text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 tracking-tighter">
+                <h1 className="text-xl lg:text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 tracking-tighter">
                   RealWait
                 </h1>
                 <p className="text-gray-400 text-[10px] font-bold uppercase tracking-widest">Roleplay Gen</p>
               </div>
-              <div className="flex md:hidden gap-2">
+              <div className="flex lg:hidden gap-2">
                 <button onClick={() => setShowHistory(true)} className="p-2 rounded-lg bg-gray-50 border border-gray-200 text-gray-500"><HistoryIcon className="w-4 h-4" /></button>
                 <button onClick={() => setShowAdvanced(!showAdvanced)} className="p-2 rounded-lg bg-gray-50 border border-gray-200 text-gray-500"><Settings className="w-4 h-4" /></button>
               </div>
             </div>
 
-            <div className="h-px md:h-8 w-full md:w-px bg-gray-100" />
+            <div className="h-px lg:h-8 w-full lg:w-px bg-gray-100" />
 
             {/* Main Action Bar */}
-            <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3">
-              <div className="relative flex-1 md:w-96">
+            <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-3">
+              <div className="relative flex-1 lg:w-96">
                 <input
                   type="text"
                   value={input}
@@ -572,7 +572,7 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="flex items-center justify-between md:justify-end gap-3 w-full md:w-auto overflow-x-auto pb-1 md:pb-0 no-scrollbar">
+          <div className="flex items-center justify-between lg:justify-end gap-3 w-full lg:w-auto overflow-x-auto pb-1 lg:pb-0 no-scrollbar">
             {/* Mode Selector */}
             <div className="flex bg-gray-100 p-1 rounded-xl shadow-inner border border-gray-200 shrink-0">
               <button
@@ -618,7 +618,7 @@ export default function Home() {
               </div>
             )}
 
-            <div className="hidden md:flex items-center gap-2">
+            <div className="hidden lg:flex items-center gap-2">
               <button
                 onClick={() => setShowHistory(true)}
                 className="p-2.5 rounded-xl border bg-white border-gray-200 text-gray-500 hover:bg-gray-50 relative group"
