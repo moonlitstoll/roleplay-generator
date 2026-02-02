@@ -184,6 +184,20 @@ export default function Home() {
     }
   }, [currentSentenceIndex, totalSentences, repeatMode, generatedSets, playSentence]);
 
+  // Proactive Playback Effect
+  useEffect(() => {
+    if (currentSentenceIndex !== -1 && isPlaying && audioRef.current) {
+      const audio = audioRef.current;
+      // Small delay to ensure React has updated the DOM src attribute
+      const playTimer = setTimeout(() => {
+        audio.play().catch(e => {
+          if (e.name !== 'AbortError') console.error("Auto-play failed:", e);
+        });
+      }, 50);
+      return () => clearTimeout(playTimer);
+    }
+  }, [currentSentenceIndex, isPlaying, activeUrl]);
+
   const handlePrev = React.useCallback(() => {
     if (audioRef.current && audioRef.current.currentTime > 2) {
       audioRef.current.currentTime = 0;
@@ -207,21 +221,14 @@ export default function Home() {
 
     const handleLoadedMetadata = () => {
       setDuration(audio.duration);
-      if (isSwitchingRef.current) {
-        isSwitchingRef.current = false;
-        if (isPlaying) audio.play().catch(() => { });
-      }
     };
 
     const handleEnded = () => {
-      setIsPlaying(false);
-
       if (repeatMode === 'sentence') {
         audio.currentTime = 0;
         audio.play().catch(() => { });
         setIsPlaying(true);
       } else {
-        // Proceed to next
         handleNext();
       }
     };
@@ -235,7 +242,7 @@ export default function Home() {
       audio.removeEventListener('durationchange', handleLoadedMetadata);
       audio.removeEventListener('ended', handleEnded);
     };
-  }, [repeatMode, handleNext, isPlaying]); // Depend on handleNext which is now stable via useCallback
+  }, [repeatMode, handleNext]); // Simplified deps
 
   const [history, setHistory] = useState<SavedSession[]>([]);
   const [showHistory, setShowHistory] = useState(false);
