@@ -1,9 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { EdgeTTS } from '@/utils/edge-tts';
-import fs from 'fs';
-import path from 'path';
-import os from 'os';
-import { v4 as uuidv4 } from 'uuid';
 
 // --- CONSTANTS ---
 // ~100ms of Silence (MPEG 1 Layer III, 44.1kHz, 64kbps) - valid MP3 frame
@@ -20,11 +16,10 @@ function log(message: string) {
 
 async function generateSegment(
     segment: any,
-    filePath: string,
     language: string,
     accentMode: string,
     speakers: any
-) {
+): Promise<Buffer> {
     const spk = segment.speaker;
     const gender = speakers[spk]?.gender || 'female';
 
@@ -34,14 +29,16 @@ async function generateSegment(
         voice = gender === 'male' ? 'en-US-ChristopherNeural' : 'en-US-AriaNeural';
     } else if (language === 'Vietnamese') {
         // North: NamMinh (Male), HoaiMy (Female)
-        // South: An (Male), HoaiMy (Female - often used as standard)
-        // Let's refine based on user preference if passed, but for now strict mapping:
-
         if (accentMode === 'south') {
-            // Microsoft doesn't have many purely South voices exposed easily publicly except HoaiMy (sometimes listed as South) or others.
-            // Let's use NamMinh as standard North and HoaiMy.
+            // SOUTH MODE:
+            // Female -> HoaiMy (South) - Perfect
+            // Male -> NamMinh (North) - Fallback (No South Male available)
             voice = gender === 'male' ? 'vi-VN-NamMinhNeural' : 'vi-VN-HoaiMyNeural';
         } else {
+            // NORTH MODE:
+            // Male -> NamMinh (North) - Perfect
+            // Female -> HoaiMy (South) - Fallback (No North Female available? Check logic)
+            // Actually currently HoaiMy is the only female. 
             voice = gender === 'male' ? 'vi-VN-NamMinhNeural' : 'vi-VN-HoaiMyNeural';
         }
     }
@@ -53,10 +50,10 @@ async function generateSegment(
             outputFormat: 'audio-24khz-96kbitrate-mono-mp3'
         });
         const result = await tts.call(segment.text);
-        fs.writeFileSync(filePath, result.data);
+        return result.data;
     } catch (e) {
         console.error(`EdgeTTS failed for ${voice}`, e);
-        throw e; // Fail hard if TTS fails, no fallback
+        throw e;
     }
 }
 
@@ -81,8 +78,7 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'Invalid segments' }, { status: 400 });
         }
 
-        const tempDir = os.tmpdir();
-        const sessionId = uuidv4();
+
 
         // Processing Function
         const processItem = async (segment: any, index: number) => {
@@ -99,13 +95,9 @@ export async function POST(req: NextRequest) {
 
             // Case 2: TTS
             if (segment.text && segment.speaker) {
-                const filePath = path.join(tempDir, `${sessionId}_${index}.mp3`);
                 try {
-                    await generateSegment(segment, filePath, language, accentMode, speakers);
-                    if (fs.existsSync(filePath)) {
-                        const buf = fs.readFileSync(filePath);
-                        fs.unlinkSync(filePath); // Delete immediately to save space
-                        // No server-side duration calc needed safely
+                    const buf = await generateSegment(segment, language, accentMode, speakers);
+                    if (buf && buf.length > 0) {
                         return { buffer: buf, duration: 0 };
                     }
                 } catch (e) {
