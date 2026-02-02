@@ -358,11 +358,6 @@ export default function Home() {
       // Save Session on completion (if we have audio)
       if (Object.keys(setAudioUrls).length > 0) {
         // ... (existing save logic can stay, or we rely on the effect)
-      } else {
-        // If we expected audio (South or North) but got none
-        if (language === 'Vietnamese' || language === 'English') {
-          alert("Warning: Audio generation likely failed. No audio URLs received from server. Please check logs.");
-        }
       }
 
       setLoading(false);
