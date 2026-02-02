@@ -191,7 +191,18 @@ export default function Home() {
         return; // Stop
       }
     }
-    playSentence(nextIdx);
+
+    // Check Set Boundary for Pause
+    const getSetIndex = (idx: number) => generatedSets.findIndex(set => set.script.some(line => line.segmentIndex === idx));
+    const currentSetIdx = getSetIndex(currentSentenceIndex);
+    const nextSetIdx = getSetIndex(nextIdx);
+
+    if (currentSetIdx !== -1 && nextSetIdx !== -1 && currentSetIdx !== nextSetIdx) {
+      // Crossing Set Boundary - Add 2s Delay
+      setTimeout(() => playSentence(nextIdx), 2000);
+    } else {
+      playSentence(nextIdx);
+    }
   };
 
   const handlePrev = () => {
@@ -308,11 +319,7 @@ export default function Home() {
         const { script, speakers } = data;
         if (!finalSpeakersInfo) finalSpeakersInfo = speakers;
 
-        if (i > 0) {
-          // Pause segment
-          allSegmentData.push({ idx: globalSegIdx, pause: 2000, speakers });
-          globalSegIdx++;
-        }
+
 
         const scriptWithIndices = script.map((item: ScriptItem) => {
           const idx = globalSegIdx++;
