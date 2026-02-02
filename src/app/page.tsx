@@ -72,6 +72,7 @@ export default function Home() {
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [showAnalysis, setShowAnalysis] = useState(true);
   const [isGapActive, setIsGapActive] = useState(false);
+  const [showTurnsPopup, setShowTurnsPopup] = useState(false);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const scrollRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
@@ -612,17 +613,32 @@ export default function Home() {
             </div>
 
             {mode === 'roleplay' && (
-              <div className="flex items-center gap-1.5 bg-white border border-gray-200 px-2.5 py-1.5 rounded-xl shadow-sm shrink-0">
-                <MessageSquare className="w-3 h-3 text-blue-500" />
-                <input
-                  type="number"
-                  min="1"
-                  max="10"
-                  value={turnCount}
-                  onChange={(e) => setTurnCount(parseInt(e.target.value) || 1)}
-                  className="w-6 bg-transparent text-center text-[10px] font-bold text-gray-700 outline-none"
-                />
-                <span className="text-[8px] font-black text-gray-400 uppercase tracking-tighter">Turns</span>
+              <div className="relative">
+                <button
+                  onClick={() => setShowTurnsPopup(!showTurnsPopup)}
+                  className="flex items-center gap-1.5 bg-white border border-gray-200 px-2.5 py-1.5 rounded-xl shadow-sm hover:border-blue-200 transition-colors"
+                >
+                  <MessageSquare className="w-3 h-3 text-blue-500" />
+                  <span className="w-4 text-center text-[10px] font-bold text-gray-700">{turnCount}</span>
+                  <span className="text-[8px] font-black text-gray-400 uppercase tracking-tighter">Turns</span>
+                </button>
+
+                {showTurnsPopup && (
+                  <>
+                    <div className="fixed inset-0 z-40" onClick={() => setShowTurnsPopup(false)} />
+                    <div className="absolute top-10 right-0 z-50 bg-white border border-gray-200 shadow-xl rounded-xl p-2 w-48 grid grid-cols-5 gap-1 animate-in zoom-in-95 duration-200">
+                      {Array.from({ length: 10 }, (_, i) => i + 1).map(num => (
+                        <button
+                          key={num}
+                          onClick={() => { setTurnCount(num); setShowTurnsPopup(false); }}
+                          className={`p-2 text-xs font-bold rounded-lg transition-colors ${turnCount === num ? 'bg-blue-600 text-white shadow-md' : 'hover:bg-gray-100 text-gray-700'}`}
+                        >
+                          {num}
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
               </div>
             )}
 
@@ -826,20 +842,55 @@ export default function Home() {
 
               <div className="flex items-center justify-between gap-2 md:gap-4 mt-2">
                 <div className="flex items-center gap-2">
+                  {/* Analysis Toggle (Mobile/Desktop) */}
                   <button
-                    onClick={() => setShowSpeedPopup(!showSpeedPopup)}
-                    className="flex items-center gap-1 px-2 md:px-3 py-1.5 md:py-2 bg-gray-50 rounded-full text-[10px] md:text-sm font-bold text-gray-700 hover:bg-gray-100 w-16 md:w-24 justify-center"
+                    onClick={() => setShowAnalysis(!showAnalysis)}
+                    className={`flex items-center justify-center p-2 md:p-2 rounded-full transition-all ${showAnalysis ? 'bg-blue-100 text-blue-600' : 'bg-gray-50 text-gray-400 hover:bg-gray-100'}`}
+                    title="Toggle Analysis"
                   >
-                    <RefreshCw className="w-3 md:w-4 h-3 md:h-4 text-blue-500" />
-                    {playbackSpeed.toFixed(1)}x
-                  </button>
-                  {showSpeedPopup && (
-                    <div className="absolute bottom-16 left-4 bg-white border p-2 grid grid-cols-4 gap-1 w-60 md:w-64 shadow-xl rounded-xl">
-                      {[0.5, 0.8, 1.0, 1.2, 1.5, 2.0].map(s => (
-                        <button key={s} onClick={() => { setPlaybackSpeed(s); setShowSpeedPopup(false) }} className="p-2 hover:bg-gray-100 text-[10px] md:text-xs rounded">{s}x</button>
-                      ))}
+                    <div className="relative">
+                      <MessageSquare className="w-4 h-4 md:w-5 md:h-5" />
+                      <span className="absolute -bottom-1 -right-1 text-[8px] font-black">{showAnalysis ? 'ON' : 'OFF'}</span>
                     </div>
-                  )}
+                  </button>
+
+                  <div className="relative">
+                    <button
+                      onClick={() => setShowSpeedPopup(!showSpeedPopup)}
+                      className="flex items-center gap-1 px-2 md:px-3 py-1.5 md:py-2 bg-gray-50 rounded-full text-[10px] md:text-sm font-bold text-gray-700 hover:bg-gray-100 w-16 md:w-20 justify-center"
+                    >
+                      <RefreshCw className="w-3 md:w-4 h-3 md:h-4 text-blue-500" />
+                      {playbackSpeed.toFixed(1)}x
+                    </button>
+                    {showSpeedPopup && (
+                      <div className="absolute bottom-16 left-0 bg-white border border-gray-200 p-4 w-64 shadow-2xl rounded-2xl flex flex-col gap-3 animate-in fade-in zoom-in-95 duration-200 origin-bottom-left">
+                        <div className="flex justify-between items-center">
+                          <span className="text-xs font-bold text-gray-500 uppercase">Speed</span>
+                          <span className="text-sm font-black text-blue-600">{playbackSpeed.toFixed(1)}x</span>
+                        </div>
+                        <input
+                          type="range"
+                          min="0.5"
+                          max="2.0"
+                          step="0.1"
+                          value={playbackSpeed}
+                          onChange={(e) => setPlaybackSpeed(parseFloat(e.target.value))}
+                          className="w-full accent-blue-600 h-2 bg-gray-100 rounded-lg appearance-none cursor-pointer"
+                        />
+                        <div className="flex justify-between text-[10px] text-gray-400 font-bold px-1">
+                          <span>0.5x</span>
+                          <span>1.0x</span>
+                          <span>2.0x</span>
+                        </div>
+                        <button
+                          onClick={() => { setPlaybackSpeed(1.0); setShowSpeedPopup(false); }}
+                          className="w-full py-2 bg-gray-50 hover:bg-gray-100 rounded-lg text-xs font-bold text-gray-600 transition-colors"
+                        >
+                          Reset to 1.0x
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 <div className="flex items-center gap-3 md:gap-6">
