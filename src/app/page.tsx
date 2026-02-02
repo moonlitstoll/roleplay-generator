@@ -973,6 +973,25 @@ export default function Home() {
           </div>
         </div>
       )}
-    </main>
+
+      {/* Root Level Turns Popup - Moved here to prevent z-index issues / overflow clipping in the header */}
+      {showTurnsPopup && (
+        <>
+          <div className="fixed inset-0 z-[100] bg-black/10 backdrop-blur-[1px]" onClick={() => setShowTurnsPopup(false)} />
+          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[110] bg-white border border-gray-200 shadow-2xl rounded-2xl p-4 w-64 grid grid-cols-5 gap-2 animate-in zoom-in-95 duration-200">
+            <div className="col-span-5 text-center text-xs font-bold text-gray-400 mb-2 uppercase tracking-widest">Select Turns</div>
+            {Array.from({ length: 10 }, (_, i) => i + 1).map(num => (
+              <button
+                key={num}
+                onClick={() => { setTurnCount(num); setShowTurnsPopup(false); }}
+                className={`aspect-square flex items-center justify-center text-sm font-bold rounded-xl transition-all ${turnCount === num ? 'bg-blue-600 text-white shadow-lg scale-105' : 'bg-gray-50 text-gray-700 hover:bg-gray-100'}`}
+              >
+                {num}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </main >
   );
 }
