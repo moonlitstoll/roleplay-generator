@@ -70,6 +70,7 @@ export default function Home() {
   const [showSpeedPopup, setShowSpeedPopup] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [showAnalysis, setShowAnalysis] = useState(true);
+  const [isGapActive, setIsGapActive] = useState(false);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const scrollRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
@@ -168,24 +169,26 @@ export default function Home() {
       }
     }
 
-    // Identify Sets
-    const getSetIndex = (idx: number) => {
-      if (!generatedSets || generatedSets.length === 0) return -1;
-      return generatedSets.findIndex(set =>
-        set.script && set.script.some(line => line.segmentIndex === idx)
-      );
-    };
+    // Identify Sets using a robust lookup
+    const currentSetIdx = generatedSets.findIndex(set => set.script.some(line => line.segmentIndex === currentSentenceIndex));
+    const nextSetIdx = generatedSets.findIndex(set => set.script.some(line => line.segmentIndex === nextIdx));
 
-    const currentSetIdx = getSetIndex(currentSentenceIndex);
-    const nextSetIdx = getSetIndex(nextIdx);
+    console.log(`[Playback] handleNext: currentIdx=${currentSentenceIndex}(Set ${currentSetIdx}), nextIdx=${nextIdx}(Set ${nextSetIdx})`);
 
     // If crossing set boundary, add pause
     if (currentSetIdx !== -1 && nextSetIdx !== -1 && currentSetIdx !== nextSetIdx) {
-      console.log(`[Playback] Set Boundary detected: Set ${currentSetIdx + 1} -> ${nextSetIdx + 1}. Pausing 2s.`);
-      setIsPlaying(false); // Pause UI during transition
+      console.log(`[Playback] Transitioning Set ${currentSetIdx + 1} -> ${nextSetIdx + 1}. Starting 2s Gap.`);
+
+      // Move visual focus immediately
+      setCurrentSentenceIndex(nextIdx);
+
+      // Activate gap state (prevents effect from playing audio)
+      setIsGapActive(true);
+
       if (boundaryTimeoutRef.current) clearTimeout(boundaryTimeoutRef.current);
       boundaryTimeoutRef.current = setTimeout(() => {
-        playSentence(nextIdx);
+        console.log(`[Playback] Gap Finished. Resuming Set ${nextSetIdx + 1}.`);
+        setIsGapActive(false);
       }, 2000);
     } else {
       playSentence(nextIdx);
@@ -194,17 +197,17 @@ export default function Home() {
 
   // Proactive Playback Effect
   useEffect(() => {
-    if (currentSentenceIndex !== -1 && isPlaying && audioRef.current) {
+    if (currentSentenceIndex !== -1 && isPlaying && !isGapActive && audioRef.current && activeUrl) {
       const audio = audioRef.current;
-      // Small delay to ensure React has updated the DOM src attribute
+      console.log(`[Playback] Proactive Play: ${activeUrl.substring(0, 50)}...`);
       const playTimer = setTimeout(() => {
         audio.play().catch(e => {
-          if (e.name !== 'AbortError') console.error("Auto-play failed:", e);
+          if (e.name !== 'AbortError') console.error("[Playback] Play failed:", e);
         });
       }, 50);
       return () => clearTimeout(playTimer);
     }
-  }, [currentSentenceIndex, isPlaying, activeUrl]);
+  }, [currentSentenceIndex, isPlaying, isGapActive, activeUrl]);
 
   const handlePrev = React.useCallback(() => {
     if (audioRef.current && audioRef.current.currentTime > 2) {
