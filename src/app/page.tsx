@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Play, Download, RefreshCw, MessageSquare, Mic, History as HistoryIcon, Trash2, X, ChevronRight, Settings, Globe, Layers, Pause } from 'lucide-react';
-import { saveSession, getSessions, deleteSession, SavedSession } from '../utils/storage';
+import { saveSession, getSessions, deleteSession, clearSessions, SavedSession } from '../utils/storage';
 import { generateExportHTML } from '../utils/exportTemplate';
 
 interface ScriptItem {
@@ -442,6 +442,13 @@ export default function Home() {
     }
   };
 
+  const clearHistory = async () => {
+    if (confirm('Are you sure you want to delete ALL history? This cannot be undone.')) {
+      await clearSessions();
+      setHistory([]);
+    }
+  };
+
   return (
     <main className="min-h-screen p-4 md:p-6 flex flex-col gap-6 relative overflow-x-hidden bg-gray-50">
       {/* Background decoration */}
@@ -554,43 +561,7 @@ export default function Home() {
           </div>
         </div>
 
-        {/* History Sidebar */}
-        {showHistory && (
-          <div className="fixed inset-0 z-50 flex justify-end bg-black/20 backdrop-blur-sm animate-in fade-in transition-all" onClick={() => setShowHistory(false)}>
-            <div
-              className="w-full max-w-sm bg-white h-full shadow-2xl p-6 flex flex-col gap-4 animate-in slide-in-from-right duration-300 transform"
-              onClick={e => e.stopPropagation()}
-            >
-              <div className="flex items-center justify-between border-b pb-4">
-                <h2 className="text-xl font-black text-gray-800 flex items-center gap-2">
-                  <HistoryIcon className="w-5 h-5 text-blue-500" />
-                  History
-                </h2>
-                <button onClick={() => setShowHistory(false)} className="p-2 hover:bg-gray-100 rounded-full text-gray-500"><X className="w-5 h-5" /></button>
-              </div>
 
-              <div className="flex-1 overflow-y-auto space-y-3 pr-2 scrollbar-thin">
-                {/* Empty State */}
-                {history.length === 0 && (
-                  <div className="text-center text-gray-400 py-10 text-sm">No history yet.</div>
-                )}
-
-                {history.map(session => (
-                  <div key={session.id} onClick={() => loadSession(session)} className="group p-4 rounded-xl border border-gray-100 hover:border-blue-200 hover:bg-blue-50/50 cursor-pointer transition-all relative">
-                    <div className="flex justify-between items-start mb-2">
-                      <span className="text-xs font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded-md uppercase tracking-wide">{session.language}</span>
-                      <button onClick={(e) => deleteHistoryItem(e, session.id)} className="opacity-0 group-hover:opacity-100 p-1.5 hover:bg-red-100 text-red-500 rounded-md transition-all"><Trash2 className="w-3.5 h-3.5" /></button>
-                    </div>
-                    <h3 className="font-bold text-gray-800 line-clamp-2 leading-snug mb-1">{session.input || "Random Topic"}</h3>
-                    <p className="text-[10px] text-gray-400 font-medium">{new Date(session.timestamp).toLocaleString()}</p>
-                    {/* Indicator for saved audio */}
-                    {session.audioMap && <div className="mt-2 flex items-center gap-1 text-[10px] text-green-600 font-bold"><Mic className="w-3 h-3" /> <span>Audio Saved</span></div>}
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Collapsible Advanced Settings (Simplified) */}
         {showAdvanced && (
@@ -776,6 +747,56 @@ export default function Home() {
           </div>
         )
       }
+      {/* History Sidebar - Moved to Root to fix z-index stacking context */}
+      {showHistory && (
+        <div className="fixed inset-0 z-[100] flex justify-end bg-black/20 backdrop-blur-sm animate-in fade-in transition-all" onClick={() => setShowHistory(false)}>
+          <div
+            className="w-full max-w-sm bg-white h-full shadow-2xl p-6 flex flex-col gap-4 animate-in slide-in-from-right duration-300 transform"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b pb-4">
+              <h2 className="text-xl font-black text-gray-800 flex items-center gap-2">
+                <HistoryIcon className="w-5 h-5 text-blue-500" />
+                History
+              </h2>
+              <button onClick={() => setShowHistory(false)} className="p-2 hover:bg-gray-100 rounded-full text-gray-500"><X className="w-5 h-5" /></button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto space-y-3 pr-2 scrollbar-thin">
+              {/* Empty State */}
+              {history.length === 0 && (
+                <div className="text-center text-gray-400 py-10 text-sm">No history yet.</div>
+              )}
+
+              {history.map(session => (
+                <div key={session.id} onClick={() => loadSession(session)} className="group p-4 rounded-xl border border-gray-100 hover:border-blue-200 hover:bg-blue-50/50 cursor-pointer transition-all relative">
+                  <div className="flex justify-between items-start mb-2">
+                    <span className="text-xs font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded-md uppercase tracking-wide">{session.language}</span>
+                    <button onClick={(e) => deleteHistoryItem(e, session.id)} className="opacity-0 group-hover:opacity-100 p-1.5 hover:bg-red-100 text-red-500 rounded-md transition-all"><Trash2 className="w-3.5 h-3.5" /></button>
+                  </div>
+                  <h3 className="font-bold text-gray-800 line-clamp-2 leading-snug mb-1">{session.input || "Random Topic"}</h3>
+                  <p className="text-[10px] text-gray-400 font-medium">{new Date(session.timestamp).toLocaleString()}</p>
+                  {/* Indicator for saved audio */}
+                  {session.audioMap && <div className="mt-2 flex items-center gap-1 text-[10px] text-green-600 font-bold"><Mic className="w-3 h-3" /> <span>Audio Saved</span></div>}
+                </div>
+              ))}
+            </div>
+
+            {/* Clear All Button */}
+            {history.length > 0 && (
+              <div className="pt-4 border-t border-gray-100">
+                <button
+                  onClick={clearHistory}
+                  className="w-full py-3 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-colors"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Delete All History
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </main>
   );
 }

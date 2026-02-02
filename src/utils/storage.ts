@@ -42,3 +42,8 @@ export const deleteSession = async (id: string) => {
     const db = await initDB();
     await db.delete(STORE_NAME, id);
 };
+
+export const clearSessions = async () => {
+    const db = await initDB();
+    await db.clear(STORE_NAME);
+};
