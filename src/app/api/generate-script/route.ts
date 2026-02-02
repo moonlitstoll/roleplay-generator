@@ -83,12 +83,13 @@ export async function POST(req: NextRequest) {
 
     const baseInstruction = isSingleReaderMode
       ? `
-          SINGLE READER MODE ACTIVATED:
-          - Use the "Input" text EXACTLY as the script content.
-          - If the input is empty, generate a short generic monologue (self-introduction or daily narration).
-          - Assign the text to Speaker "A".
-          - Generate EXACTLY 1 line of script.
-          - Still provide translation, grammar_patterns, and word_analysis in Korean.
+          VERBATIM ANALYSIS MODE ACTIVATED:
+          - DO NOT generate a roleplay or conversation.
+          - DO NOT change or "fix" the input text. Use the user's "Input" EXACTLY as it is.
+          - If the input contains multiple sentences, you may split them into separate items in the "script" array (up to 5 items max).
+          - Assign all segments to Speaker "A".
+          - Provide detailed Korean translation, grammar_patterns, and word_analysis for each segment.
+          - If the input is empty, generate a 1-line self-introduction as Speaker A.
         `
       : `
           Generate exactly ${count * 2} lines of conversation (alternating between speaker A and B).

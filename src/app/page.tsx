@@ -43,7 +43,7 @@ export default function Home() {
   const [input, setInput] = useState('');
   const [apiKey, setApiKey] = useState('');
   const [turnCount, setTurnCount] = useState(4);
-  const [setCount, setSetCount] = useState(1);
+  const [mode, setMode] = useState<'roleplay' | 'analysis'>('roleplay');
   const [accentMode, setAccentMode] = useState('standard-simulated');
   const [loading, setLoading] = useState(false);
   const [audioLoading, setAudioLoading] = useState(false);
@@ -351,39 +351,42 @@ export default function Home() {
       let finalSpeakersInfo: any = null;
       let globalSegIdx = 0;
 
-      for (let i = 0; i < setCount; i++) {
-        setProgress(`Generating script set ${i + 1}/${setCount}...`);
+      setProgress(`Generating script...`);
 
-        const scriptRes = await fetch('/api/generate-script', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ input, language, count: turnCount, apiKey, model: modelType, accentMode }),
-        });
+      const scriptRes = await fetch('/api/generate-script', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          input,
+          language,
+          count: mode === 'analysis' ? 0 : turnCount,
+          apiKey,
+          model: modelType,
+          accentMode
+        }),
+      });
 
-        if (!scriptRes.ok) {
-          const errData = await scriptRes.json();
-          throw new Error(errData.details || 'Failed to generate script');
-        }
-
-        const data = await scriptRes.json();
-        const { script, speakers } = data;
-        if (!finalSpeakersInfo) finalSpeakersInfo = speakers;
-
-
-
-        const scriptWithIndices = script.map((item: ScriptItem) => {
-          const idx = globalSegIdx++;
-          allSegmentData.push({ idx, text: item.text, speaker: item.speaker, speakers });
-          return { ...item, segmentIndex: idx };
-        });
-
-        newSets.push({
-          id: crypto.randomUUID(),
-          script: scriptWithIndices,
-          timestamp: new Date(),
-          input: input || "Random Topic",
-        });
+      if (!scriptRes.ok) {
+        const errData = await scriptRes.json();
+        throw new Error(errData.details || 'Failed to generate script');
       }
+
+      const data = await scriptRes.json();
+      const { script, speakers } = data;
+      finalSpeakersInfo = speakers;
+
+      const scriptWithIndices = script.map((item: ScriptItem) => {
+        const idx = globalSegIdx++;
+        allSegmentData.push({ idx, text: item.text, speaker: item.speaker, speakers });
+        return { ...item, segmentIndex: idx };
+      });
+
+      newSets.push({
+        id: crypto.randomUUID(),
+        script: scriptWithIndices,
+        timestamp: new Date(),
+        input: input || "Random Topic",
+      });
 
       setGeneratedSets(newSets);
       setTotalSentences(globalSegIdx); // Total count
@@ -537,7 +540,7 @@ export default function Home() {
                   type="text"
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  placeholder="Enter topic or word (Empty = Random)..."
+                  placeholder={mode === 'roleplay' ? "Enter topic or word (Empty = Random)..." : "Enter a sentence to analyze exactly..."}
                   className="w-full bg-gray-50 border border-gray-200 rounded-xl py-2.5 px-4 text-sm text-gray-800 focus:ring-2 focus:ring-blue-500 outline-none transition-all placeholder:text-gray-400"
                 />
               </div>
@@ -564,7 +567,24 @@ export default function Home() {
           </div>
 
           <div className="flex items-center gap-3">
-            {/* Language / Counts / History / Settings */}
+            {/* Mode Selector */}
+            <div className="flex bg-gray-100 p-1 rounded-xl shadow-inner border border-gray-200">
+              <button
+                onClick={() => setMode('roleplay')}
+                className={`px-3 py-1.5 rounded-lg text-[10px] font-black tracking-widest transition-all flex items-center gap-1.5 ${mode === 'roleplay' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+              >
+                <RefreshCw className={`w-3 h-3 ${mode === 'roleplay' && loading ? 'animate-spin' : ''}`} />
+                ROLEPLAY
+              </button>
+              <button
+                onClick={() => setMode('analysis')}
+                className={`px-3 py-1.5 rounded-lg text-[10px] font-black tracking-widest transition-all flex items-center gap-1.5 ${mode === 'analysis' ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+              >
+                <MessageSquare className="w-3 h-3" />
+                ANALYSIS
+              </button>
+            </div>
+
             <div className="flex bg-gray-100 p-1 rounded-xl shadow-inner border border-gray-200">
               <div className="flex items-center px-1.5 text-gray-400">
                 <Globe className="w-3.5 h-3.5" />
@@ -580,31 +600,22 @@ export default function Home() {
               ))}
             </div>
 
-            <div className="flex items-center gap-1.5 bg-white border border-gray-200 px-3 py-1.5 rounded-xl shadow-sm group hover:border-blue-200 transition-colors">
-              <MessageSquare className="w-3.5 h-3.5 text-blue-500" />
-              <input
-                type="number"
-                min="0"
-                max="10"
-                value={turnCount}
-                onChange={(e) => setTurnCount(parseInt(e.target.value) || 1)}
-                className="w-8 bg-transparent text-center text-xs font-bold text-gray-700 outline-none"
-              />
-              <span className="text-[9px] font-black text-gray-400 uppercase tracking-tighter">Turns</span>
-            </div>
+            {mode === 'roleplay' && (
+              <div className="flex items-center gap-1.5 bg-white border border-gray-200 px-3 py-1.5 rounded-xl shadow-sm group hover:border-blue-200 transition-colors">
+                <MessageSquare className="w-3.5 h-3.5 text-blue-500" />
+                <input
+                  type="number"
+                  min="1"
+                  max="10"
+                  value={turnCount}
+                  onChange={(e) => setTurnCount(parseInt(e.target.value) || 1)}
+                  className="w-8 bg-transparent text-center text-xs font-bold text-gray-700 outline-none"
+                />
+                <span className="text-[9px] font-black text-gray-400 uppercase tracking-tighter">Turns</span>
+              </div>
+            )}
 
-            <div className="flex items-center gap-1.5 bg-white border border-gray-200 px-3 py-1.5 rounded-xl shadow-sm group hover:border-indigo-200 transition-colors">
-              <Layers className="w-3.5 h-3.5 text-indigo-500" />
-              <input
-                type="number"
-                min="1"
-                max="5"
-                value={setCount}
-                onChange={(e) => setSetCount(parseInt(e.target.value) || 1)}
-                className="w-8 bg-transparent text-center text-xs font-bold text-gray-700 outline-none"
-              />
-              <span className="text-[9px] font-black text-gray-400 uppercase tracking-tighter">Sets</span>
-            </div>
+
 
             <button
               onClick={() => setShowHistory(true)}
@@ -660,15 +671,21 @@ export default function Home() {
             <div className="space-y-12">
               {generatedSets.map((set, setIdx) => (
                 <div key={set.id} className="space-y-6">
-                  {/* Set Divider */}
-                  <div className="relative flex items-center justify-center pt-4">
-                    <div className="absolute inset-0 flex items-center">
-                      <div className="w-full border-t border-gray-200"></div>
+                  {/* Set Divider - Only show Topic if only one set, or fully labeled if multiple */}
+                  {generatedSets.length > 1 ? (
+                    <div className="relative flex items-center justify-center pt-4">
+                      <div className="absolute inset-0 flex items-center">
+                        <div className="w-full border-t border-gray-200"></div>
+                      </div>
+                      <span className="relative bg-white px-4 text-xs font-bold text-gray-400 uppercase tracking-widest">
+                        Set {setIdx + 1}: {set.input}
+                      </span>
                     </div>
-                    <span className="relative bg-white px-4 text-xs font-bold text-gray-400 uppercase tracking-widest">
-                      Set {setIdx + 1}: {set.input}
-                    </span>
-                  </div>
+                  ) : (
+                    <div className="pt-2 pb-4 text-center">
+                      <span className="text-[10px] font-black text-blue-500 uppercase tracking-[0.2em] opacity-50">Topic: {set.input || 'Random'}</span>
+                    </div>
+                  )}
 
                   {set.script.map((line, idx) => {
                     const isActive = currentSentenceIndex === line.segmentIndex;
