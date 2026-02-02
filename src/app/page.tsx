@@ -353,7 +353,8 @@ export default function Home() {
 
     } catch (error: any) {
       console.error(error);
-      alert(`Error: ${error.message}`);
+      console.error(error);
+      // alert(`Error: ${error.message}`); // Suppress alert as per user request
     } finally {
       // Save Session on completion (if we have audio)
       if (Object.keys(setAudioUrls).length > 0) {
@@ -514,7 +515,7 @@ export default function Home() {
               <MessageSquare className="w-3.5 h-3.5 text-blue-500" />
               <input
                 type="number"
-                min="1"
+                min="0"
                 max="10"
                 value={turnCount}
                 onChange={(e) => setTurnCount(parseInt(e.target.value) || 1)}
@@ -746,25 +747,7 @@ export default function Home() {
 
                   {/* Accent selector hidden in Safe Mode (Google TTS Only) 
                         Note: We conditionally render empty here to keep cleanup logic simple */}
-                  {language === 'Vietnamese' && (
-                    <div className="flex bg-gray-200/50 p-1.5 rounded-full items-center gap-2">
-                      <span className="text-[9px] font-bold text-gray-400 pl-2 uppercase tracking-wide">Voice:</span>
-                      <button
-                        onClick={() => handleAccentSwitch('north')}
-                        className={`px-3 py-1 text-[10px] font-bold rounded-full transition-all flex items-center gap-1 ${vietnameseAccent === 'north' ? 'bg-white shadow text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
-                        title="Male: NamMinh (North) | Female: HoaiMy (South) [Fallback]"
-                      >
-                        <span className="uppercase">North (NamMinh)</span>
-                      </button>
-                      <button
-                        onClick={() => handleAccentSwitch('south')}
-                        className={`px-3 py-1 text-[10px] font-bold rounded-full transition-all flex items-center gap-1 ${vietnameseAccent === 'south' ? 'bg-white shadow text-pink-600' : 'text-gray-500 hover:text-gray-700'}`}
-                        title="Female: HoaiMy (South) | Male: NamMinh (North) [Fallback]"
-                      >
-                        <span className="uppercase">South (HoaiMy)</span>
-                      </button>
-                    </div>
-                  )}
+
                 </div>
 
                 <div className="flex items-center gap-6">

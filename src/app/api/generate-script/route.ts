@@ -78,6 +78,36 @@ export async function POST(req: NextRequest) {
     const isInputEmpty = !input || input.trim() === '';
     const promptInput = isInputEmpty ? "Any interesting daily life or professional roleplay scenario" : input;
 
+
+    const isSingleReaderMode = count === 0;
+
+    const baseInstruction = isSingleReaderMode
+      ? `
+          SINGLE READER MODE ACTIVATED:
+          - Use the "Input" text EXACTLY as the script content.
+          - If the input is empty, generate a short generic monologue (self-introduction or daily narration).
+          - Assign the text to Speaker "A".
+          - Generate EXACTLY 1 line of script.
+          - Still provide translation, grammar_patterns, and word_analysis in Korean.
+        `
+      : `
+          Generate exactly ${count * 2} lines of conversation (alternating between speaker A and B).
+          RANDOM GENERATION:
+          ${isInputEmpty ? "Since the input is empty, pick a random and engaging scenario (e.g., ordering food, job interview, checking into a hotel, meeting a friend, asking for directions)." : "Focus on the provided input."}
+          
+          INPUT HANDLING STRATEGY:
+          1. **If Input is a Topic (e.g. 'Coffee Shop')**: Create a vivid, realistic situational drama.
+          2. **If Input is Vocabulary/Sentence**: Create a coherent dialogue that NATURALLY uses these words.
+          
+          CRITICAL INSTRUCTION - NATURALNESS PRIORITY:
+          - **"Native-Level Polish"**: Even if the user's input contains awkward or grammatically incorrect target language, YOU MUST FIX IT.
+          - **Upgrade** the expressions to what a real native speaker would say in that situation.
+          - Usage of the input words must be natural, not forced.
+          
+          GENDER ASSIGNMENT:
+          - Assign logical genders to Speakers A and B based on the scenario.
+      `;
+
     const prompt = `
       You are an expert language conversation generator.
       Create a roleplay script based on the following:
@@ -85,33 +115,16 @@ export async function POST(req: NextRequest) {
       Target Language: ${language}
       Accent/Dialect: General
       Reference Language: Korean
-      Generate exactly ${count * 2} lines of conversation (alternating between speaker A and B).
       
-      RANDOM GENERATION:
-      ${isInputEmpty ? "Since the input is empty, pick a random and engaging scenario (e.g., ordering food, job interview, checking into a hotel, meeting a friend, asking for directions)." : "Focus on the provided input."}
-
-      INPUT HANDLING STRATEGY:
-      1. **If Input is a Topic (e.g. 'Coffee Shop')**: Create a vivid, realistic situational drama.
-      2. **If Input is Vocabulary/Sentence**: Create a coherent dialogue that NATURALLY uses these words.
-
-      CRITICAL INSTRUCTION - NATURALNESS PRIORITY:
-      - **"Native-Level Polish"**: Even if the user's input contains awkward or grammatically incorrect target language, YOU MUST FIX IT.
-      - **Upgrade** the expressions to what a real native speaker would say in that situation.
-      - Usage of the input words must be natural, not forced.
-
+      ${baseInstruction}
+      
       KOREAN-ONLY EXPLANATIONS:
       - All grammar explanations [grammar_patterns] MUST be in Korean.
       - All word analyses [word_analysis] MUST be in Korean.
       - DO NOT use English explanations at all.
-
-      GENDER ASSIGNMENT:
-      - Assign logical genders to Speakers A and B based on the scenario.
       
       DIALECT INSTRUCTIONS (Vietnamese):
       - Use standard vocabulary that works for both regions if possible.
-      
-      CRITICAL INSTRUCTION:
-      If the user provides a dialogue script in the "Input", preserve those lines literally.
       
       [word_analysis] CRITICAL INSTRUCTIONS:
       - Analyze meaningful chunks for language learners.
