@@ -137,7 +137,11 @@ export default function Home() {
   };
 
   const playSentence = React.useCallback((index: number) => {
-    if (index < 0 || index >= totalSentences) return;
+    if (index < 0 || index >= totalSentences) {
+      console.log(`[Playback] Index ${index} out of bounds (0-${totalSentences - 1})`);
+      setIsPlaying(false);
+      return;
+    }
 
     // Clear any pending boundary pause
     if (boundaryTimeoutRef.current) {
@@ -145,6 +149,7 @@ export default function Home() {
       boundaryTimeoutRef.current = null;
     }
 
+    console.log(`[Playback] Switching to sentence ${index}`);
     setCurrentSentenceIndex(index);
     isSwitchingRef.current = true;
     setIsPlaying(true);
@@ -153,7 +158,9 @@ export default function Home() {
   const handleNext = React.useCallback(() => {
     let nextIdx = currentSentenceIndex + 1;
     if (nextIdx >= totalSentences) {
+      console.log("[Playback] End of session reached");
       if (repeatMode === 'session') {
+        console.log("[Playback] Looping to start");
         nextIdx = 0;
       } else {
         setIsPlaying(false);
@@ -174,6 +181,7 @@ export default function Home() {
 
     // If crossing set boundary, add pause
     if (currentSetIdx !== -1 && nextSetIdx !== -1 && currentSetIdx !== nextSetIdx) {
+      console.log(`[Playback] Set Boundary detected: Set ${currentSetIdx + 1} -> ${nextSetIdx + 1}. Pausing 2s.`);
       setIsPlaying(false); // Pause UI during transition
       if (boundaryTimeoutRef.current) clearTimeout(boundaryTimeoutRef.current);
       boundaryTimeoutRef.current = setTimeout(() => {
