@@ -522,25 +522,31 @@ export default function Home() {
 
       {/* Top Header & Controls */}
       <div className="w-full space-y-4 z-10 transition-all">
-        <div className="glass px-6 py-4 rounded-2xl flex flex-wrap items-center justify-between gap-4 bg-white shadow-sm border border-gray-200">
-          <div className="flex items-center gap-6">
-            <div>
-              <h1 className="text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 tracking-tighter">
-                RealWait
-              </h1>
-              <p className="text-gray-400 text-[10px] font-bold uppercase tracking-widest">Roleplay Gen</p>
+        <div className="glass px-4 md:px-6 py-4 rounded-2xl flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 bg-white shadow-sm border border-gray-200">
+          <div className="flex flex-col md:flex-row items-stretch md:items-center gap-4 md:gap-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-xl md:text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 tracking-tighter">
+                  RealWait
+                </h1>
+                <p className="text-gray-400 text-[10px] font-bold uppercase tracking-widest">Roleplay Gen</p>
+              </div>
+              <div className="flex md:hidden gap-2">
+                <button onClick={() => setShowHistory(true)} className="p-2 rounded-lg bg-gray-50 border border-gray-200 text-gray-500"><HistoryIcon className="w-4 h-4" /></button>
+                <button onClick={() => setShowAdvanced(!showAdvanced)} className="p-2 rounded-lg bg-gray-50 border border-gray-200 text-gray-500"><Settings className="w-4 h-4" /></button>
+              </div>
             </div>
 
-            <div className="h-8 w-px bg-gray-100 hidden md:block" />
+            <div className="h-px md:h-8 w-full md:w-px bg-gray-100" />
 
             {/* Main Action Bar */}
-            <div className="flex items-center gap-3">
-              <div className="relative w-64 md:w-96">
+            <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3">
+              <div className="relative flex-1 md:w-96">
                 <input
                   type="text"
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  placeholder={mode === 'roleplay' ? "Enter topic or word (Empty = Random)..." : "Enter a sentence to analyze exactly..."}
+                  placeholder={mode === 'roleplay' ? "Enter topic or word..." : "Enter sentence to analyze..."}
                   className="w-full bg-gray-50 border border-gray-200 rounded-xl py-2.5 px-4 text-sm text-gray-800 focus:ring-2 focus:ring-blue-500 outline-none transition-all placeholder:text-gray-400"
                 />
               </div>
@@ -548,7 +554,7 @@ export default function Home() {
               <button
                 onClick={handleGenerate}
                 disabled={loading}
-                className={`px-6 py-2.5 rounded-xl flex items-center justify-center gap-2 font-bold text-sm shadow-md transition-all ${loading ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700 hover:scale-[1.02]'
+                className={`px-6 py-2.5 rounded-xl flex items-center justify-center gap-2 font-bold text-sm shadow-md transition-all ${loading ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700 active:scale-95'
                   }`}
               >
                 {loading ? (
@@ -566,34 +572,31 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center justify-between md:justify-end gap-3 w-full md:w-auto overflow-x-auto pb-1 md:pb-0 no-scrollbar">
             {/* Mode Selector */}
-            <div className="flex bg-gray-100 p-1 rounded-xl shadow-inner border border-gray-200">
+            <div className="flex bg-gray-100 p-1 rounded-xl shadow-inner border border-gray-200 shrink-0">
               <button
                 onClick={() => setMode('roleplay')}
-                className={`px-3 py-1.5 rounded-lg text-[10px] font-black tracking-widest transition-all flex items-center gap-1.5 ${mode === 'roleplay' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+                className={`px-2.5 py-1.5 rounded-lg text-[9px] font-black tracking-widest transition-all flex items-center gap-1 ${mode === 'roleplay' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
               >
                 <RefreshCw className={`w-3 h-3 ${mode === 'roleplay' && loading ? 'animate-spin' : ''}`} />
                 ROLEPLAY
               </button>
               <button
                 onClick={() => setMode('analysis')}
-                className={`px-3 py-1.5 rounded-lg text-[10px] font-black tracking-widest transition-all flex items-center gap-1.5 ${mode === 'analysis' ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+                className={`px-2.5 py-1.5 rounded-lg text-[9px] font-black tracking-widest transition-all flex items-center gap-1 ${mode === 'analysis' ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
               >
                 <MessageSquare className="w-3 h-3" />
                 ANALYSIS
               </button>
             </div>
 
-            <div className="flex bg-gray-100 p-1 rounded-xl shadow-inner border border-gray-200">
-              <div className="flex items-center px-1.5 text-gray-400">
-                <Globe className="w-3.5 h-3.5" />
-              </div>
+            <div className="flex bg-gray-100 p-1 rounded-xl shadow-inner border border-gray-200 shrink-0">
               {['Vietnamese', 'English'].map((lang) => (
                 <button
                   key={lang}
                   onClick={() => setLanguage(lang as any)}
-                  className={`px-3 py-1.5 rounded-lg text-[10px] font-black tracking-tighter transition-all ${language === lang ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+                  className={`px-2.5 py-1.5 rounded-lg text-[9px] font-black transition-all ${language === lang ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
                 >
                   {lang === 'Vietnamese' ? 'VN' : 'EN'}
                 </button>
@@ -601,36 +604,35 @@ export default function Home() {
             </div>
 
             {mode === 'roleplay' && (
-              <div className="flex items-center gap-1.5 bg-white border border-gray-200 px-3 py-1.5 rounded-xl shadow-sm group hover:border-blue-200 transition-colors">
-                <MessageSquare className="w-3.5 h-3.5 text-blue-500" />
+              <div className="flex items-center gap-1.5 bg-white border border-gray-200 px-2.5 py-1.5 rounded-xl shadow-sm shrink-0">
+                <MessageSquare className="w-3 h-3 text-blue-500" />
                 <input
                   type="number"
                   min="1"
                   max="10"
                   value={turnCount}
                   onChange={(e) => setTurnCount(parseInt(e.target.value) || 1)}
-                  className="w-8 bg-transparent text-center text-xs font-bold text-gray-700 outline-none"
+                  className="w-6 bg-transparent text-center text-[10px] font-bold text-gray-700 outline-none"
                 />
-                <span className="text-[9px] font-black text-gray-400 uppercase tracking-tighter">Turns</span>
+                <span className="text-[8px] font-black text-gray-400 uppercase tracking-tighter">Turns</span>
               </div>
             )}
 
-
-
-            <button
-              onClick={() => setShowHistory(true)}
-              className="p-2.5 rounded-xl border bg-white border-gray-200 text-gray-500 hover:bg-gray-50 relative group"
-            >
-              <HistoryIcon className="w-5 h-5" />
-              {/* Tooltip */}
-              <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-[10px] py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">History</span>
-            </button>
-            <button
-              onClick={() => setShowAdvanced(!showAdvanced)}
-              className="p-2.5 rounded-xl border bg-white border-gray-200 text-gray-500 hover:bg-gray-50"
-            >
-              <Settings className="w-5 h-5" />
-            </button>
+            <div className="hidden md:flex items-center gap-2">
+              <button
+                onClick={() => setShowHistory(true)}
+                className="p-2.5 rounded-xl border bg-white border-gray-200 text-gray-500 hover:bg-gray-50 relative group"
+              >
+                <HistoryIcon className="w-5 h-5" />
+                <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-[10px] py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">History</span>
+              </button>
+              <button
+                onClick={() => setShowAdvanced(!showAdvanced)}
+                className="p-2.5 rounded-xl border bg-white border-gray-200 text-gray-500 hover:bg-gray-50"
+              >
+                <Settings className="w-5 h-5" />
+              </button>
+            </div>
           </div>
         </div>
 
@@ -647,7 +649,7 @@ export default function Home() {
       {/* Result Panel */}
       <div className="flex-1 space-y-6 z-10 min-w-0">
         {generatedSets.length > 0 && (
-          <div className="glass p-6 md:p-10 rounded-3xl min-h-screen flex flex-col bg-white shadow-sm border border-gray-200 mb-20">
+          <div className="glass p-4 md:p-10 rounded-2xl md:rounded-3xl min-h-screen flex flex-col bg-white shadow-sm border border-gray-200 mb-24 md:mb-20">
 
             <div className="flex items-center justify-between mb-10 pb-6 border-b border-gray-100">
               <div className="flex items-center gap-3">
@@ -778,47 +780,46 @@ export default function Home() {
                 />
               </div>
 
-              <div className="flex items-center justify-between gap-4 mt-2">
+              <div className="flex items-center justify-between gap-2 md:gap-4 mt-2">
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => setShowSpeedPopup(!showSpeedPopup)}
-                    className="flex items-center gap-1.5 px-3 py-2 bg-gray-50 rounded-full text-sm font-bold text-gray-700 hover:bg-gray-100 w-24 justify-center"
+                    className="flex items-center gap-1 px-2 md:px-3 py-1.5 md:py-2 bg-gray-50 rounded-full text-[10px] md:text-sm font-bold text-gray-700 hover:bg-gray-100 w-16 md:w-24 justify-center"
                   >
-                    <RefreshCw className="w-4 h-4 text-blue-500" />
+                    <RefreshCw className="w-3 md:w-4 h-3 md:h-4 text-blue-500" />
                     {playbackSpeed.toFixed(1)}x
                   </button>
                   {showSpeedPopup && (
-                    <div className="absolute bottom-16 left-4 bg-white border p-2 grid grid-cols-4 gap-1 w-64 shadow-xl rounded-xl">
+                    <div className="absolute bottom-16 left-4 bg-white border p-2 grid grid-cols-4 gap-1 w-60 md:w-64 shadow-xl rounded-xl">
                       {[0.5, 0.8, 1.0, 1.2, 1.5, 2.0].map(s => (
-                        <button key={s} onClick={() => { setPlaybackSpeed(s); setShowSpeedPopup(false) }} className="p-2 hover:bg-gray-100 text-xs rounded">{s}x</button>
+                        <button key={s} onClick={() => { setPlaybackSpeed(s); setShowSpeedPopup(false) }} className="p-2 hover:bg-gray-100 text-[10px] md:text-xs rounded">{s}x</button>
                       ))}
                     </div>
                   )}
-
-                  {/* Accent selector hidden in Safe Mode (Google TTS Only) 
-                        Note: We conditionally render empty here to keep cleanup logic simple */}
-
                 </div>
 
-                <div className="flex items-center gap-6">
-                  <button onClick={handlePrev} className="p-3 text-gray-400 hover:bg-gray-100 rounded-full">
-                    <ChevronRight className="w-8 h-8 rotate-180" />
+                <div className="flex items-center gap-3 md:gap-6">
+                  <button onClick={handlePrev} className="p-2 md:p-3 text-gray-400 hover:bg-gray-100 rounded-full">
+                    <ChevronRight className="w-6 md:w-8 h-6 md:h-8 rotate-180" />
                   </button>
-                  <button onClick={togglePlay} className="w-14 h-14 bg-blue-500 text-white rounded-2xl flex items-center justify-center shadow-lg hover:scale-105 transition-all">
-                    {isPlaying ? <div className="flex gap-1"><div className="w-1.5 h-6 bg-white animate-pulse" /><div className="w-1.5 h-6 bg-white animate-pulse delay-75" /></div> : <Play className="w-8 h-8 ml-1 fill-current" />}
+                  <button onClick={togglePlay} className="w-10 md:w-14 h-10 md:h-14 bg-blue-600 text-white rounded-xl md:rounded-2xl flex items-center justify-center shadow-lg active:scale-95 transition-all">
+                    {isPlaying
+                      ? <div className="flex gap-1"><div className="w-1 md:w-1.5 h-4 md:h-6 bg-white animate-pulse" /><div className="w-1 md:w-1.5 h-4 md:h-6 bg-white animate-pulse delay-75" /></div>
+                      : <Play className="w-5 md:w-8 h-5 md:h-8 ml-0.5 md:l-1 fill-current" />
+                    }
                   </button>
-                  <button onClick={handleNext} className="p-3 text-gray-400 hover:bg-gray-100 rounded-full">
-                    <ChevronRight className="w-8 h-8" />
+                  <button onClick={handleNext} className="p-2 md:p-3 text-gray-400 hover:bg-gray-100 rounded-full">
+                    <ChevronRight className="w-6 md:w-8 h-6 md:h-8" />
                   </button>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 md:gap-3">
                   <button
                     onClick={() => setRepeatMode(prev => prev === 'sentence' ? 'session' : 'sentence')}
-                    className="flex flex-col items-center gap-1 p-2 rounded-xl border bg-blue-50 border-blue-200 text-blue-600"
+                    className="flex flex-col items-center gap-0.5 p-1.5 md:p-2 rounded-lg md:rounded-xl border bg-blue-50 border-blue-200 text-blue-600"
                   >
-                    <RefreshCw className={`w-6 h-6 stroke-[2.5] ${repeatMode === 'session' ? 'animate-spin-slow' : ''}`} />
-                    <span className="text-[8px] font-black uppercase">{repeatMode === 'sentence' ? '1-LOOP' : 'ALL-LOOP'}</span>
+                    <RefreshCw className={`w-4 md:w-6 h-4 md:h-6 stroke-[2.5] ${repeatMode === 'session' ? 'animate-spin-slow' : ''}`} />
+                    <span className="text-[6px] md:text-[8px] font-black uppercase">{repeatMode === 'sentence' ? '1-L' : 'ALL'}</span>
                   </button>
                 </div>
               </div>
@@ -830,7 +831,7 @@ export default function Home() {
       {showHistory && (
         <div className="fixed inset-0 z-[100] flex justify-end bg-black/20 backdrop-blur-sm animate-in fade-in transition-all" onClick={() => setShowHistory(false)}>
           <div
-            className="w-full max-w-sm bg-white h-full shadow-2xl p-6 flex flex-col gap-4 animate-in slide-in-from-right duration-300 transform"
+            className="w-full md:max-w-sm bg-white h-full shadow-2xl p-6 flex flex-col gap-4 animate-in slide-in-from-right duration-300 transform"
             onClick={e => e.stopPropagation()}
           >
             <div className="flex items-center justify-between border-b pb-4">
