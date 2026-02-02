@@ -76,6 +76,7 @@ export default function Home() {
 
   // To avoid rapid switching issues
   const isSwitchingRef = useRef(false);
+  const boundaryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (audioRef.current) {
@@ -135,12 +136,19 @@ export default function Home() {
     }
   };
 
-  const playSentence = (index: number) => {
+  const playSentence = React.useCallback((index: number) => {
     if (index < 0 || index >= totalSentences) return;
+
+    // Clear any pending boundary pause
+    if (boundaryTimeoutRef.current) {
+      clearTimeout(boundaryTimeoutRef.current);
+      boundaryTimeoutRef.current = null;
+    }
+
     setCurrentSentenceIndex(index);
     isSwitchingRef.current = true;
     setIsPlaying(true);
-  };
+  }, [totalSentences]);
 
   const handleNext = React.useCallback(() => {
     let nextIdx = currentSentenceIndex + 1;
@@ -148,20 +156,33 @@ export default function Home() {
       if (repeatMode === 'session') {
         nextIdx = 0;
       } else {
+        setIsPlaying(false);
         return;
       }
     }
 
-    const getSetIndex = (idx: number) => generatedSets.findIndex(set => set.script.some(line => line.segmentIndex === idx));
+    // Identify Sets
+    const getSetIndex = (idx: number) => {
+      if (!generatedSets || generatedSets.length === 0) return -1;
+      return generatedSets.findIndex(set =>
+        set.script && set.script.some(line => line.segmentIndex === idx)
+      );
+    };
+
     const currentSetIdx = getSetIndex(currentSentenceIndex);
     const nextSetIdx = getSetIndex(nextIdx);
 
+    // If crossing set boundary, add pause
     if (currentSetIdx !== -1 && nextSetIdx !== -1 && currentSetIdx !== nextSetIdx) {
-      setTimeout(() => playSentence(nextIdx), 2000);
+      setIsPlaying(false); // Pause UI during transition
+      if (boundaryTimeoutRef.current) clearTimeout(boundaryTimeoutRef.current);
+      boundaryTimeoutRef.current = setTimeout(() => {
+        playSentence(nextIdx);
+      }, 2000);
     } else {
       playSentence(nextIdx);
     }
-  }, [currentSentenceIndex, totalSentences, repeatMode, generatedSets]);
+  }, [currentSentenceIndex, totalSentences, repeatMode, generatedSets, playSentence]);
 
   const handlePrev = React.useCallback(() => {
     if (audioRef.current && audioRef.current.currentTime > 2) {
@@ -173,7 +194,7 @@ export default function Home() {
       prevIdx = totalSentences - 1;
     }
     playSentence(prevIdx);
-  }, [currentSentenceIndex, totalSentences]);
+  }, [currentSentenceIndex, totalSentences, playSentence]);
 
   // Audio Event Handlers
   useEffect(() => {
