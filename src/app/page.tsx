@@ -169,25 +169,30 @@ export default function Home() {
       }
     }
 
-    // Identify Sets using a robust lookup
-    const currentSetIdx = generatedSets.findIndex(set => set.script.some(line => line.segmentIndex === currentSentenceIndex));
-    const nextSetIdx = generatedSets.findIndex(set => set.script.some(line => line.segmentIndex === nextIdx));
+    // Identify Sets using a robust lookup (works for old sessions too)
+    const getGlobalSetIndex = (idx: number) => {
+      let count = 0;
+      for (let s = 0; s < generatedSets.length; s++) {
+        const setLen = (generatedSets[s].script || []).length;
+        if (idx >= count && idx < count + setLen) return s;
+        count += setLen;
+      }
+      return -1;
+    };
 
-    console.log(`[Playback] handleNext: currentIdx=${currentSentenceIndex}(Set ${currentSetIdx}), nextIdx=${nextIdx}(Set ${nextSetIdx})`);
+    const currentSetIdx = getGlobalSetIndex(currentSentenceIndex);
+    const nextSetIdx = getGlobalSetIndex(nextIdx);
+
+    console.log(`[Playback] handleNext: currIdx=${currentSentenceIndex}(Set ${currentSetIdx}), nextIdx=${nextIdx}(Set ${nextSetIdx})`);
 
     // If crossing set boundary, add pause
     if (currentSetIdx !== -1 && nextSetIdx !== -1 && currentSetIdx !== nextSetIdx) {
-      console.log(`[Playback] Transitioning Set ${currentSetIdx + 1} -> ${nextSetIdx + 1}. Starting 2s Gap.`);
-
-      // Move visual focus immediately
+      console.log(`[Playback] Boundary: Set ${currentSetIdx} -> ${nextSetIdx}. 2s Gap.`);
       setCurrentSentenceIndex(nextIdx);
-
-      // Activate gap state (prevents effect from playing audio)
       setIsGapActive(true);
-
       if (boundaryTimeoutRef.current) clearTimeout(boundaryTimeoutRef.current);
       boundaryTimeoutRef.current = setTimeout(() => {
-        console.log(`[Playback] Gap Finished. Resuming Set ${nextSetIdx + 1}.`);
+        console.log("[Playback] Gap expired. Playing next.");
         setIsGapActive(false);
       }, 2000);
     } else {
@@ -199,12 +204,19 @@ export default function Home() {
   useEffect(() => {
     if (currentSentenceIndex !== -1 && isPlaying && !isGapActive && audioRef.current && activeUrl) {
       const audio = audioRef.current;
-      console.log(`[Playback] Proactive Play: ${activeUrl.substring(0, 50)}...`);
+      console.log(`[Playback] Effect trigger: ${currentSentenceIndex} -> ${activeUrl.substring(0, 30)}...`);
+
       const playTimer = setTimeout(() => {
-        audio.play().catch(e => {
-          if (e.name !== 'AbortError') console.error("[Playback] Play failed:", e);
-        });
-      }, 50);
+        try {
+          // Force source refresh to avoid browser caching or stale state
+          audio.load();
+          audio.play().catch(e => {
+            if (e.name !== 'AbortError') console.error("[Playback] Execution failed:", e);
+          });
+        } catch (e) {
+          console.error("[Playback] Setup failed:", e);
+        }
+      }, 100); // Slightly longer delay for stable src switching
       return () => clearTimeout(playTimer);
     }
   }, [currentSentenceIndex, isPlaying, isGapActive, activeUrl]);
@@ -235,10 +247,10 @@ export default function Home() {
     };
 
     const handleEnded = () => {
+      console.log("[Playback] Sentence ended");
       if (repeatMode === 'sentence') {
         audio.currentTime = 0;
         audio.play().catch(() => { });
-        setIsPlaying(true);
       } else {
         handleNext();
       }
@@ -253,7 +265,7 @@ export default function Home() {
       audio.removeEventListener('durationchange', handleLoadedMetadata);
       audio.removeEventListener('ended', handleEnded);
     };
-  }, [repeatMode, handleNext]); // Simplified deps
+  }, [repeatMode, handleNext, isPlaying]); // Include isPlaying to ensure listeners are clean
 
   const [history, setHistory] = useState<SavedSession[]>([]);
   const [showHistory, setShowHistory] = useState(false);
