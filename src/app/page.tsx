@@ -59,6 +59,7 @@ export default function Home() {
   // Playback Control States
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
+  const [error, setError] = useState<string | null>(null);
   const [duration, setDuration] = useState(0); // Current Sentence Duration
   const [playbackSpeed, setPlaybackSpeed] = useState(1.0);
   const [repeatMode, setRepeatMode] = useState<'none' | 'sentence' | 'session'>('session');
@@ -344,8 +345,15 @@ export default function Home() {
     setAudioUrls({});
     setAudioUrlsSouth({});
     setCurrentSentenceIndex(-1);
+    setError(null);
 
     try {
+      if ((!apiKey || apiKey.trim() === '') && !process.env.GEMINI_API_KEY) {
+        // Check if hidden env is available, if not, warn
+        // But we can't check server env from client easily without a request.
+        // Reliance on the API to throw correct error.
+      }
+
       const newSets: GeneratedSet[] = [];
       const allSegmentData: any[] = []; // Metadata for fetching
       let finalSpeakersInfo: any = null;
@@ -645,6 +653,19 @@ export default function Home() {
           </div>
         )}
       </div>
+
+      {/* Error Message Banner */}
+      {error && (
+        <div className="w-full px-4 md:px-6 animate-in slide-in-from-top-2">
+          <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl flex items-center justify-between shadow-sm">
+            <div className="flex items-center gap-2 text-sm font-semibold">
+              <span className="bg-red-100 p-1 rounded-full"><X className="w-3 h-3" /></span>
+              {error}
+            </div>
+            <button onClick={() => setError(null)} className="text-red-400 hover:text-red-700 text-xs font-bold uppercase">Dismiss</button>
+          </div>
+        </div>
+      )}
 
       {/* Result Panel */}
       <div className="flex-1 space-y-6 z-10 min-w-0">
