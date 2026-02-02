@@ -625,13 +625,14 @@ export default function Home() {
 
                 {showTurnsPopup && (
                   <>
-                    <div className="fixed inset-0 z-40" onClick={() => setShowTurnsPopup(false)} />
-                    <div className="absolute top-10 right-0 z-50 bg-white border border-gray-200 shadow-xl rounded-xl p-2 w-48 grid grid-cols-5 gap-1 animate-in zoom-in-95 duration-200">
+                    <div className="fixed inset-0 z-[60] bg-black/10 backdrop-blur-[1px]" onClick={() => setShowTurnsPopup(false)} />
+                    <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[70] bg-white border border-gray-200 shadow-2xl rounded-2xl p-4 w-64 grid grid-cols-5 gap-2 animate-in zoom-in-95 duration-200">
+                      <div className="col-span-5 text-center text-xs font-bold text-gray-400 mb-2 uppercase tracking-widest">Select Turns</div>
                       {Array.from({ length: 10 }, (_, i) => i + 1).map(num => (
                         <button
                           key={num}
                           onClick={() => { setTurnCount(num); setShowTurnsPopup(false); }}
-                          className={`p-2 text-xs font-bold rounded-lg transition-colors ${turnCount === num ? 'bg-blue-600 text-white shadow-md' : 'hover:bg-gray-100 text-gray-700'}`}
+                          className={`aspect-square flex items-center justify-center text-sm font-bold rounded-xl transition-all ${turnCount === num ? 'bg-blue-600 text-white shadow-lg scale-105' : 'bg-gray-50 text-gray-700 hover:bg-gray-100'}`}
                         >
                           {num}
                         </button>
