@@ -648,8 +648,31 @@ export default function Home() {
 
         {/* Collapsible Advanced Settings (Simplified) */}
         {showAdvanced && (
-          <div className="glass p-4 rounded-xl bg-white border border-gray-200 mb-4 text-xs text-gray-500">
-            Settings: Model {modelType}, API Key set.
+          <div className="glass p-4 rounded-xl bg-white border border-gray-200 mb-4 text-sm text-gray-700 space-y-4 animate-in slide-in-from-top-2">
+            <div className="flex flex-col gap-2">
+              <label className="font-bold text-xs uppercase text-gray-400">Gemini API Key</label>
+              <input
+                type="password"
+                value={apiKey}
+                onChange={(e) => setApiKey(e.target.value)}
+                placeholder="Enter your Gemini API Key..."
+                className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none"
+              />
+              <p className="text-[10px] text-gray-400">Leave empty to use server default (if configured).</p>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <label className="font-bold text-xs uppercase text-gray-400">Model</label>
+              <select
+                value={modelType}
+                onChange={(e) => setModelType(e.target.value)}
+                className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2.5 outline-none"
+              >
+                <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
+                <option value="gemini-pro">Gemini Pro</option>
+                <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
+              </select>
+            </div>
           </div>
         )}
       </div>
