@@ -273,6 +273,8 @@ export default function Home() {
   }, [togglePlay, handlePrev, handleNext, setRepeatMode]);
 
   useEffect(() => {
+    console.log('[Shortcuts] Initializing keyboard listener...');
+
     const handleKeyDown = (e: KeyboardEvent) => {
       // Ignore IME composition (CJK)
       if (e.isComposing) return;
@@ -281,34 +283,44 @@ export default function Home() {
       const target = e.target as HTMLElement;
       const isInput = target.tagName === 'INPUT' ||
         target.tagName === 'TEXTAREA' ||
-        target.isContentEditable;
+        target.isContentEditable ||
+        target.closest('[contenteditable="true"]');
 
       if (isInput) return;
 
-      console.log(`[Shortcuts] Key: ${e.code}`); // Debug log
+      const key = e.key;
+      const code = e.code;
 
-      switch (e.code) {
-        case 'Space':
-          e.preventDefault(); // Prevent scrolling
-          handlersRef.current.togglePlay();
-          break;
-        case 'ArrowLeft':
-          e.preventDefault(); // Prevent scrolling
-          handlersRef.current.handlePrev();
-          break;
-        case 'ArrowRight':
-          e.preventDefault(); // Prevent scrolling
-          handlersRef.current.handleNext();
-          break;
-        case 'Enter':
-          e.preventDefault();
-          handlersRef.current.setRepeatMode(prev => prev === 'sentence' ? 'session' : 'sentence');
-          break;
+      console.log(`[Shortcuts] Event: key="${key}" code="${code}"`);
+
+      // Space: Play/Pause
+      if (key === ' ' || code === 'Space') {
+        e.preventDefault();
+        console.log('[Shortcuts] Triggering TogglePlay');
+        handlersRef.current.togglePlay();
+      }
+      // ArrowLeft: Prev
+      else if (key === 'ArrowLeft' || code === 'ArrowLeft') {
+        e.preventDefault();
+        console.log('[Shortcuts] Triggering Prev');
+        handlersRef.current.handlePrev();
+      }
+      // ArrowRight: Next
+      else if (key === 'ArrowRight' || code === 'ArrowRight') {
+        e.preventDefault();
+        console.log('[Shortcuts] Triggering Next');
+        handlersRef.current.handleNext();
+      }
+      // Enter: Repeat Mode
+      else if (key === 'Enter' || code === 'Enter') {
+        e.preventDefault();
+        console.log('[Shortcuts] Triggering RepeatMode Toggle');
+        handlersRef.current.setRepeatMode(prev => prev === 'sentence' ? 'session' : 'sentence');
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener('keydown', handleKeyDown, true); // Use capture
+    return () => window.removeEventListener('keydown', handleKeyDown, true);
   }, []); // Empty dependency array = Stable listener
 
   // Audio Event Handlers
