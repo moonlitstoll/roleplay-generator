@@ -273,7 +273,7 @@ export default function Home() {
   }, [togglePlay, handlePrev, handleNext, setRepeatMode]);
 
   useEffect(() => {
-    console.log('[Shortcuts] Initializing keyboard listener...');
+    console.log('[Shortcuts] Initializing keyboard listener on document...');
 
     const handleKeyDown = (e: KeyboardEvent) => {
       // Ignore IME composition (CJK)
@@ -286,41 +286,44 @@ export default function Home() {
         target.isContentEditable ||
         target.closest('[contenteditable="true"]');
 
+      // Special case: if target is input but user is just hitting arrow keys/space 
+      // AND they are not actually focused in the text part? (Unlikely to detect)
+      // Standard return if focused in input.
       if (isInput) return;
 
       const key = e.key;
       const code = e.code;
 
-      console.log(`[Shortcuts] Event: key="${key}" code="${code}"`);
+      console.log(`[Shortcuts] Detected: key="${key}" code="${code}"`);
 
       // Space: Play/Pause
       if (key === ' ' || code === 'Space') {
         e.preventDefault();
-        console.log('[Shortcuts] Triggering TogglePlay');
+        console.log('[Shortcuts] Action: TogglePlay');
         handlersRef.current.togglePlay();
       }
       // ArrowLeft: Prev
       else if (key === 'ArrowLeft' || code === 'ArrowLeft') {
         e.preventDefault();
-        console.log('[Shortcuts] Triggering Prev');
+        console.log('[Shortcuts] Action: Prev');
         handlersRef.current.handlePrev();
       }
       // ArrowRight: Next
       else if (key === 'ArrowRight' || code === 'ArrowRight') {
         e.preventDefault();
-        console.log('[Shortcuts] Triggering Next');
+        console.log('[Shortcuts] Action: Next');
         handlersRef.current.handleNext();
       }
       // Enter: Repeat Mode
       else if (key === 'Enter' || code === 'Enter') {
         e.preventDefault();
-        console.log('[Shortcuts] Triggering RepeatMode Toggle');
+        console.log('[Shortcuts] Action: RepeatMode Toggle');
         handlersRef.current.setRepeatMode(prev => prev === 'sentence' ? 'session' : 'sentence');
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown, true); // Use capture
-    return () => window.removeEventListener('keydown', handleKeyDown, true);
+    document.addEventListener('keydown', handleKeyDown, { capture: true });
+    return () => document.removeEventListener('keydown', handleKeyDown, { capture: true });
   }, []); // Empty dependency array = Stable listener
 
   // Audio Event Handlers
@@ -427,6 +430,10 @@ export default function Home() {
   };
 
   const handleGenerate = async () => {
+    // Blur any active input to enable shortcuts immediately
+    if (typeof document !== 'undefined' && document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
     setLoading(true);
     setAudioLoading(true);
     setProgress('Initializing...');
