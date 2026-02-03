@@ -212,9 +212,16 @@ export default function Home() {
       const playTimer = setTimeout(() => {
         try {
           // Only load if URL changed
-          if (lastPlayedUrlRef.current !== activeUrl) {
+          // Check both Ref and actual src to prevent unnecessary reloads (which reset currentTime)
+          const alreadyLoaded = audio.src === activeUrl || (audio.currentSrc && audio.currentSrc === activeUrl);
+
+          if (lastPlayedUrlRef.current !== activeUrl && !alreadyLoaded) {
             console.log(`[Playback] New source: ${activeUrl}`);
-            audio.load();
+            // If we are just updating the ref but src is same (rare), don't load
+            if (audio.src !== activeUrl) {
+              audio.src = activeUrl;
+              audio.load();
+            }
             lastPlayedUrlRef.current = activeUrl;
           } else {
             console.log(`[Playback] Resuming: ${activeUrl}`);
@@ -796,21 +803,27 @@ export default function Home() {
                             </div>
                           </div>
                           {showAnalysis && (
-                            <p className="text-base text-gray-600 italic block mb-4">{line.translation}</p>
-                          )}
+                            <div className="mt-4 pt-4 border-t border-gray-100 space-y-4 animate-in fade-in duration-300 text-sm text-gray-800 leading-relaxed">
 
-                          {showAnalysis && (
-                            <div className="space-y-3 pt-3 border-t border-gray-100/50 animate-in fade-in duration-300">
+                              {/* Translation */}
+                              <div>
+                                <h4 className="font-bold text-blue-600 mb-1">[한글 문장 해설]</h4>
+                                <p>{line.translation}</p>
+                              </div>
+
+                              {/* Grammar Patterns */}
                               {line.grammar_patterns && (
-                                <div className="bg-orange-50/50 p-3 rounded-xl border border-orange-100/50">
-                                  <span className="text-[10px] font-bold text-orange-600 uppercase tracking-widest block mb-1">Grammar</span>
-                                  <div className="text-[13px] text-gray-700 whitespace-pre-wrap">{line.grammar_patterns}</div>
+                                <div>
+                                  <h4 className="font-bold text-orange-600 mb-1">[회화 문법 패턴 정의]</h4>
+                                  <div className="whitespace-pre-wrap">{line.grammar_patterns}</div>
                                 </div>
                               )}
+
+                              {/* Word Analysis */}
                               {line.word_analysis && (
-                                <div className="bg-indigo-50/50 p-3 rounded-xl border border-indigo-100/50">
-                                  <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-widest block mb-1">Vocab</span>
-                                  <div className="text-[13px] text-gray-700 whitespace-pre-wrap">{line.word_analysis}</div>
+                                <div>
+                                  <h4 className="font-bold text-indigo-600 mb-1">[상세 단어 및 문법 분석]</h4>
+                                  <div className="whitespace-pre-wrap">{line.word_analysis}</div>
                                 </div>
                               )}
                             </div>

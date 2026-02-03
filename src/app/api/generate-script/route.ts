@@ -86,7 +86,10 @@ export async function POST(req: NextRequest) {
           VERBATIM ANALYSIS MODE ACTIVATED:
           - DO NOT generate a roleplay or conversation.
           - DO NOT change or "fix" the input text. Use the user's "Input" EXACTLY as it is.
-          - If the input contains multiple sentences, you may split them into separate items in the "script" array (up to 5 items max).
+          - SEGMENTATION STRATEGY:
+            1. Split the input text into INDIVIDUAL sentences as much as possible for granular analysis.
+            2. ONLY group sentences together if they are very short or tightly connected semantic units (e.g., "Oh really? I didn't know that.").
+            3. Prioritize detailed "word_analysis" for each segment.
           - Assign all segments to Speaker "A".
           - Provide detailed Korean translation, grammar_patterns, and word_analysis for each segment.
           - If the input is empty, generate a 1-line self-introduction as Speaker A.
@@ -123,22 +126,27 @@ export async function POST(req: NextRequest) {
       - All grammar explanations [grammar_patterns] MUST be in Korean.
       - All word analyses [word_analysis] MUST be in Korean.
       - DO NOT use English explanations at all.
+
+      FORMATTING RULES (STRICT):
       
+      1. [grammar_patterns]:
+         - Format: "Pattern | Definition and nuance"
+         - Example: "be worth -ing | ~할 가치가 있다. 노력이나 시간을 들일 만한 가치가 있는 일을 추천할 때 사용."
+         - Use NEWLINES between patterns.
+         
+      2. [word_analysis]:
+         - Format: "Word/Phrase | Meaning and explanation"
+         - Example: 
+           "It | 그것/가주어. 문맥상 특정 대상을 가리키거나 문장의 주어 자리를 채움."
+           "is worth visiting | 방문할 가치가 있다. be worth -ing 패턴이 적용되어 '방문'의 가치를 표현."
+         - Analyze meaningful chunks, NOT just single words.
+         - GROUP idioms and phrases (e.g., "get up", "in front of").
+         - Explain functional words (like 'it' as placeholder, 'because' as conjunction) clearly.
+
       DIALECT INSTRUCTIONS (Vietnamese):
       - Use standard vocabulary that works for both regions if possible.
       
-      [word_analysis] CRITICAL INSTRUCTIONS:
-      - Analyze meaningful chunks for language learners.
-      - GROUP idioms, phrasal verbs, and fixed expressions (e.g., "get up", "in front of") together. DO NOT split them.
-      - DO NOT include punctuation marks (., ?, !, etc.) as items to analyze.
-      - Explain the meaning/nuance in Korean.
-      - Format: "Word/Phrase (Korean meaning)"
-      - Format Example: 
-        • get up: 일어나다 (숙어)
-        • early: 일찍
-      - USE NEWLINES between items.
-      - Ensure the analysis flows sequentially.
-      - MUST BE INCLUDED for EVERY single line.
+      Ensure the analysis is detailed yet concise, following exactly the structure provided above.
     `;
 
     const result = await model.generateContent(prompt);
