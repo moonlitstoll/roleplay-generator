@@ -755,14 +755,10 @@ export default function Home() {
                         <div className="w-full border-t border-gray-200"></div>
                       </div>
                       <span className="relative bg-white px-4 text-xs font-bold text-gray-400 uppercase tracking-widest">
-                        Set {setIdx + 1}: {set.input}
+                        Set {setIdx + 1}
                       </span>
                     </div>
-                  ) : (
-                    <div className="pt-2 pb-4 text-center">
-                      <span className="text-[10px] font-black text-blue-500 uppercase tracking-[0.2em] opacity-50">Topic: {set.input || 'Random'}</span>
-                    </div>
-                  )}
+                  ) : null}
 
                   {set.script.map((line, idx) => {
                     const isActive = currentSentenceIndex === line.segmentIndex;
@@ -773,7 +769,7 @@ export default function Home() {
                         key={idx}
                         ref={el => { scrollRefs.current[segmentKey] = el; }}
                         // Mobile: Always flex-col (stacked), No gap.
-                        className={`flex flex-col md:gap-4 group transition-all duration-500 scroll-mt-32 
+                        className={`flex flex-col md:gap-4 group transition-all duration-500 scroll-mt-2 md:scroll-mt-4 
                           ${line.speaker === 'A' ? 'md:flex-row' : 'md:flex-row-reverse'} 
                           ${isActive ? 'scale-[1.00] md:scale-[1.02]' : ''}`}
                       >
