@@ -274,19 +274,30 @@ export default function Home() {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Ignore if typing in an input or textarea
-      const target = e.target as HTMLElement;
-      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') return;
+      // Ignore IME composition (CJK)
+      if (e.isComposing) return;
 
-      switch (e.key) {
-        case ' ':
+      // Ignore if typing in an input, textarea, or contentEditable
+      const target = e.target as HTMLElement;
+      const isInput = target.tagName === 'INPUT' ||
+        target.tagName === 'TEXTAREA' ||
+        target.isContentEditable;
+
+      if (isInput) return;
+
+      console.log(`[Shortcuts] Key: ${e.code}`); // Debug log
+
+      switch (e.code) {
+        case 'Space':
           e.preventDefault(); // Prevent scrolling
           handlersRef.current.togglePlay();
           break;
         case 'ArrowLeft':
+          e.preventDefault(); // Prevent scrolling
           handlersRef.current.handlePrev();
           break;
         case 'ArrowRight':
+          e.preventDefault(); // Prevent scrolling
           handlersRef.current.handleNext();
           break;
         case 'Enter':
