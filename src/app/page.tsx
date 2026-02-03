@@ -802,7 +802,7 @@ export default function Home() {
                             </div>
 
                             <div className="flex justify-between items-start gap-4">
-                              <p className="text-lg md:text-xl font-medium text-gray-900 mb-2 leading-relaxed flex-1 text-justify md:text-left">{line.text}</p>
+                              <p className="text-lg md:text-xl font-medium text-gray-900 mb-2 leading-relaxed flex-1 text-left">{line.text}</p>
                             </div>
                           </div>
                           {showAnalysis && (
