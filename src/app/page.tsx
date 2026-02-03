@@ -227,6 +227,9 @@ export default function Home() {
             console.log(`[Playback] Resuming: ${activeUrl}`);
           }
 
+          // CRITICAL: Enforce playback speed before playing
+          audio.playbackRate = playbackSpeed;
+
           audio.play().catch(e => {
             if (e.name !== 'AbortError') console.error("[Playback] Execution failed:", e);
           });
@@ -894,31 +897,35 @@ export default function Home() {
                       {playbackSpeed.toFixed(1)}x
                     </button>
                     {showSpeedPopup && (
-                      <div className="absolute bottom-16 left-0 bg-white border border-gray-200 p-4 w-64 shadow-2xl rounded-2xl flex flex-col gap-3 animate-in fade-in zoom-in-95 duration-200 origin-bottom-left">
-                        <div className="flex justify-between items-center">
-                          <span className="text-xs font-bold text-gray-500 uppercase">Speed</span>
+                      <div className="absolute bottom-16 left-0 bg-white border border-gray-200 p-4 w-[280px] shadow-2xl rounded-2xl flex flex-col gap-3 animate-in fade-in zoom-in-95 duration-200 origin-bottom-left">
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="text-xs font-bold text-gray-500 uppercase">Speed Control</span>
                           <span className="text-sm font-black text-blue-600">{playbackSpeed.toFixed(1)}x</span>
                         </div>
-                        <input
-                          type="range"
-                          min="0.5"
-                          max="2.0"
-                          step="0.1"
-                          value={playbackSpeed}
-                          onChange={(e) => setPlaybackSpeed(parseFloat(e.target.value))}
-                          className="w-full accent-blue-600 h-2 bg-gray-100 rounded-lg appearance-none cursor-pointer"
-                        />
-                        <div className="flex justify-between text-[10px] text-gray-400 font-bold px-1">
-                          <span>0.5x</span>
-                          <span>1.0x</span>
-                          <span>2.0x</span>
+
+                        <div className="grid grid-cols-4 gap-2">
+                          {Array.from({ length: 16 }, (_, i) => (0.5 + i * 0.1).toFixed(1)).map((speedStr) => {
+                            const speed = parseFloat(speedStr);
+                            const isSelected = Math.abs(playbackSpeed - speed) < 0.01;
+                            return (
+                              <button
+                                key={speedStr}
+                                onClick={() => {
+                                  setPlaybackSpeed(speed);
+                                  // Keep popup open for rapid adjustment, or uncomment to close:
+                                  // setShowSpeedPopup(false); 
+                                }}
+                                className={`py-2 rounded-lg text-xs font-bold transition-all ${isSelected
+                                    ? 'bg-blue-600 text-white shadow-md scale-105'
+                                    : 'bg-gray-50 text-gray-600 hover:bg-gray-100 hover:text-blue-600'
+                                  }`}
+                              >
+                                {speedStr}
+                              </button>
+                            );
+                          })}
                         </div>
-                        <button
-                          onClick={() => { setPlaybackSpeed(1.0); setShowSpeedPopup(false); }}
-                          className="w-full py-2 bg-gray-50 hover:bg-gray-100 rounded-lg text-xs font-bold text-gray-600 transition-colors"
-                        >
-                          Reset to 1.0x
-                        </button>
+
                       </div>
                     )}
                   </div>
