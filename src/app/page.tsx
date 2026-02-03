@@ -129,16 +129,18 @@ export default function Home() {
     }
   }, [currentSentenceIndex]);
 
-  const togglePlay = () => {
+  const togglePlay = React.useCallback(() => {
     if (!audioRef.current || !activeUrl) return;
     if (isPlaying) {
       audioRef.current.pause();
       setIsPlaying(false);
     } else {
+      // Enforce speed here too just in case
+      audioRef.current.playbackRate = playbackSpeed;
       audioRef.current.play().catch(e => console.error("Play failed", e));
       setIsPlaying(true);
     }
-  };
+  }, [activeUrl, isPlaying, playbackSpeed]);
 
   const playSentence = React.useCallback((index: number) => {
     if (index < 0 || index >= totalSentences) {
@@ -252,6 +254,35 @@ export default function Home() {
     }
     playSentence(prevIdx);
   }, [currentSentenceIndex, totalSentences, playSentence]);
+
+  // Keyboard Shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignore if typing in an input or textarea
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') return;
+
+      switch (e.key) {
+        case ' ':
+          e.preventDefault(); // Prevent scrolling
+          togglePlay();
+          break;
+        case 'ArrowLeft':
+          handlePrev();
+          break;
+        case 'ArrowRight':
+          handleNext();
+          break;
+        case 'Enter':
+          e.preventDefault();
+          setRepeatMode(prev => prev === 'sentence' ? 'session' : 'sentence');
+          break;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [togglePlay, handlePrev, handleNext]);
 
   // Audio Event Handlers
   useEffect(() => {
@@ -916,8 +947,8 @@ export default function Home() {
                                   // setShowSpeedPopup(false); 
                                 }}
                                 className={`py-2 rounded-lg text-xs font-bold transition-all ${isSelected
-                                    ? 'bg-blue-600 text-white shadow-md scale-105'
-                                    : 'bg-gray-50 text-gray-600 hover:bg-gray-100 hover:text-blue-600'
+                                  ? 'bg-blue-600 text-white shadow-md scale-105'
+                                  : 'bg-gray-50 text-gray-600 hover:bg-gray-100 hover:text-blue-600'
                                   }`}
                               >
                                 {speedStr}
