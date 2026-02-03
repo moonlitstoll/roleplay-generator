@@ -722,10 +722,9 @@ export default function Home() {
         </div>
       )}
 
-      {/* Result Panel */}
       <div className="flex-1 space-y-6 z-10 min-w-0">
         {generatedSets.length > 0 && (
-          <div className="glass p-4 md:p-10 rounded-2xl md:rounded-3xl min-h-screen flex flex-col bg-white shadow-sm border border-gray-200 mb-24 md:mb-20">
+          <div className="glass p-1 md:p-10 rounded-2xl md:rounded-3xl min-h-screen flex flex-col bg-white shadow-sm border border-gray-200 mb-24 md:mb-20">
 
             <div className="flex items-center justify-between mb-10 pb-6 border-b border-gray-100">
               <div className="flex items-center gap-3">
@@ -773,7 +772,10 @@ export default function Home() {
                       <div
                         key={idx}
                         ref={el => { scrollRefs.current[segmentKey] = el; }}
-                        className={`flex gap-4 group transition-all duration-500 scroll-mt-32 ${line.speaker === 'A' ? 'flex-row' : 'flex-row-reverse'} ${isActive ? 'scale-[1.02]' : ''}`}
+                        // Mobile: Always flex-col (stacked), No gap.
+                        className={`flex flex-col md:gap-4 group transition-all duration-500 scroll-mt-32 
+                          ${line.speaker === 'A' ? 'md:flex-row' : 'md:flex-row-reverse'} 
+                          ${isActive ? 'scale-[1.00] md:scale-[1.02]' : ''}`}
                       >
                         <div className={`hidden md:flex w-10 h-10 rounded-full items-center justify-center shrink-0 font-bold text-sm shadow-md transition-all ${isActive
                           ? 'ring-4 ring-blue-500/20 ring-offset-2 scale-110'
@@ -783,8 +785,9 @@ export default function Home() {
                           {line.speaker}
                         </div>
                         <div
-                          className={`max-w-[90%] md:max-w-[85%] p-4 md:p-5 rounded-2xl transition-all relative group/item shadow-sm border-2 cursor-pointer ${isActive
-                            ? 'border-blue-400 bg-white ring-4 ring-blue-500/5 shadow-lg'
+                          // Mobile: w-full.
+                          className={`w-full md:max-w-[85%] p-4 md:p-5 rounded-xl md:rounded-2xl transition-all relative group/item shadow-sm border md:border-2 cursor-pointer ${isActive
+                            ? 'border-blue-400 bg-white ring-2 md:ring-4 ring-blue-500/5 shadow-lg'
                             : (line.speaker === 'A' ? 'bg-white border-gray-100 hover:shadow-md' : 'bg-blue-50/50 border-blue-50 hover:shadow-md')
                             }`}
                           onClick={() => playSentence(line.segmentIndex!)}
@@ -799,7 +802,7 @@ export default function Home() {
                             </div>
 
                             <div className="flex justify-between items-start gap-4">
-                              <p className="text-lg md:text-xl font-medium text-gray-900 mb-2 leading-relaxed flex-1">{line.text}</p>
+                              <p className="text-lg md:text-xl font-medium text-gray-900 mb-2 leading-relaxed flex-1 text-justify md:text-left">{line.text}</p>
                             </div>
                           </div>
                           {showAnalysis && (
