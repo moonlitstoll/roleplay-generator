@@ -80,6 +80,7 @@ export default function Home() {
   // To avoid rapid switching issues
   const isSwitchingRef = useRef(false);
   const boundaryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const lastPlayedUrlRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (audioRef.current) {
@@ -210,8 +211,15 @@ export default function Home() {
 
       const playTimer = setTimeout(() => {
         try {
-          // Force source refresh to avoid browser caching or stale state
-          audio.load();
+          // Only load if URL changed
+          if (lastPlayedUrlRef.current !== activeUrl) {
+            console.log(`[Playback] New source: ${activeUrl}`);
+            audio.load();
+            lastPlayedUrlRef.current = activeUrl;
+          } else {
+            console.log(`[Playback] Resuming: ${activeUrl}`);
+          }
+
           audio.play().catch(e => {
             if (e.name !== 'AbortError') console.error("[Playback] Execution failed:", e);
           });
@@ -760,7 +768,7 @@ export default function Home() {
                         ref={el => { scrollRefs.current[segmentKey] = el; }}
                         className={`flex gap-4 group transition-all duration-500 scroll-mt-32 ${line.speaker === 'A' ? 'flex-row' : 'flex-row-reverse'} ${isActive ? 'scale-[1.02]' : ''}`}
                       >
-                        <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 font-bold text-sm shadow-md transition-all ${isActive
+                        <div className={`hidden md:flex w-10 h-10 rounded-full items-center justify-center shrink-0 font-bold text-sm shadow-md transition-all ${isActive
                           ? 'ring-4 ring-blue-500/20 ring-offset-2 scale-110'
                           : ''
                           } ${line.speaker === 'A' ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white' : 'bg-gradient-to-br from-pink-500 to-pink-600 text-white'
@@ -768,14 +776,24 @@ export default function Home() {
                           {line.speaker}
                         </div>
                         <div
-                          className={`max-w-[90%] p-5 rounded-2xl transition-all relative group/item shadow-sm border-2 cursor-pointer ${isActive
+                          className={`max-w-[90%] md:max-w-[85%] p-4 md:p-5 rounded-2xl transition-all relative group/item shadow-sm border-2 cursor-pointer ${isActive
                             ? 'border-blue-400 bg-white ring-4 ring-blue-500/5 shadow-lg'
                             : (line.speaker === 'A' ? 'bg-white border-gray-100 hover:shadow-md' : 'bg-blue-50/50 border-blue-50 hover:shadow-md')
                             }`}
                           onClick={() => playSentence(line.segmentIndex!)}
                         >
-                          <div className="flex justify-between items-start gap-4">
-                            <p className="text-xl font-medium text-gray-900 mb-2 leading-relaxed flex-1">{line.text}</p>
+                          <div className="flex flex-col md:block">
+                            {/* Mobile Speaker Badge */}
+                            <div className={`flex md:hidden items-center gap-2 mb-2`}>
+                              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold shadow-sm ${line.speaker === 'A' ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white' : 'bg-gradient-to-br from-pink-500 to-pink-600 text-white'
+                                }`}>
+                                {line.speaker}
+                              </div>
+                            </div>
+
+                            <div className="flex justify-between items-start gap-4">
+                              <p className="text-lg md:text-xl font-medium text-gray-900 mb-2 leading-relaxed flex-1">{line.text}</p>
+                            </div>
                           </div>
                           {showAnalysis && (
                             <p className="text-base text-gray-600 italic block mb-4">{line.translation}</p>
