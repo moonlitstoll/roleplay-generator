@@ -130,7 +130,15 @@ export default function Home() {
   }, [currentSentenceIndex]);
 
   const togglePlay = React.useCallback(() => {
+    // Handling initial start if nothing is selected but we have sentences
+    if (currentSentenceIndex === -1 && totalSentences > 0) {
+      setCurrentSentenceIndex(0);
+      setIsPlaying(true);
+      return;
+    }
+
     if (!audioRef.current || !activeUrl) return;
+
     if (isPlaying) {
       audioRef.current.pause();
       setIsPlaying(false);
@@ -140,7 +148,7 @@ export default function Home() {
       audioRef.current.play().catch(e => console.error("Play failed", e));
       setIsPlaying(true);
     }
-  }, [activeUrl, isPlaying, playbackSpeed]);
+  }, [activeUrl, isPlaying, playbackSpeed, currentSentenceIndex, totalSentences]);
 
   const playSentence = React.useCallback((index: number) => {
     if (index < 0 || index >= totalSentences) {
@@ -256,6 +264,14 @@ export default function Home() {
   }, [currentSentenceIndex, totalSentences, playSentence]);
 
   // Keyboard Shortcuts
+  // Keyboard Shortcuts (Stable via Ref)
+  const handlersRef = useRef({ togglePlay, handlePrev, handleNext, setRepeatMode });
+
+  // Keep ref updated
+  useEffect(() => {
+    handlersRef.current = { togglePlay, handlePrev, handleNext, setRepeatMode };
+  }, [togglePlay, handlePrev, handleNext, setRepeatMode]);
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       // Ignore if typing in an input or textarea
@@ -265,24 +281,24 @@ export default function Home() {
       switch (e.key) {
         case ' ':
           e.preventDefault(); // Prevent scrolling
-          togglePlay();
+          handlersRef.current.togglePlay();
           break;
         case 'ArrowLeft':
-          handlePrev();
+          handlersRef.current.handlePrev();
           break;
         case 'ArrowRight':
-          handleNext();
+          handlersRef.current.handleNext();
           break;
         case 'Enter':
           e.preventDefault();
-          setRepeatMode(prev => prev === 'sentence' ? 'session' : 'sentence');
+          handlersRef.current.setRepeatMode(prev => prev === 'sentence' ? 'session' : 'sentence');
           break;
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [togglePlay, handlePrev, handleNext]);
+  }, []); // Empty dependency array = Stable listener
 
   // Audio Event Handlers
   useEffect(() => {
