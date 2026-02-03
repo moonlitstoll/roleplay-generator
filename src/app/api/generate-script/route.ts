@@ -136,9 +136,12 @@ export async function POST(req: NextRequest) {
          
       2. [word_analysis]:
          - Format: "Word/Phrase | Meaning and explanation"
-         - Example: 
-           "It | 그것/가주어. 문맥상 특정 대상을 가리키거나 문장의 주어 자리를 채움."
-           "is worth visiting | 방문할 가치가 있다. be worth -ing 패턴이 적용되어 '방문'의 가치를 표현."
+         - STRICT REQUIREMENT: Output EACH item on a NEW LINE.
+         - Do NOT put multiple items on the same line.
+         - Example Layout:
+           Word1 | Definition1
+           Word2 | Definition2
+           Word3 | Definition3
          - Analyze meaningful chunks, NOT just single words.
          - GROUP idioms and phrases (e.g., "get up", "in front of").
          - Explain functional words (like 'it' as placeholder, 'because' as conjunction) clearly.
