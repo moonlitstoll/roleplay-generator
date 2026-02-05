@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Play, Download, RefreshCw, MessageSquare, Mic, History as HistoryIcon, Trash2, X, ChevronRight, Settings, Globe, Layers, Pause } from 'lucide-react';
 import { saveSession, getSessions, deleteSession, clearSessions, SavedSession } from '../utils/storage';
 import { generateExportHTML } from '../utils/exportTemplate';
+import { SILENT_AUDIO_URL } from '../utils/silence';
 
 interface ScriptItem {
   speaker: string;
@@ -105,12 +106,10 @@ export default function Home() {
 
   // Get Current Active URL
   const activeUrl = (() => {
+    if (isGapActive) return SILENT_AUDIO_URL;
     if (currentSentenceIndex === -1) return undefined;
-    // Handle Pause Segments (idx exists but no audio url?)
-    // If audioUrls has it, use it. Pause segments generally don't have URL unless generated?
-    // Our logic generates pause segments too?
-    // Check logic: we skip fetching if !text && !pause. But pause has pause.
-    // Pause segments DO return audio (silence). So they have URL.
+
+    // Standard playback
     if (language === 'Vietnamese' && vietnameseAccent === 'south') {
       return audioUrlsSouth[currentSentenceIndex] || audioUrls[currentSentenceIndex];
     }
@@ -198,58 +197,82 @@ export default function Home() {
 
     console.log(`[Playback] handleNext: currIdx=${currentSentenceIndex}(Set ${currentSetIdx}), nextIdx=${nextIdx}(Set ${nextSetIdx})`);
 
-    // If crossing set boundary, add pause
+    // If crossing set boundary, add pause via Silent Audio
     if (currentSetIdx !== -1 && nextSetIdx !== -1 && currentSetIdx !== nextSetIdx) {
-      console.log(`[Playback] Boundary: Set ${currentSetIdx} -> ${nextSetIdx}. 2s Gap.`);
+      console.log(`[Playback] Boundary: Set ${currentSetIdx} -> ${nextSetIdx}. Playing Gap.`);
+      // We set the INDEX to the next one, but mark GAP as active.
+      // activeUrl will return SILENCE.
+      // When silence ends, we unset GAP, and activeUrl returns the REAL audio for this index.
       setCurrentSentenceIndex(nextIdx);
       setIsGapActive(true);
-      if (boundaryTimeoutRef.current) clearTimeout(boundaryTimeoutRef.current);
-      boundaryTimeoutRef.current = setTimeout(() => {
-        console.log("[Playback] Gap expired. Playing next.");
-        setIsGapActive(false);
-      }, 2000);
     } else {
       playSentence(nextIdx);
     }
   }, [currentSentenceIndex, totalSentences, repeatMode, generatedSets, playSentence]);
 
-  // Proactive Playback Effect
+  // Proactive Playback Effect & Media Session
   useEffect(() => {
-    if (currentSentenceIndex !== -1 && isPlaying && !isGapActive && audioRef.current && activeUrl) {
+    if ((currentSentenceIndex !== -1 || isGapActive) && isPlaying && audioRef.current && activeUrl) {
       const audio = audioRef.current;
-      console.log(`[Playback] Effect trigger: ${currentSentenceIndex} -> ${activeUrl.substring(0, 30)}...`);
+      console.log(`[Playback] Effect trigger: Gap=${isGapActive} Idx=${currentSentenceIndex}`);
+
+      // Update Media Session Metadata
+      if ('mediaSession' in navigator && !isGapActive && generatedSets.length > 0) {
+        // Find current text
+        let currentText = "Conversation";
+        let currentSpeaker = "RealWait";
+
+        // Locate item
+        for (const set of generatedSets) {
+          const item = set.script.find(s => s.segmentIndex === currentSentenceIndex);
+          if (item) {
+            currentText = item.text;
+            currentSpeaker = `Speaker ${item.speaker}`;
+            break;
+          }
+        }
+
+        navigator.mediaSession.metadata = new MediaMetadata({
+          title: currentText,
+          artist: currentSpeaker,
+          album: "Roleplay Session",
+          artwork: [
+            { src: '/icon-192.png', sizes: '192x192', type: 'image/png' },
+            { src: '/icon-512.png', sizes: '512x512', type: 'image/png' }
+          ]
+        });
+
+        navigator.mediaSession.setActionHandler('play', () => { togglePlay(); });
+        navigator.mediaSession.setActionHandler('pause', () => { togglePlay(); });
+        navigator.mediaSession.setActionHandler('previoustrack', () => { handlePrev(); });
+        navigator.mediaSession.setActionHandler('nexttrack', () => { handleNext(); });
+      }
 
       const playTimer = setTimeout(() => {
         try {
           // Only load if URL changed
-          // Check both Ref and actual src to prevent unnecessary reloads (which reset currentTime)
           const alreadyLoaded = audio.src === activeUrl || (audio.currentSrc && audio.currentSrc === activeUrl);
 
           if (lastPlayedUrlRef.current !== activeUrl && !alreadyLoaded) {
-            console.log(`[Playback] New source: ${activeUrl}`);
-            // If we are just updating the ref but src is same (rare), don't load
+            console.log(`[Playback] New source: ${activeUrl.substring(0, 50)}...`);
             if (audio.src !== activeUrl) {
               audio.src = activeUrl;
               audio.load();
             }
             lastPlayedUrlRef.current = activeUrl;
-          } else {
-            console.log(`[Playback] Resuming: ${activeUrl}`);
           }
 
-          // CRITICAL: Enforce playback speed before playing
           audio.playbackRate = playbackSpeed;
-
           audio.play().catch(e => {
             if (e.name !== 'AbortError') console.error("[Playback] Execution failed:", e);
           });
         } catch (e) {
           console.error("[Playback] Setup failed:", e);
         }
-      }, 100); // Slightly longer delay for stable src switching
+      }, 50); // Faster reaction
       return () => clearTimeout(playTimer);
     }
-  }, [currentSentenceIndex, isPlaying, isGapActive, activeUrl]);
+  }, [currentSentenceIndex, isPlaying, isGapActive, activeUrl, togglePlay, handlePrev, handleNext, generatedSets, playbackSpeed]);
 
   const handlePrev = React.useCallback(() => {
     if (audioRef.current && audioRef.current.currentTime > 2) {
@@ -265,6 +288,72 @@ export default function Home() {
 
   // Keyboard Shortcuts
   // Keyboard Shortcuts (Stable via Ref)
+
+  // Proactive Playback Effect & Media Session (Moved here to be after handlers)
+  useEffect(() => {
+    if ((currentSentenceIndex !== -1 || isGapActive) && isPlaying && audioRef.current && activeUrl) {
+      const audio = audioRef.current;
+      console.log(`[Playback] Effect trigger: Gap=${isGapActive} Idx=${currentSentenceIndex}`);
+
+      // Update Media Session Metadata
+      if ('mediaSession' in navigator && !isGapActive && generatedSets.length > 0) {
+        // Find current text
+        let currentText = "Conversation";
+        let currentSpeaker = "RealWait";
+
+        // Locate item
+        for (const set of generatedSets) {
+          const item = set.script.find(s => s.segmentIndex === currentSentenceIndex);
+          if (item) {
+            currentText = item.text;
+            currentSpeaker = `Speaker ${item.speaker}`;
+            break;
+          }
+        }
+
+        navigator.mediaSession.metadata = new MediaMetadata({
+          title: currentText,
+          artist: currentSpeaker,
+          album: "Roleplay Session",
+          artwork: [
+            { src: '/icon-192.png', sizes: '192x192', type: 'image/png' },
+            { src: '/icon-512.png', sizes: '512x512', type: 'image/png' }
+          ]
+        });
+
+        navigator.mediaSession.setActionHandler('play', () => { togglePlay(); });
+        navigator.mediaSession.setActionHandler('pause', () => { togglePlay(); });
+        navigator.mediaSession.setActionHandler('previoustrack', () => { handlePrev(); });
+        navigator.mediaSession.setActionHandler('nexttrack', () => { handleNext(); });
+      }
+
+      const playTimer = setTimeout(() => {
+        try {
+          // Only load if URL changed
+          const alreadyLoaded = audio.src === activeUrl || (audio.currentSrc && audio.currentSrc === activeUrl);
+
+          if (lastPlayedUrlRef.current !== activeUrl && !alreadyLoaded) {
+            console.log(`[Playback] New source: ${activeUrl.substring(0, 50)}...`);
+            if (audio.src !== activeUrl) {
+              audio.src = activeUrl;
+              audio.load();
+            }
+            lastPlayedUrlRef.current = activeUrl;
+          }
+
+          audio.playbackRate = playbackSpeed;
+          audio.play().catch(e => {
+            if (e.name !== 'AbortError') console.error("[Playback] Execution failed:", e);
+          });
+        } catch (e) {
+          console.error("[Playback] Setup failed:", e);
+        }
+      }, 50); // Faster reaction
+      return () => clearTimeout(playTimer);
+    }
+  }, [currentSentenceIndex, isPlaying, isGapActive, activeUrl, togglePlay, handlePrev, handleNext, generatedSets, playbackSpeed]);
+
+
   const handlersRef = useRef({ togglePlay, handlePrev, handleNext, setRepeatMode });
 
   // Keep ref updated
@@ -340,7 +429,15 @@ export default function Home() {
     };
 
     const handleEnded = () => {
-      console.log("[Playback] Sentence ended");
+      console.log(`[Playback] Ended. Gap=${isGapActive} Repeat=${repeatMode}`);
+
+      if (isGapActive) {
+        // Gap finished playing (the 2s silence).
+        // Now turn off gap. The Effect will see gap=false, pick up the SAME index, but correct URL.
+        setIsGapActive(false);
+        return;
+      }
+
       if (repeatMode === 'sentence') {
         audio.currentTime = 0;
         audio.play().catch(() => { });
