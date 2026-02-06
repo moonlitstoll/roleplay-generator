@@ -210,69 +210,7 @@ export default function Home() {
     }
   }, [currentSentenceIndex, totalSentences, repeatMode, generatedSets, playSentence]);
 
-  // Proactive Playback Effect & Media Session
-  useEffect(() => {
-    if ((currentSentenceIndex !== -1 || isGapActive) && isPlaying && audioRef.current && activeUrl) {
-      const audio = audioRef.current;
-      console.log(`[Playback] Effect trigger: Gap=${isGapActive} Idx=${currentSentenceIndex}`);
 
-      // Update Media Session Metadata
-      if ('mediaSession' in navigator && !isGapActive && generatedSets.length > 0) {
-        // Find current text
-        let currentText = "Conversation";
-        let currentSpeaker = "RealWait";
-
-        // Locate item
-        for (const set of generatedSets) {
-          const item = set.script.find(s => s.segmentIndex === currentSentenceIndex);
-          if (item) {
-            currentText = item.text;
-            currentSpeaker = `Speaker ${item.speaker}`;
-            break;
-          }
-        }
-
-        navigator.mediaSession.metadata = new MediaMetadata({
-          title: currentText,
-          artist: currentSpeaker,
-          album: "Roleplay Session",
-          artwork: [
-            { src: '/icon-192.png', sizes: '192x192', type: 'image/png' },
-            { src: '/icon-512.png', sizes: '512x512', type: 'image/png' }
-          ]
-        });
-
-        navigator.mediaSession.setActionHandler('play', () => { togglePlay(); });
-        navigator.mediaSession.setActionHandler('pause', () => { togglePlay(); });
-        navigator.mediaSession.setActionHandler('previoustrack', () => { handlePrev(); });
-        navigator.mediaSession.setActionHandler('nexttrack', () => { handleNext(); });
-      }
-
-      const playTimer = setTimeout(() => {
-        try {
-          // Only load if URL changed
-          const alreadyLoaded = audio.src === activeUrl || (audio.currentSrc && audio.currentSrc === activeUrl);
-
-          if (lastPlayedUrlRef.current !== activeUrl && !alreadyLoaded) {
-            console.log(`[Playback] New source: ${activeUrl.substring(0, 50)}...`);
-            if (audio.src !== activeUrl) {
-              audio.src = activeUrl;
-              audio.load();
-            }
-            lastPlayedUrlRef.current = activeUrl;
-          }
-
-          audio.playbackRate = playbackSpeed;
-          audio.play().catch(e => {
-            if (e.name !== 'AbortError') console.error("[Playback] Execution failed:", e);
-          });
-        } catch (e) {
-          console.error("[Playback] Setup failed:", e);
-        }
-      }, 50); // Faster reaction
-      return () => clearTimeout(playTimer);
-    }
-  }, [currentSentenceIndex, isPlaying, isGapActive, activeUrl, togglePlay, handlePrev, handleNext, generatedSets, playbackSpeed]);
 
   const handlePrev = React.useCallback(() => {
     if (audioRef.current && audioRef.current.currentTime > 2) {
