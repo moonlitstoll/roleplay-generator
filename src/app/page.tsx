@@ -294,15 +294,42 @@ export default function Home() {
       }
     }
 
+    // FALLBACK: If audio is missing for some reason, don't let it die. Play silence to keep session alive.
+    // Or skip to next? Skipping might be dangerous (infinite loop). 
+    // Just play silence for now (acting as formatted gap or error placeholder).
+    if (!targetUrl) {
+      console.warn(`[Playback] Missing audio for index ${nextIdx}. Fallback to silence.`);
+      targetUrl = SILENT_AUDIO_URL;
+    }
+
     console.log(`[Playback] Direct Drive: ${nextIdx} (Gap=${nextIsGap}) -> ${targetUrl?.substring(0, 20)}...`);
 
     // DIRECT EXECUTION
-    if (targetUrl && audioRef.current) {
+    if (audioRef.current && targetUrl) {
       const audio = audioRef.current;
       audio.src = targetUrl;
       audio.playbackRate = playbackSpeed; // Ensure speed is kept
-      audio.play().catch(e => console.error("Direct Play failed", e));
       lastPlayedUrlRef.current = targetUrl;
+
+      // Robust Play
+      audio.load();
+      const playPromise = audio.play();
+
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing';
+          })
+          .catch(e => {
+            console.error("[Playback] Direct Play failed:", e);
+            // Retry once after short delay - helps if CPU was throttled
+            setTimeout(() => {
+              if (audio.src === targetUrl) {
+                audio.play().catch(err => console.error("[Playback] Retry failed:", err));
+              }
+            }, 100);
+          });
+      }
     }
 
     // SYNC UI (Asynchronous)
@@ -374,9 +401,19 @@ export default function Home() {
         console.log(`[Playback] Effect loading Source: ${activeUrl.substring(0, 30)}...`);
         audio.src = activeUrl;
         audio.playbackRate = playbackSpeed;
-        audio.play().catch(e => {
-          if (e.name !== 'AbortError') console.error("[Playback] Execution failed:", e);
-        });
+        audio.load();
+
+        const playPromise = audio.play();
+        if (playPromise !== undefined) {
+          playPromise
+            .then(() => {
+              if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing';
+            })
+            .catch(e => {
+              if (e.name !== 'AbortError') console.error("[Playback] Effect execution failed:", e);
+            });
+        }
+
         lastPlayedUrlRef.current = activeUrl;
       } catch (e) {
         console.error("[Playback] Setup failed:", e);
