@@ -302,17 +302,44 @@ export default function Home() {
       targetUrl = SILENT_AUDIO_URL;
     }
 
-    console.log(`[Playback] Direct Drive: ${nextIdx} (Gap=${nextIsGap}) -> ${targetUrl?.substring(0, 20)}...`);
-
     // DIRECT EXECUTION
     if (audioRef.current && targetUrl) {
       const audio = audioRef.current;
+
+      // IMMEDIATE METADATA UPDATE
+      // This keeps the session alive by telling the OS "We are transitioning, not stopping"
+      if ('mediaSession' in navigator && !nextIsGap && generatedSetsRef.current.length > 0) {
+        let currentText = "Conversation";
+        let currentSpeaker = "RealWait";
+
+        // Locate item using Ref data
+        for (const set of generatedSetsRef.current) {
+          const item = set.script.find(s => s.segmentIndex === nextIdx);
+          if (item) {
+            currentText = item.text;
+            currentSpeaker = `Speaker ${item.speaker}`;
+            break;
+          }
+        }
+
+        navigator.mediaSession.metadata = new MediaMetadata({
+          title: currentText,
+          artist: currentSpeaker,
+          album: "Roleplay Session",
+          artwork: [
+            { src: '/icon-192.png', sizes: '192x192', type: 'image/png' },
+            { src: '/icon-512.png', sizes: '512x512', type: 'image/png' }
+          ]
+        });
+      }
+
+      console.log(`[Playback] Direct Drive: ${nextIdx} (Gap=${nextIsGap}) -> ${targetUrl?.substring(0, 20)}...`);
+
       audio.src = targetUrl;
-      audio.playbackRate = playbackSpeed; // Ensure speed is kept
+      audio.playbackRate = playbackSpeed;
       lastPlayedUrlRef.current = targetUrl;
 
-      // Robust Play
-      audio.load();
+      // Simple, direct play without load() which can detach session or retries which fail in background
       const playPromise = audio.play();
 
       if (playPromise !== undefined) {
@@ -322,12 +349,7 @@ export default function Home() {
           })
           .catch(e => {
             console.error("[Playback] Direct Play failed:", e);
-            // Retry once after short delay - helps if CPU was throttled
-            setTimeout(() => {
-              if (audio.src === targetUrl) {
-                audio.play().catch(err => console.error("[Playback] Retry failed:", err));
-              }
-            }, 100);
+            // No background retry - it usually hurts more than it helps
           });
       }
     }
