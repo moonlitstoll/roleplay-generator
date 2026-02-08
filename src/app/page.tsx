@@ -75,7 +75,11 @@ export default function Home() {
   const [isGapActive, setIsGapActive] = useState(false);
   const [showTurnsPopup, setShowTurnsPopup] = useState(false);
 
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  // Dual Audio Refs for Ping-Pong Playback
+  const audioRefA = useRef<HTMLAudioElement | null>(null);
+  const audioRefB = useRef<HTMLAudioElement | null>(null);
+  const activePlayerRef = useRef<'A' | 'B'>('A');
+
   const scrollRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
 
   // To avoid rapid switching issues
@@ -109,9 +113,8 @@ export default function Home() {
 
 
   useEffect(() => {
-    if (audioRef.current) {
-      audioRef.current.playbackRate = playbackSpeed;
-    }
+    if (audioRefA.current) audioRefA.current.playbackRate = playbackSpeed;
+    if (audioRefB.current) audioRefB.current.playbackRate = playbackSpeed;
   }, [playbackSpeed, isPlaying]);
 
   // Handle accent switching
@@ -119,27 +122,95 @@ export default function Home() {
     if (newAccent === vietnameseAccent) return;
     setVietnameseAccent(newAccent);
 
-    // Playback will update automatically because src depends on accent
-    // But we might need to seek to 0 of the current sentence
-    if (audioRef.current) {
-      // Allow a microtick for state to update src
-      setTimeout(() => {
-        if (isPlaying) audioRef.current?.play().catch(() => { });
-      }, 50);
+    // With Dual Audio, simple switch might be complex. 
+    // Re-trigger playSentence of current index to reload correct accent into Active Player
+    if (currentSentenceIndex !== -1) {
+      playSentence(currentSentenceIndex);
     }
   };
 
-  // Get Current Active URL
-  const activeUrl = (() => {
-    if (isGapActive) return SILENT_AUDIO_URL;
-    if (currentSentenceIndex === -1) return undefined;
-
-    // Standard playback
+  // Helper: Get URL for an index (handles accents)
+  const getUrlForIndex = React.useCallback((index: number) => {
+    if (index < 0) return undefined;
     if (language === 'Vietnamese' && vietnameseAccent === 'south') {
-      return audioUrlsSouth[currentSentenceIndex] || audioUrls[currentSentenceIndex];
+      return audioUrlsSouth[index] || audioUrls[index];
     }
-    return audioUrls[currentSentenceIndex];
-  })();
+    return audioUrls[index];
+  }, [language, vietnameseAccent, audioUrls, audioUrlsSouth]);
+
+  // Helper: Determine next Step (Index + IsGap)
+  // Returns { index, isGap, url }
+  const getNextStep = React.useCallback((currentIdx: number, currentIsGap: boolean, total: number, sets: GeneratedSet[], mode: 'session' | 'sentence' | 'none') => {
+    let nextIdx = currentIdx;
+    let nextIsGap = false;
+
+    if (currentIsGap) {
+      // Gap finished -> Review same index (real audio)
+      nextIdx = currentIdx;
+      nextIsGap = false;
+    } else {
+      // Audio finished -> Check for Gap or Next
+      // Check for set boundary
+      const getGlobalSetIndex = (idx: number) => {
+        let count = 0;
+        for (let s = 0; s < sets.length; s++) {
+          const setLen = (sets[s].script || []).length;
+          if (idx >= count && idx < count + setLen) return s;
+          count += setLen;
+        }
+        return -1;
+      };
+
+      const currentSetIdx = getGlobalSetIndex(currentIdx);
+      const possibleNextIdx = currentIdx + 1;
+      const nextSetIdx = getGlobalSetIndex(possibleNextIdx);
+
+      // Check Boundary for Gap
+      // If we are moving to a new set, insert gap
+      if (currentSetIdx !== -1 && nextSetIdx !== -1 && currentSetIdx !== nextSetIdx) {
+        // Gap needed
+        nextIdx = possibleNextIdx; // Actually we want to "pause" at this index? 
+        // Logic: Play Index N. End. Play Gap. End. Play Index N+1.
+        // So Gap state is associated with N+1? Or N?
+        // Let's say Gap state is "Gap before N+1". 
+        // We'll stick to: Index=N, Gap=True.
+        // Play Silence. End. Index=N, Gap=False.
+        // So here: nextIdx = possibleNextIdx. nextIsGap = true.
+        nextIdx = possibleNextIdx;
+        nextIsGap = true;
+      } else {
+        // Normal Next
+        nextIdx = possibleNextIdx;
+        nextIsGap = false;
+      }
+
+      // Loop Handling
+      if (nextIdx >= total) {
+        if (mode === 'session') {
+          nextIdx = 0;
+          nextIsGap = false; // SKIP GAP ON LOOP for robustness
+        } else {
+          return null; // Stop
+        }
+      }
+    }
+
+    // Resolve URL
+    let url = nextIsGap ? SILENT_AUDIO_URL : getUrlForIndex(nextIdx);
+    if (!url && !nextIsGap && nextIdx < total) url = SILENT_AUDIO_URL; // Fallback
+
+    return { index: nextIdx, isGap: nextIsGap, url };
+  }, [getUrlForIndex]);
+
+  // Preload Next Track helper
+  const preloadNextTrack = React.useCallback((nextStep: { index: number, isGap: boolean, url?: string } | null, targetPlayer: 'A' | 'B') => {
+    const targetAudio = targetPlayer === 'A' ? audioRefA.current : audioRefB.current;
+    if (!targetAudio || !nextStep || !nextStep.url) return;
+
+    // console.log(`[Playback] Preloading ${targetPlayer}: Idx=${nextStep.index} Gap=${nextStep.isGap}`);
+    targetAudio.src = nextStep.url;
+    targetAudio.load();
+  }, []);
 
 
 
@@ -154,313 +225,162 @@ export default function Home() {
   }, [currentSentenceIndex]);
 
   const togglePlay = React.useCallback(() => {
-    // Handling initial start if nothing is selected but we have sentences
+    // Handling initial start
     if (currentSentenceIndex === -1 && totalSentences > 0) {
-      setCurrentSentenceIndex(0);
-      setIsPlaying(true);
+      playSentence(0);
       return;
     }
 
-    if (!audioRef.current || !activeUrl) return;
+    const activeAudio = activePlayerRef.current === 'A' ? audioRefA.current : audioRefB.current;
+    if (!activeAudio) return;
 
     if (isPlaying) {
-      audioRef.current.pause();
+      activeAudio.pause();
       setIsPlaying(false);
+      // Ensure other player is paused too just in case
+      const otherAudio = activePlayerRef.current === 'A' ? audioRefB.current : audioRefA.current;
+      otherAudio?.pause();
     } else {
-      // Enforce speed here too just in case
-      audioRef.current.playbackRate = playbackSpeed;
-      audioRef.current.play().catch(e => console.error("Play failed", e));
+      activeAudio.playbackRate = playbackSpeed;
+      activeAudio.play().catch(e => console.error("Play failed", e));
       setIsPlaying(true);
     }
-  }, [activeUrl, isPlaying, playbackSpeed, currentSentenceIndex, totalSentences]);
+  }, [isPlaying, playbackSpeed, currentSentenceIndex, totalSentences]);
 
   const playSentence = React.useCallback((index: number) => {
-    if (index < 0 || index >= totalSentences) {
-      console.log(`[Playback] Index ${index} out of bounds (0-${totalSentences - 1})`);
-      setIsPlaying(false);
-      return;
+    if (index < 0 || index >= totalSentences) return;
+
+    const url = getUrlForIndex(index);
+    if (!url) return;
+
+    // 1. Reset State
+    setIsPlaying(true);
+    setCurrentSentenceIndex(index);
+    setIsGapActive(false);
+
+    // 2. Setup Active Player
+    // For manual jumps, use 'A' to ensure clean slate.
+    activePlayerRef.current = 'A';
+    const activeAudio = audioRefA.current;
+    const inactiveAudio = audioRefB.current;
+
+    if (activeAudio && inactiveAudio) {
+      // Stop B
+      inactiveAudio.pause();
+      inactiveAudio.currentTime = 0;
+
+      // Play A
+      activeAudio.src = url;
+      activeAudio.currentTime = 0;
+      activeAudio.playbackRate = playbackSpeed;
+      activeAudio.play().catch(e => console.error("Manual jump play failed", e));
+
+      // 3. Preload Next into B
+      const nextStep = getNextStep(index, false, totalSentences, generatedSets, repeatMode);
+      if (nextStep) {
+        preloadNextTrack(nextStep, 'B');
+      }
     }
 
-    // Ref Update (Immediate)
+    // Synchro Refs
     currentSentenceIndexRef.current = index;
     isGapActiveRef.current = false;
 
-    console.log(`[Playback] Switching to sentence ${index}`);
-    setCurrentSentenceIndex(index);
-    isSwitchingRef.current = true;
-    setIsPlaying(true);
-    // The Effect will pick this up for the initial start or jump
-  }, [totalSentences]);
+  }, [totalSentences, getUrlForIndex, getNextStep, generatedSets, repeatMode, playbackSpeed, preloadNextTrack]);
+
+  const handleTrackEnded = React.useCallback((playerKey: 'A' | 'B') => {
+    // Only handle if this is the active player
+    if (playerKey !== activePlayerRef.current) return;
+
+    console.log(`[DualPlayback] ${playerKey} Ended. Idx=${currentSentenceIndexRef.current} Gap=${isGapActiveRef.current}`);
+
+    // 1. Calculate Next Step based on Recents
+    const currIdx = currentSentenceIndexRef.current;
+    const currGap = isGapActiveRef.current;
+    const total = generatedSetsRef.current.reduce((acc, set) => acc + set.script.length, 0);
+
+    const nextStep = getNextStep(currIdx, currGap, total, generatedSetsRef.current, repeatModeRef.current);
+
+    if (!nextStep) {
+      setIsPlaying(false);
+      return;
+    }
+
+    // 2. Switch Active Player
+    const nextPlayerKey = playerKey === 'A' ? 'B' : 'A';
+    activePlayerRef.current = nextPlayerKey;
+    const nextAudio = nextPlayerKey === 'A' ? audioRefA.current : audioRefB.current;
+
+    // 3. Play Next (It should be preloaded)
+    if (nextAudio) {
+      // Just play. It was preloaded.
+      nextAudio.playbackRate = playbackSpeed; // Ensure speed persists
+      const playPromise = nextAudio.play();
+      playPromise.catch(e => {
+        console.error(`[DualPlayback] Auto-play failed for ${nextPlayerKey}`, e);
+        // Retry logic could go here
+        if (nextStep.url) {
+          nextAudio.src = nextStep.url;
+          nextAudio.play();
+        }
+      });
+
+      // Metadata Update
+      if ('mediaSession' in navigator && !nextStep.isGap && generatedSetsRef.current.length > 0) {
+        const sets = generatedSetsRef.current;
+        let title = "Conversation";
+        for (const s of sets) {
+          const item = s.script.find(i => i.segmentIndex === nextStep.index);
+          if (item) { title = item.text; break; }
+        }
+        navigator.mediaSession.metadata = new MediaMetadata({ title });
+      }
+    }
+
+    // 4. Update UI State
+    currentSentenceIndexRef.current = nextStep.index;
+    isGapActiveRef.current = nextStep.isGap;
+    setCurrentSentenceIndex(nextStep.index);
+    setIsGapActive(nextStep.isGap);
+
+    // 5. Preload *Next-Next* into the (now) Inactive Player (the old playerKey)
+    const nextNextStep = getNextStep(nextStep.index, nextStep.isGap, total, generatedSetsRef.current, repeatModeRef.current);
+    preloadNextTrack(nextNextStep, playerKey);
+
+  }, [getNextStep, playbackSpeed, preloadNextTrack]);
 
   const handleNext = React.useCallback(() => {
-    // DIRECT DRIVE LOGIC
-    // Use Refs to calculate next state and drive Audio immediately
-    const currIdx = currentSentenceIndexRef.current;
-
+    // Manual Next Click
+    // Logic: Force jump to next index.
+    const currIdx = currentSentenceIndex;
     let nextIdx = currIdx + 1;
-    let nextIsGap = false;
-
-    // Check bounds
-    // Note: ensure totalSentences is up to date or verify against sets
-    // We can rely on generatedSetsRef to be safe
     const total = generatedSetsRef.current.reduce((acc, set) => acc + set.script.length, 0);
 
     if (nextIdx >= total) {
-      console.log("[Playback] End of session reached");
-      if (repeatModeRef.current === 'session') {
-        console.log("[Playback] Looping to start");
-        nextIdx = 0;
-        // Optimization: When looping, skip the 'Gap' to ensure continuous playback flow
-        // The gap logic below might try to insert it, but let's force it off here or handle it.
-        // Actually, let's allow the logic below to run, but if nextIdx is 0, we can force gap off 
-        // to prevent "Last -> Gap -> First".
-      } else {
+      if (repeatMode === 'session') nextIdx = 0;
+      else {
         setIsPlaying(false);
         return;
       }
     }
-
-    // Identify Sets for Gap Calculation
-    const getGlobalSetIndex = (idx: number) => {
-      let count = 0;
-      const sets = generatedSetsRef.current;
-      for (let s = 0; s < sets.length; s++) {
-        const setLen = (sets[s].script || []).length;
-        if (idx >= count && idx < count + setLen) return s;
-        count += setLen;
-      }
-      return -1;
-    };
-
-    const currentSetIdx = getGlobalSetIndex(currIdx);
-    const nextSetIdx = getGlobalSetIndex(nextIdx);
-
-    // Boundary Check
-    if (currentSetIdx !== -1 && nextSetIdx !== -1 && currentSetIdx !== nextSetIdx) {
-      // It is a gap. 
-      // Important: IF we are already in a Gap (isGapActiveRef.current), 
-      // then we should move to the Real Sentence now.
-      // BUT handleNext is usually called when the *previous* thing finished.
-      // If Previous was Sentence -> Gap needed? Yes.
-      // If Previous was Gap -> Next is Sentence.
-
-      // Wait, if we just finished a sentence, we determine if we need a gap.
-      // If we are currently IN a gap (isGapActiveRef is true), then handleNext means the GAP finished.
-      // So we should play the sentence nextIdx (which we already prepared).
-
-      if (isGapActiveRef.current) {
-        // Gap finished. Move to sentence.
-        nextIsGap = false;
-        // nextIdx is already correct (we advanced index BEFORE the gap started? No, let's look at previous logic)
-        // Old logic: Set nextIdx, set Gap=True. 
-        // So activeUrl returns Silence.
-        // When Silence ends, we set Gap=False. activeUrl returns Real.
-        // So the INDEX stays the same.
-
-        // CORRECTION:
-        // If we represent Gap as "Index=N, Gap=True".
-        // Then when Gap finishes, we want "Index=N, Gap=False".
-        // The previous step (Audio Ended) called this function.
-        // But wait, if we are in Gap, `handleNext` logic below calculates `nextIdx = currIdx + 1`. 
-        // That would SKIP the sentence! 
-
-        // Handling in handleEnded might be cleaner, but let's centralize here.
-
-        // If we are currently in a gap, we want to play the SAME index, but real audio.
-        nextIdx = currIdx;
-        nextIsGap = false;
-      } else {
-        // We are in a sentence. Check if we need to go to Gap.
-        // If sets allow, yes.
-        console.log(`[Playback] Boundary: Set ${currentSetIdx} -> ${nextSetIdx}. Playing Gap.`);
-        nextIsGap = true;
-      }
-    } else {
-      // No boundary
-      // If we were in a gap (rare for same set?), unset.
-      nextIsGap = false;
-    }
-
-    // FORCE NO GAP ON LOOP
-    // If we just looped (nextIdx === 0 and currIdx was last), we might want to skip gap to keep it moving.
-    // Or if the user wants a pause between loops? 
-    // For stability, let's skip gap on loop for now.
-    if (nextIdx === 0 && repeatModeRef.current === 'session') {
-      nextIsGap = false;
-    }
-
-    // UPDATE REFS IMMEDIATELY
-    currentSentenceIndexRef.current = nextIdx;
-    isGapActiveRef.current = nextIsGap;
-
-    // DETERMINE URL
-    let targetUrl: string | undefined;
-    if (nextIsGap) {
-      targetUrl = SILENT_AUDIO_URL;
-    } else {
-      // Resolve Real URL
-      if (languageRef.current === 'Vietnamese' && vietnameseAccentRef.current === 'south') {
-        targetUrl = audioUrlsSouthRef.current[nextIdx] || audioUrlsRef.current[nextIdx];
-      } else {
-        targetUrl = audioUrlsRef.current[nextIdx];
-      }
-    }
-
-    // FALLBACK: If audio is missing for some reason, don't let it die. Play silence to keep session alive.
-    // Or skip to next? Skipping might be dangerous (infinite loop). 
-    // Just play silence for now (acting as formatted gap or error placeholder).
-    if (!targetUrl) {
-      console.warn(`[Playback] Missing audio for index ${nextIdx}. Fallback to silence.`);
-      targetUrl = SILENT_AUDIO_URL;
-    }
-
-    // DIRECT EXECUTION
-    if (audioRef.current && targetUrl) {
-      const audio = audioRef.current;
-
-      // IMMEDIATE METADATA UPDATE
-      // This keeps the session alive by telling the OS "We are transitioning, not stopping"
-      if ('mediaSession' in navigator && !nextIsGap && generatedSetsRef.current.length > 0) {
-        let currentText = "Conversation";
-        let currentSpeaker = "RealWait";
-
-        // Locate item using Ref data
-        for (const set of generatedSetsRef.current) {
-          const item = set.script.find(s => s.segmentIndex === nextIdx);
-          if (item) {
-            currentText = item.text;
-            currentSpeaker = `Speaker ${item.speaker}`;
-            break;
-          }
-        }
-
-        navigator.mediaSession.metadata = new MediaMetadata({
-          title: currentText,
-          artist: currentSpeaker,
-          album: "Roleplay Session",
-          artwork: [
-            { src: '/icon-192.png', sizes: '192x192', type: 'image/png' },
-            { src: '/icon-512.png', sizes: '512x512', type: 'image/png' }
-          ]
-        });
-      }
-
-      console.log(`[Playback] Direct Drive: ${nextIdx} (Gap=${nextIsGap}) -> ${targetUrl?.substring(0, 20)}...`);
-
-      audio.src = targetUrl;
-      // audio.load(); // Removed: destructive reset causes background interruptions
-      audio.playbackRate = playbackSpeed;
-      lastPlayedUrlRef.current = targetUrl;
-
-      // Simple, direct play without load() which can detach session or retries which fail in background
-      const playPromise = audio.play();
-
-      if (playPromise !== undefined) {
-        playPromise
-          .then(() => {
-            if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing';
-          })
-          .catch(e => {
-            console.error("[Playback] Direct Play failed:", e);
-            // No background retry - it usually hurts more than it helps
-          });
-      }
-    }
-
-    // SYNC UI (Asynchronous)
-    setCurrentSentenceIndex(nextIdx);
-    setIsGapActive(nextIsGap);
-
-  }, [totalSentences, playbackSpeed]); // Stable enough, deps used for safety but refs do the heavy lifting
-
-
+    playSentence(nextIdx);
+  }, [currentSentenceIndex, repeatMode, playSentence]);
 
   const handlePrev = React.useCallback(() => {
-    if (audioRef.current && audioRef.current.currentTime > 2) {
-      audioRef.current.currentTime = 0;
+    // Active Audio Check
+    const activeAudio = activePlayerRef.current === 'A' ? audioRefA.current : audioRefB.current;
+    if (activeAudio && activeAudio.currentTime > 2) {
+      activeAudio.currentTime = 0;
       return;
     }
+    const total = generatedSetsRef.current.reduce((acc, set) => acc + set.script.length, 0);
     let prevIdx = currentSentenceIndex - 1;
-    if (prevIdx < 0) {
-      prevIdx = totalSentences - 1;
-    }
+    if (prevIdx < 0) prevIdx = total - 1;
     playSentence(prevIdx);
-  }, [currentSentenceIndex, totalSentences, playSentence]);
+  }, [currentSentenceIndex, playSentence]);
 
   // Keyboard Shortcuts
   // Keyboard Shortcuts (Stable via Ref)
-
-  // Proactive Playback Effect & Media Session (Moved here to be after handlers)
-  useEffect(() => {
-    if ((currentSentenceIndex !== -1 || isGapActive) && isPlaying && audioRef.current && activeUrl) {
-      const audio = audioRef.current;
-      console.log(`[Playback] Effect trigger: Gap=${isGapActive} Idx=${currentSentenceIndex}`);
-
-      // Media Session ... (Same as before)
-      if ('mediaSession' in navigator && !isGapActive && generatedSets.length > 0) {
-        // ... (Metadata logic can stay same, it relies on state which is fine for UI updates)
-        // For brevity, keeping it simple or reusing existing logic if not changing
-        // Re-implementing simplified metadata update to ensure it's here
-        let currentText = "Conversation";
-        let currentSpeaker = "RealWait";
-        for (const set of generatedSets) {
-          const item = set.script.find(s => s.segmentIndex === currentSentenceIndex);
-          if (item) {
-            currentText = item.text;
-            currentSpeaker = `Speaker ${item.speaker}`;
-            break;
-          }
-        }
-        navigator.mediaSession.metadata = new MediaMetadata({
-          title: currentText,
-          artist: currentSpeaker,
-          album: "Roleplay Session",
-          artwork: [{ src: '/icon-192.png', sizes: '192x192', type: 'image/png' }]
-        });
-        navigator.mediaSession.setActionHandler('play', () => { togglePlay(); });
-        navigator.mediaSession.setActionHandler('pause', () => { togglePlay(); });
-        navigator.mediaSession.setActionHandler('previoustrack', () => { handlePrev(); });
-        navigator.mediaSession.setActionHandler('nexttrack', () => { handleNext(); });
-      }
-
-      // CHECK: If audio is already playing the correct URL, DO NOT touch it.
-      // This allows Direct Drive to start the audio, and this effect just acknowledges it.
-      const isCorrectSource = (audio.src === activeUrl || (audio.currentSrc && audio.currentSrc === activeUrl));
-
-      if (isCorrectSource) {
-        if (audio.paused) {
-          console.log("[Playback] Effect: Source correct but paused. Resuming...");
-          audio.play().catch(e => console.error("[Playback] Resume failed", e));
-        } else {
-          console.log("[Playback] Already playing target source. Effect skipped.");
-        }
-        return;
-      }
-
-      try {
-        console.log(`[Playback] Effect loading New Source: ${activeUrl.substring(0, 30)}...`);
-        audio.src = activeUrl;
-        audio.playbackRate = playbackSpeed;
-        // audio.load(); // Not strictly necessary if src changes, and can interrupt.
-
-        const playPromise = audio.play();
-        if (playPromise !== undefined) {
-          playPromise
-            .then(() => {
-              if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing';
-            })
-            .catch(e => {
-              if (e.name !== 'AbortError') console.error("[Playback] Effect execution failed:", e);
-            });
-        }
-
-        lastPlayedUrlRef.current = activeUrl;
-      } catch (e) {
-        console.error("[Playback] Setup failed:", e);
-      }
-    }
-  }, [currentSentenceIndex, isPlaying, isGapActive, activeUrl, togglePlay, handlePrev, handleNext, generatedSets, playbackSpeed]);
-
 
   const handlersRef = useRef({ togglePlay, handlePrev, handleNext, setRepeatMode });
 
@@ -523,50 +443,44 @@ export default function Home() {
     return () => document.removeEventListener('keydown', handleKeyDown, { capture: true });
   }, []); // Empty dependency array = Stable listener
 
-  // Audio Event Handlers
+  // Dual Audio Event Handlers
   useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
+    const audioA = audioRefA.current;
+    const audioB = audioRefB.current;
+    if (!audioA || !audioB) return;
 
-    const handleTimeUpdate = () => {
-      // Optimization: Don't update React state for UI progress if in background
-      if (document.visibilityState === 'visible') {
-        setCurrentTime(audio.currentTime);
-      }
+    // Time Update: Only from active player
+    const handleTimeUpdateA = () => {
+      if (activePlayerRef.current === 'A' && document.visibilityState === 'visible') setCurrentTime(audioA.currentTime);
+    };
+    const handleTimeUpdateB = () => {
+      if (activePlayerRef.current === 'B' && document.visibilityState === 'visible') setCurrentTime(audioB.currentTime);
     };
 
-    const handleLoadedMetadata = () => {
-      setDuration(audio.duration);
-    };
+    // Duration
+    const handleDurationA = () => { if (activePlayerRef.current === 'A') setDuration(audioA.duration); };
+    const handleDurationB = () => { if (activePlayerRef.current === 'B') setDuration(audioB.duration); };
 
-    const handleEnded = () => {
-      console.log(`[Playback] Ended. Gap=${isGapActiveRef.current} Repeat=${repeatModeRef.current}`);
+    // Ended
+    const handleEndedA = () => handleTrackEnded('A');
+    const handleEndedB = () => handleTrackEnded('B');
 
-      // Use Refs for logic
-      if (isGapActiveRef.current) {
-        // Gap finished. Triggers handleNext, which will see Gap=True and switch to Gap=False (Real Audio)
-        handleNext();
-        return;
-      }
-
-      if (repeatModeRef.current === 'sentence') {
-        audio.currentTime = 0;
-        audio.play().catch(() => { });
-      } else {
-        handlersRef.current.handleNext();
-      }
-    };
-
-    audio.addEventListener('timeupdate', handleTimeUpdate);
-    audio.addEventListener('durationchange', handleLoadedMetadata);
-    audio.addEventListener('ended', handleEnded);
+    audioA.addEventListener('timeupdate', handleTimeUpdateA);
+    audioB.addEventListener('timeupdate', handleTimeUpdateB);
+    audioA.addEventListener('durationchange', handleDurationA);
+    audioB.addEventListener('durationchange', handleDurationB);
+    audioA.addEventListener('ended', handleEndedA);
+    audioB.addEventListener('ended', handleEndedB);
 
     return () => {
-      audio.removeEventListener('timeupdate', handleTimeUpdate);
-      audio.removeEventListener('durationchange', handleLoadedMetadata);
-      audio.removeEventListener('ended', handleEnded);
+      audioA.removeEventListener('timeupdate', handleTimeUpdateA);
+      audioB.removeEventListener('timeupdate', handleTimeUpdateB);
+      audioA.removeEventListener('durationchange', handleDurationA);
+      audioB.removeEventListener('durationchange', handleDurationB);
+      audioA.removeEventListener('ended', handleEndedA);
+      audioB.removeEventListener('ended', handleEndedB);
     };
-  }, []); // Removed dependencies to keep listeners stable
+  }, [handleTrackEnded]);
 
   const [history, setHistory] = useState<SavedSession[]>([]);
   const [showHistory, setShowHistory] = useState(false);
@@ -1139,13 +1053,17 @@ export default function Home() {
         )}
       </div>
 
-      {/* Hidden Audio Element - Controlled via src prop */}
+      {/* Dual Audio Engine */}
       <audio
-        ref={audioRef}
-        src={activeUrl}
+        ref={audioRefA}
         className="hidden"
         preload="auto"
-        autoPlay
+        playsInline
+      />
+      <audio
+        ref={audioRefB}
+        className="hidden"
+        preload="auto"
         playsInline
       />
 
@@ -1299,7 +1217,7 @@ export default function Home() {
         </div>
       )}
 
-      {/* Root Level Turns Popup - Moved here to prevent z-index issues / overflow clipping in the header */}
+      {/* Root Level Turns Popup - Moved here to prevent z-index stacking issues / overflow clipping in the header */}
       {showTurnsPopup && (
         <>
           <div className="fixed inset-0 z-[100] bg-black/10 backdrop-blur-[1px]" onClick={() => setShowTurnsPopup(false)} />
