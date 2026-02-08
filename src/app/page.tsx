@@ -98,6 +98,9 @@ export default function Home() {
   const languageRef = useRef(language);
   const vietnameseAccentRef = useRef(vietnameseAccent);
 
+  // Auto-play Trigger Ref
+  const isGeneratingRef = useRef(false);
+
   // Sync Refs with State
   useEffect(() => {
     generatedSetsRef.current = generatedSets;
@@ -546,6 +549,7 @@ export default function Home() {
     setAudioUrlsSouth({});
     setCurrentSentenceIndex(-1);
     setError(null);
+    isGeneratingRef.current = true; // Mark as user-initiated generation
 
     try {
       if ((!apiKey || apiKey.trim() === '') && !process.env.GEMINI_API_KEY) {
@@ -667,6 +671,13 @@ export default function Home() {
         loadHistory(); // Refresh list
       };
       autoSave();
+
+      // Auto-play if initiated by user generation
+      if (isGeneratingRef.current) {
+        console.log("Auto-playing after generation...");
+        playSentence(0);
+        isGeneratingRef.current = false;
+      }
     }
   }, [loading, audioLoading, generatedSets]); // Depend on completion flags
 
