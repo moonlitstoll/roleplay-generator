@@ -511,7 +511,10 @@ export default function Home() {
     if (!audio) return;
 
     const handleTimeUpdate = () => {
-      setCurrentTime(audio.currentTime);
+      // Optimization: Don't update React state for UI progress if in background
+      if (document.visibilityState === 'visible') {
+        setCurrentTime(audio.currentTime);
+      }
     };
 
     const handleLoadedMetadata = () => {
@@ -1123,6 +1126,8 @@ export default function Home() {
         ref={audioRef}
         src={activeUrl}
         className="hidden"
+        preload="auto"
+        playsInline
       />
 
       {/* Fixed Playback Controller Bar */}
