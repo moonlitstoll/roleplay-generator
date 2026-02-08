@@ -150,6 +150,19 @@ export default function Home() {
       nextIsGap = false;
     } else {
       // Audio finished -> Check for Gap or Next
+
+      // Handle Sentence Loop IMMEDIATELY
+      if (mode === 'sentence') {
+        // Cycle: Audio(N) -> Gap(N) -> Audio(N) ...
+        // We just finished Audio(N).
+        // Next step is Gap(N).
+        nextIdx = currentIdx;
+        nextIsGap = true;
+
+        // Return immediately with Silent URL
+        return { index: nextIdx, isGap: nextIsGap, url: SILENT_AUDIO_URL };
+      }
+
       // Check for set boundary
       const getGlobalSetIndex = (idx: number) => {
         let count = 0;
@@ -169,13 +182,6 @@ export default function Home() {
       // If we are moving to a new set, insert gap
       if (currentSetIdx !== -1 && nextSetIdx !== -1 && currentSetIdx !== nextSetIdx) {
         // Gap needed
-        nextIdx = possibleNextIdx; // Actually we want to "pause" at this index? 
-        // Logic: Play Index N. End. Play Gap. End. Play Index N+1.
-        // So Gap state is associated with N+1? Or N?
-        // Let's say Gap state is "Gap before N+1". 
-        // We'll stick to: Index=N, Gap=True.
-        // Play Silence. End. Index=N, Gap=False.
-        // So here: nextIdx = possibleNextIdx. nextIsGap = true.
         nextIdx = possibleNextIdx;
         nextIsGap = true;
       } else {
@@ -387,6 +393,13 @@ export default function Home() {
   // Keep ref updated
   useEffect(() => {
     handlersRef.current = { togglePlay, handlePrev, handleNext, setRepeatMode };
+
+    if ('mediaSession' in navigator) {
+      navigator.mediaSession.setActionHandler('play', () => handlersRef.current.togglePlay());
+      navigator.mediaSession.setActionHandler('pause', () => handlersRef.current.togglePlay());
+      navigator.mediaSession.setActionHandler('previoustrack', () => handlersRef.current.handlePrev());
+      navigator.mediaSession.setActionHandler('nexttrack', () => handlersRef.current.handleNext());
+    }
   }, [togglePlay, handlePrev, handleNext, setRepeatMode]);
 
   useEffect(() => {
