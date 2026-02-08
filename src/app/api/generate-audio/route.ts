@@ -44,6 +44,7 @@ async function generateSegment(
     }
 
     try {
+        console.log(`[TTS] Trying EdgeTTS for: ${segment.text.substring(0, 10)}...`);
         const tts = new EdgeTTS({
             voice,
             lang: language === 'Vietnamese' ? 'vi-VN' : 'en-US',
@@ -51,11 +52,12 @@ async function generateSegment(
         });
         const result = await tts.call(segment.text);
         return result.data;
-    } catch (e) {
-        console.error(`EdgeTTS failed for ${voice}, trying Google Fallback`, e);
+    } catch (e: any) {
+        console.error(`EdgeTTS failed for ${voice}, trying Google Fallback. Error: ${e.message}`);
 
         // Fallback to Google Translate TTS (Free)
         try {
+            console.log(`[TTS] Trying GoogleFallback for: ${segment.text.substring(0, 10)}...`);
             // Import dynamically or assume it's available since verified
             const googleTTS = require('google-tts-api');
             const url = googleTTS.getAudioUrl(segment.text, {
@@ -70,8 +72,8 @@ async function generateSegment(
             const arrayBuffer = await res.arrayBuffer();
             return Buffer.from(arrayBuffer);
 
-        } catch (fallbackError) {
-            console.error("Google Fallback also failed", fallbackError);
+        } catch (fallbackError: any) {
+            console.error("Google Fallback also failed", fallbackError.message);
             throw e; // Throw original error or fallback error? Throwing E is better to know root cause.
         }
     }
