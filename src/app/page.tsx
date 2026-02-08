@@ -336,6 +336,7 @@ export default function Home() {
       console.log(`[Playback] Direct Drive: ${nextIdx} (Gap=${nextIsGap}) -> ${targetUrl?.substring(0, 20)}...`);
 
       audio.src = targetUrl;
+      // audio.load(); // Removed: destructive reset causes background interruptions
       audio.playbackRate = playbackSpeed;
       lastPlayedUrlRef.current = targetUrl;
 
@@ -412,18 +413,23 @@ export default function Home() {
 
       // CHECK: If audio is already playing the correct URL, DO NOT touch it.
       // This allows Direct Drive to start the audio, and this effect just acknowledges it.
-      const isAlreadyPlayingSource = (audio.src === activeUrl || (audio.currentSrc && audio.currentSrc === activeUrl));
+      const isCorrectSource = (audio.src === activeUrl || (audio.currentSrc && audio.currentSrc === activeUrl));
 
-      if (isAlreadyPlayingSource && !audio.paused) {
-        console.log("[Playback] Already playing target source. Effect skipped.");
+      if (isCorrectSource) {
+        if (audio.paused) {
+          console.log("[Playback] Effect: Source correct but paused. Resuming...");
+          audio.play().catch(e => console.error("[Playback] Resume failed", e));
+        } else {
+          console.log("[Playback] Already playing target source. Effect skipped.");
+        }
         return;
       }
 
       try {
-        console.log(`[Playback] Effect loading Source: ${activeUrl.substring(0, 30)}...`);
+        console.log(`[Playback] Effect loading New Source: ${activeUrl.substring(0, 30)}...`);
         audio.src = activeUrl;
         audio.playbackRate = playbackSpeed;
-        audio.load();
+        // audio.load(); // Not strictly necessary if src changes, and can interrupt.
 
         const playPromise = audio.play();
         if (playPromise !== undefined) {
@@ -535,7 +541,7 @@ export default function Home() {
         audio.currentTime = 0;
         audio.play().catch(() => { });
       } else {
-        handleNext();
+        handlersRef.current.handleNext();
       }
     };
 
@@ -548,7 +554,7 @@ export default function Home() {
       audio.removeEventListener('durationchange', handleLoadedMetadata);
       audio.removeEventListener('ended', handleEnded);
     };
-  }, [repeatMode, handleNext, isPlaying]); // Include isPlaying to ensure listeners are clean
+  }, []); // Removed dependencies to keep listeners stable
 
   const [history, setHistory] = useState<SavedSession[]>([]);
   const [showHistory, setShowHistory] = useState(false);
@@ -1127,6 +1133,7 @@ export default function Home() {
         src={activeUrl}
         className="hidden"
         preload="auto"
+        autoPlay
         playsInline
       />
 
