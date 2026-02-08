@@ -4,7 +4,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Play, Download, RefreshCw, MessageSquare, Mic, History as HistoryIcon, Trash2, X, ChevronRight, Settings, Globe, Layers, Pause } from 'lucide-react';
 import { saveSession, getSessions, deleteSession, clearSessions, SavedSession } from '../utils/storage';
 import { generateExportHTML } from '../utils/exportTemplate';
-import { SILENT_AUDIO_URL } from '../utils/silence';
 
 interface ScriptItem {
   speaker: string;
@@ -138,82 +137,47 @@ export default function Home() {
     return audioUrls[index];
   }, [language, vietnameseAccent, audioUrls, audioUrlsSouth]);
 
-  // Helper: Determine next Step (Index + IsGap)
-  // Returns { index, isGap, url }
-  const getNextStep = React.useCallback((currentIdx: number, currentIsGap: boolean, total: number, sets: GeneratedSet[], mode: 'session' | 'sentence' | 'none') => {
+  // Helper: Determine next Step (Index)
+  // Returns { index, url }
+  const getNextStep = React.useCallback((currentIdx: number, total: number, sets: GeneratedSet[], mode: 'session' | 'sentence' | 'none') => {
     let nextIdx = currentIdx;
-    let nextIsGap = false;
 
-    if (currentIsGap) {
-      // Gap finished -> Review same index (real audio)
-      nextIdx = currentIdx;
-      nextIsGap = false;
-    } else {
-      // Audio finished -> Check for Gap or Next
+    // Handle Sentence Loop IMMEDIATELY
+    if (mode === 'sentence') {
+      return { index: currentIdx, url: getUrlForIndex(currentIdx) };
+    }
 
-      // Handle Sentence Loop IMMEDIATELY
-      if (mode === 'sentence') {
-        // Cycle: Audio(N) -> Gap(N) -> Audio(N) ...
-        // We just finished Audio(N).
-        // Next step is Gap(N).
-        nextIdx = currentIdx;
-        nextIsGap = true;
+    // Check for set boundary
+    // In this simplified version, we just go to next index. 
+    // If we wanted to "pause" between sets, we'd need a timer, not a silent audio track.
+    // For now, continuous playback.
 
-        // Return immediately with Silent URL
-        return { index: nextIdx, isGap: nextIsGap, url: SILENT_AUDIO_URL };
-      }
+    nextIdx = currentIdx + 1;
 
-      // Check for set boundary
-      const getGlobalSetIndex = (idx: number) => {
-        let count = 0;
-        for (let s = 0; s < sets.length; s++) {
-          const setLen = (sets[s].script || []).length;
-          if (idx >= count && idx < count + setLen) return s;
-          count += setLen;
-        }
-        return -1;
-      };
-
-      const currentSetIdx = getGlobalSetIndex(currentIdx);
-      const possibleNextIdx = currentIdx + 1;
-      const nextSetIdx = getGlobalSetIndex(possibleNextIdx);
-
-      // Check Boundary for Gap
-      // If we are moving to a new set, insert gap
-      if (currentSetIdx !== -1 && nextSetIdx !== -1 && currentSetIdx !== nextSetIdx) {
-        // Gap needed
-        nextIdx = possibleNextIdx;
-        nextIsGap = true;
+    // Loop Handling
+    if (nextIdx >= total) {
+      if (mode === 'session') {
+        nextIdx = 0;
       } else {
-        // Normal Next
-        nextIdx = possibleNextIdx;
-        nextIsGap = false;
-      }
-
-      // Loop Handling
-      if (nextIdx >= total) {
-        if (mode === 'session') {
-          nextIdx = 0;
-          nextIsGap = false; // SKIP GAP ON LOOP for robustness
-        } else {
-          return null; // Stop
-        }
+        return null; // Stop
       }
     }
 
     // Resolve URL
-    let url = nextIsGap ? SILENT_AUDIO_URL : getUrlForIndex(nextIdx);
-    if (!url && !nextIsGap && nextIdx < total) url = SILENT_AUDIO_URL; // Fallback
+    let url = getUrlForIndex(nextIdx);
+    // If no URL found (error?), stop? or skip? 
+    // For robustness, if no URL, we might want to skip or just stop. 
+    // Let's return what we have.
 
-    return { index: nextIdx, isGap: nextIsGap, url };
+    return { index: nextIdx, url };
   }, [getUrlForIndex]);
 
   // Preload Next Track helper
-  const preloadNextTrack = React.useCallback((nextStep: { index: number, isGap: boolean, url?: string } | null, targetPlayer: 'A' | 'B') => {
+  const preloadNextTrack = React.useCallback((nextStep: { index: number, url?: string } | null, targetPlayer: 'A' | 'B') => {
     const targetAudio = targetPlayer === 'A' ? audioRefA.current : audioRefB.current;
     if (!targetAudio || !nextStep || !nextStep.url) return;
 
-    // console.log(`[Playback] Preloading ${targetPlayer}: Idx=${nextStep.index} Gap=${nextStep.isGap}`);
+    // console.log(`[Playback] Preloading ${targetPlayer}: Idx=${nextStep.index}`);
     targetAudio.src = nextStep.url;
     targetAudio.load();
   }, []);
@@ -282,7 +246,7 @@ export default function Home() {
       activeAudio.play().catch(e => console.error("Manual jump play failed", e));
 
       // 3. Preload Next into B
-      const nextStep = getNextStep(index, false, totalSentences, generatedSets, repeatMode);
+      const nextStep = getNextStep(index, totalSentences, generatedSets, repeatMode);
       if (nextStep) {
         preloadNextTrack(nextStep, 'B');
       }
@@ -290,7 +254,8 @@ export default function Home() {
 
     // Synchro Refs
     currentSentenceIndexRef.current = index;
-    isGapActiveRef.current = false;
+    currentSentenceIndexRef.current = index;
+    isGapActiveRef.current = false; // Gap logic removed
 
   }, [totalSentences, getUrlForIndex, getNextStep, generatedSets, repeatMode, playbackSpeed, preloadNextTrack]);
 
@@ -302,10 +267,10 @@ export default function Home() {
 
     // 1. Calculate Next Step based on Recents
     const currIdx = currentSentenceIndexRef.current;
-    const currGap = isGapActiveRef.current;
+    // const currGap = isGapActiveRef.current; // Removed
     const total = generatedSetsRef.current.reduce((acc, set) => acc + set.script.length, 0);
 
-    const nextStep = getNextStep(currIdx, currGap, total, generatedSetsRef.current, repeatModeRef.current);
+    const nextStep = getNextStep(currIdx, total, generatedSetsRef.current, repeatModeRef.current);
 
     if (!nextStep) {
       setIsPlaying(false);
@@ -331,26 +296,17 @@ export default function Home() {
         }
       });
 
-      // Metadata Update
-      if ('mediaSession' in navigator && !nextStep.isGap && generatedSetsRef.current.length > 0) {
-        const sets = generatedSetsRef.current;
-        let title = "Conversation";
-        for (const s of sets) {
-          const item = s.script.find(i => i.segmentIndex === nextStep.index);
-          if (item) { title = item.text; break; }
-        }
-        navigator.mediaSession.metadata = new MediaMetadata({ title });
-      }
+      // Metadata Update REMOVED (Background Playback Disabled)
     }
 
     // 4. Update UI State
     currentSentenceIndexRef.current = nextStep.index;
-    isGapActiveRef.current = nextStep.isGap;
+    isGapActiveRef.current = false;
     setCurrentSentenceIndex(nextStep.index);
-    setIsGapActive(nextStep.isGap);
+    setIsGapActive(false);
 
     // 5. Preload *Next-Next* into the (now) Inactive Player (the old playerKey)
-    const nextNextStep = getNextStep(nextStep.index, nextStep.isGap, total, generatedSetsRef.current, repeatModeRef.current);
+    const nextNextStep = getNextStep(nextStep.index, total, generatedSetsRef.current, repeatModeRef.current);
     preloadNextTrack(nextNextStep, playerKey);
 
   }, [getNextStep, playbackSpeed, preloadNextTrack]);
@@ -393,13 +349,7 @@ export default function Home() {
   // Keep ref updated
   useEffect(() => {
     handlersRef.current = { togglePlay, handlePrev, handleNext, setRepeatMode };
-
-    if ('mediaSession' in navigator) {
-      navigator.mediaSession.setActionHandler('play', () => handlersRef.current.togglePlay());
-      navigator.mediaSession.setActionHandler('pause', () => handlersRef.current.togglePlay());
-      navigator.mediaSession.setActionHandler('previoustrack', () => handlersRef.current.handlePrev());
-      navigator.mediaSession.setActionHandler('nexttrack', () => handlersRef.current.handleNext());
-    }
+    // MediaSession handler removed
   }, [togglePlay, handlePrev, handleNext, setRepeatMode]);
 
   useEffect(() => {
