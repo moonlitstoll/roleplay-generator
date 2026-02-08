@@ -197,6 +197,11 @@ export default function Home() {
   const togglePlay = React.useCallback(() => {
     // Handling initial start
     if (currentSentenceIndex === -1 && totalSentences > 0) {
+      const url = getUrlForIndex(0);
+      if (!url) {
+        console.warn("Initial play failed: No URL for index 0");
+        return;
+      }
       playSentence(0);
       return;
     }
@@ -215,13 +220,16 @@ export default function Home() {
       activeAudio.play().catch(e => console.error("Play failed", e));
       setIsPlaying(true);
     }
-  }, [isPlaying, playbackSpeed, currentSentenceIndex, totalSentences]);
+  }, [isPlaying, playbackSpeed, currentSentenceIndex, totalSentences, getUrlForIndex]);
 
   const playSentence = React.useCallback((index: number) => {
     if (index < 0 || index >= totalSentences) return;
 
     const url = getUrlForIndex(index);
-    if (!url) return;
+    if (!url) {
+      console.warn(`PlaySentence failed: No URL for index ${index}`);
+      return;
+    }
 
     // 1. Reset State
     setIsPlaying(true);
@@ -263,7 +271,18 @@ export default function Home() {
     // Only handle if this is the active player
     if (playerKey !== activePlayerRef.current) return;
 
-    console.log(`[DualPlayback] ${playerKey} Ended. Idx=${currentSentenceIndexRef.current} Gap=${isGapActiveRef.current}`);
+    console.log(`[DualPlayback] ${playerKey} Ended. Idx=${currentSentenceIndexRef.current} Mode=${repeatModeRef.current}`);
+
+    // IMMEDIATE LOOP SHORTCUT (Single Player Loop)
+    // If sentnece mode, just replay current audio. No switching needed.
+    if (repeatModeRef.current === 'sentence') {
+      const activeAudio = playerKey === 'A' ? audioRefA.current : audioRefB.current;
+      if (activeAudio) {
+        activeAudio.currentTime = 0;
+        activeAudio.play().catch(e => console.error("Loop re-play failed", e));
+        return;
+      }
+    }
 
     // 1. Calculate Next Step based on Recents
     const currIdx = currentSentenceIndexRef.current;
