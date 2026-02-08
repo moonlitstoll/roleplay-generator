@@ -210,6 +210,10 @@ export default function Home() {
       if (repeatModeRef.current === 'session') {
         console.log("[Playback] Looping to start");
         nextIdx = 0;
+        // Optimization: When looping, skip the 'Gap' to ensure continuous playback flow
+        // The gap logic below might try to insert it, but let's force it off here or handle it.
+        // Actually, let's allow the logic below to run, but if nextIdx is 0, we can force gap off 
+        // to prevent "Last -> Gap -> First".
       } else {
         setIsPlaying(false);
         return;
@@ -274,6 +278,14 @@ export default function Home() {
     } else {
       // No boundary
       // If we were in a gap (rare for same set?), unset.
+      nextIsGap = false;
+    }
+
+    // FORCE NO GAP ON LOOP
+    // If we just looped (nextIdx === 0 and currIdx was last), we might want to skip gap to keep it moving.
+    // Or if the user wants a pause between loops? 
+    // For stability, let's skip gap on loop for now.
+    if (nextIdx === 0 && repeatModeRef.current === 'session') {
       nextIsGap = false;
     }
 
