@@ -602,11 +602,32 @@ export default function Home() {
       const t = mAudio.currentTime;
       setCurrentTime(t);
 
-      // Find active segment
+      // Loop Logic for Single Sentence (1-L)
+      if (repeatModeRef.current === 'sentence') {
+        const currentIdx = currentSentenceIndexRef.current;
+        const currentSegment = audioTimeline.find(s => s.index === currentIdx);
+
+        if (currentSegment) {
+          // If we passed the end of the segment, loop back
+          // Use a small buffer (e.g., 0.1s) to prevent jarring loops if data is slightly off
+          if (t >= currentSegment.end) {
+            mAudio.currentTime = currentSegment.start;
+            mAudio.play(); // Ensure it keeps playing
+            return;
+          }
+        }
+      }
+
+      // Sync active segment for UI highlighting
       const segment = audioTimeline.find(s => t >= s.start && t < s.end);
       if (segment && segment.index !== currentSentenceIndexRef.current) {
-        setCurrentSentenceIndex(segment.index);
-        currentSentenceIndexRef.current = segment.index;
+        // Only update if we are NOT in sentence mode (or if logic failed above)
+        // Actually, if we are in sentence mode, we shouldn't be here unless we drifted into next segment
+        // Enforce current index if sentence mode?
+        if (repeatModeRef.current !== 'sentence') {
+          setCurrentSentenceIndex(segment.index);
+          currentSentenceIndexRef.current = segment.index;
+        }
       }
     };
 
