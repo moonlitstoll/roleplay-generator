@@ -1202,7 +1202,7 @@ export default function Home() {
                             </div>
                           </div>
                           {showAnalysis && (
-                            <div className="mt-4 pt-4 border-t border-gray-100 space-y-4 animate-in fade-in duration-300 text-sm text-gray-800 leading-relaxed">
+                            <div className="mt-4 pt-4 border-t border-gray-100 space-y-4 animate-in fade-in duration-300 text-base text-gray-800 leading-relaxed">
 
                               {/* Translation */}
                               <div>

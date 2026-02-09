@@ -185,19 +185,25 @@ export async function POST(req: NextRequest) {
          - Use NEWLINES between patterns.
          
       2. [word_analysis]:
-         - **MANDATORY**: Output a VERTICAL LIST using bullet points (•).
-         - Format: "• Word/Expression | Meaning"
-         - **STRICT REQUIREMENT**: Every single item must start with "•" on a BRAND NEW LINE.
-         - Do NOT put multiple items on the same line.
-         - Example Structure:
-           • Word1 | Meaning1
-           • Word2 | Meaning2
-           • Phrase A | Meaning A
+         - **CRITICAL FORMATTING RULE**: This MUST be a VERTICAL LIST with each item on a SEPARATE LINE.
+         - **MANDATORY**: Start EVERY item with a bullet point (•) followed by a space.
+         - Format for each line: "• Word/Expression | Meaning in Korean"
+         - **STRICT REQUIREMENT**: 
+           * NEVER put multiple items on the same line
+           * ALWAYS use a newline character (\n) between items
+           * EVERY line must start with "•"
          
-         - Breakdown:
-           - Analyze meaningful chunks (not just single words).
-           - Group idioms/phrases.
-           - Explain functional words clearly.
+         - Example of CORRECT format:
+           • Word1 | 의미1
+           • Word2 | 의미2
+           • Phrase A | 의미 A
+           • Expression B | 의미 B
+         
+         - Content Guidelines:
+           * Analyze meaningful chunks (not just single words)
+           * Group related idioms/phrases together on their own lines
+           * Explain functional words and grammar particles clearly
+           * Order words sequentially as they appear in the sentence
 
       DIALECT INSTRUCTIONS (Vietnamese):
       - Use standard vocabulary that works for both regions if possible.
