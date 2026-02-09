@@ -350,11 +350,13 @@ export default function Home() {
         // We can't know exact duration yet if not loaded, but we try
       }
 
-      // Synchro Refs
-      currentSentenceIndexRef.current = index;
-      isGapActiveRef.current = false; // Gap logic removed
+    }
 
-    }, [totalSentences, getUrlForIndex, getNextStep, generatedSets, repeatMode, playbackSpeed, preloadNextTrack, isMergedMode, audioTimeline]);
+    // Synchro Refs
+    currentSentenceIndexRef.current = index;
+    isGapActiveRef.current = false; // Gap logic removed
+
+  }, [totalSentences, getUrlForIndex, getNextStep, generatedSets, repeatMode, playbackSpeed, preloadNextTrack, isMergedMode, audioTimeline]);
 
   const handleTrackEnded = React.useCallback((playerKey: 'A' | 'B') => {
     // Only handle if this is the active player
@@ -615,6 +617,7 @@ export default function Home() {
       // Actually, 1-L in merged mode means we keep seeking back to segment.start
 
       if (repeatModeRef.current === 'session') {
+        // Native loop handles this mostly, but if it fails or for some reason ends:
         mAudio.currentTime = 0;
         mAudio.play();
       } else if (repeatModeRef.current === 'sentence') {
@@ -645,7 +648,7 @@ export default function Home() {
   }, [playbackSpeed]);
 
 
-  const [history, setHistory] = useState<SavedSession[]>([]);
+
 
   const [history, setHistory] = useState<SavedSession[]>([]);
   const [showHistory, setShowHistory] = useState(false);
@@ -1247,6 +1250,7 @@ export default function Home() {
         className="hidden"
         preload="auto"
         playsInline
+        loop={isMergedMode && repeatMode === 'session'}
       />
 
       {/* Fixed Playback Controller Bar */}
@@ -1264,18 +1268,6 @@ export default function Home() {
 
               <div className="flex items-center justify-between gap-2 md:gap-4 mt-2">
                 <div className="flex items-center gap-2">
-                  {/* Analysis Toggle (Mobile/Desktop) */}
-                  <button
-                    onClick={() => setShowAnalysis(!showAnalysis)}
-                    className={`flex items-center justify-center p-2 md:p-2 rounded-full transition-all ${showAnalysis ? 'bg-blue-100 text-blue-600' : 'bg-gray-50 text-gray-400 hover:bg-gray-100'}`}
-                    title="Toggle Analysis"
-                  >
-                    <div className="relative">
-                      <MessageSquare className="w-4 h-4 md:w-5 md:h-5" />
-                      <span className="absolute -bottom-1 -right-1 text-[8px] font-black">{showAnalysis ? 'ON' : 'OFF'}</span>
-                    </div>
-                  </button>
-
                   <div className="relative">
                     <button
                       onClick={() => setShowSpeedPopup(!showSpeedPopup)}
@@ -1317,6 +1309,18 @@ export default function Home() {
                       </div>
                     )}
                   </div>
+
+                  {/* Analysis Toggle (Mobile/Desktop) */}
+                  <button
+                    onClick={() => setShowAnalysis(!showAnalysis)}
+                    className={`flex items-center justify-center p-2 md:p-2 rounded-full transition-all ${showAnalysis ? 'bg-blue-100 text-blue-600' : 'bg-gray-50 text-gray-400 hover:bg-gray-100'}`}
+                    title="Toggle Analysis"
+                  >
+                    <div className="relative">
+                      <MessageSquare className="w-4 h-4 md:w-5 md:h-5" />
+                      <span className="absolute -bottom-1 -right-1 text-[8px] font-black">{showAnalysis ? 'ON' : 'OFF'}</span>
+                    </div>
+                  </button>
                 </div>
 
                 <div className="flex items-center gap-3 md:gap-6">
