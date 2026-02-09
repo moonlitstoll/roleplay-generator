@@ -135,57 +135,33 @@ export default function Home() {
       const sortedIndices = Object.keys(urls).map(Number).sort((a, b) => a - b);
       if (sortedIndices.length === 0) return;
 
-      const audioBuffers: ArrayBuffer[] = [];
-      const timeline: { start: number, end: number, index: number }[] = [];
-      let currentOffset = 0;
-
-      // We need to fetch blobs strings and also get duration.
-      // Getting duration accurately requires loading into an Audio element or decoding.
-      // Process serially to ensure order and resource management
+      // 1. Fetch all blobs
+      const blobs: Blob[] = [];
       for (const idx of sortedIndices) {
-        const url = urls[idx];
-
-        // 1. Fetch Blob
-        const blob = await fetch(url).then(r => r.blob());
-        const buffer = await blob.arrayBuffer();
-        audioBuffers.push(buffer);
-
-        // 2. Get Duration (Estimate via Audio element)
-        await new Promise<void>((resolve) => {
-          const tempAudio = new Audio(url);
-          tempAudio.onloadedmetadata = () => {
-            const dur = tempAudio.duration;
-            timeline.push({
-              start: currentOffset,
-              end: currentOffset + dur,
-              index: idx
-            });
-            currentOffset += dur;
-            resolve();
-          };
-          tempAudio.onerror = () => resolve(); // Skip on error
-        });
+        const blob = await fetch(urls[idx]).then(r => r.blob());
+        blobs.push(blob);
       }
 
-      // 3. Concatenate Buffers
-      const totalLength = audioBuffers.reduce((acc, buf) => acc + buf.byteLength, 0);
-      const combinedBuffer = new Uint8Array(totalLength);
-      let offset = 0;
-      for (const buf of audioBuffers) {
-        combinedBuffer.set(new Uint8Array(buf), offset);
-        offset += buf.byteLength;
-      }
+      // 2. Transcode to WAV (Client-side)
+      // This ensures a correct single-file duration header for background playback
+      const { blob, duration, timeline: wavTimeline } = await mergeAudioToWav(blobs);
 
-      const combinedBlob = new Blob([combinedBuffer], { type: 'audio/mpeg' });
-      const combinedUrl = URL.createObjectURL(combinedBlob);
+      // 3. Update Timeline with correct indices
+      // The util returns 0..n indices, we map them back to sortedIndices
+      const mappedTimeline = wavTimeline.map((item, i) => ({
+        ...item,
+        index: sortedIndices[i]
+      }));
+
+      const combinedUrl = URL.createObjectURL(blob);
 
       setMergedAudioUrl(combinedUrl);
-      setAudioTimeline(timeline);
-      console.log('Audio Merged:', timeline);
+      setAudioTimeline(mappedTimeline);
+      console.log('Audio Merged (WAV):', mappedTimeline, 'Duration:', duration);
 
     } catch (e) {
       console.error("Merge failed", e);
-      alert("Failed to create background audio.");
+      // alert("Failed to create background audio."); // Silent fail better for UX?
       setIsMergedMode(false);
     } finally {
       setIsMerging(false);
