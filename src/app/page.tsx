@@ -159,11 +159,7 @@ export default function Home() {
 
     // Loop Handling
     if (nextIdx >= total) {
-      if (mode === 'session') {
-        nextIdx = 0;
-      } else {
-        return null; // Stop
-      }
+      nextIdx = 0; // Always loop
     }
 
     // Resolve URL
@@ -261,6 +257,11 @@ export default function Home() {
       if (nextStep) {
         preloadNextTrack(nextStep, 'B');
       }
+
+      // 4. Update Media Session Position State (Best Effort)
+      if ('mediaSession' in navigator) {
+        // We can't know exact duration yet if not loaded, but we try
+      }
     }
 
     // Synchro Refs
@@ -332,6 +333,31 @@ export default function Home() {
     preloadNextTrack(nextNextStep, playerKey);
 
   }, [getNextStep, playbackSpeed, preloadNextTrack]);
+
+  // Media Session Updates
+  useEffect(() => {
+    if ('mediaSession' in navigator && currentSentenceIndex !== -1 && generatedSets.length > 0) {
+      // Find current text
+      let currentText = "Roleplay Audio";
+      // Reverse lookup is hard with flattened index. We can optimize if needed.
+      // For now, simpler metadata
+      const total = generatedSetsRef.current.reduce((acc, set) => acc + set.script.length, 0);
+
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: `Sentence ${currentSentenceIndex + 1} of ${total}`,
+        artist: "RealWait Roleplay",
+        album: generatedSetsRef.current[0]?.input || "Roleplay Session",
+        artwork: [
+          { src: '/icon.png', sizes: '512x512', type: 'image/png' }
+        ]
+      });
+
+      navigator.mediaSession.setActionHandler('play', () => handlersRef.current.togglePlay());
+      navigator.mediaSession.setActionHandler('pause', () => handlersRef.current.togglePlay());
+      navigator.mediaSession.setActionHandler('previoustrack', () => handlersRef.current.handlePrev());
+      navigator.mediaSession.setActionHandler('nexttrack', () => handlersRef.current.handleNext());
+    }
+  }, [currentSentenceIndex, generatedSets]);
 
   const handleNext = React.useCallback(() => {
     // Manual Next Click
