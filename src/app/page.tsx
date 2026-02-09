@@ -341,11 +341,7 @@ export default function Home() {
     const total = generatedSetsRef.current.reduce((acc, set) => acc + set.script.length, 0);
 
     if (nextIdx >= total) {
-      if (repeatMode === 'session') nextIdx = 0;
-      else {
-        setIsPlaying(false);
-        return;
-      }
+      nextIdx = 0;
     }
     playSentence(nextIdx);
   }, [currentSentenceIndex, repeatMode, playSentence]);
