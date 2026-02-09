@@ -76,7 +76,64 @@ export async function POST(req: NextRequest) {
     });
 
     const isInputEmpty = !input || input.trim() === '';
-    const promptInput = isInputEmpty ? "Any interesting daily life or professional roleplay scenario" : input;
+
+    // ------------------------------------------------------------------
+    // DIVERSE TOPIC GENERATION (Native Contexts)
+    // ------------------------------------------------------------------
+    const getRandomTopic = () => {
+      const topics = [
+        // daily life
+        "Returning a defective item at a store. Real native expressions for complaints.",
+        "Complaining about noise to a neighbor politely but firmly.",
+        "Asking for a refund for a late delivery from customer service.",
+        "Negotiating rent with a landlord using logical arguments.",
+        "Calling a plumber for a leak and describing the situation precisely.",
+        "Explaining a complex coffee order with many customizations.",
+        "Asking for a different table at a restaurant because of a draft.",
+        "Finding a lost item at a hotel front desk.",
+        "Asking for directions in a complex subway station to a specific exit.",
+        "Recovering a towed car from the impound lot.",
+
+        // work / professional
+        "Negotiating a salary increase during an annual review.",
+        "Explaining a mistake to a boss without making excuses.",
+        "Leading a project meeting kickoff and setting expectations.",
+        "Giving constructive feedback to a colleague about their performance.",
+        "Asking for time off for a family emergency.",
+        "Pitching a new idea to a skeptical client using data.",
+        "Handling an angry customer on the phone professionally.",
+        "Networking at a professional conference and starting conversations.",
+        "Quitting a job respectfully and discussing the transition.",
+        "Explaining a gap in a resume during a job interview.",
+
+        // relationships / emotional
+        "Confessing feelings to a crush in a natural way.",
+        "Breaking up with someone gently and clearly.",
+        "Apologizing to a friend for forgetting a major event.",
+        "Setting boundaries with a pushy friend or family member.",
+        "Comforting a friend who is going through a hard time.",
+        "Discussing future plans and goals with a partner.",
+        "Confronting a partner about spending habits calmly.",
+        "Asking a friend to pay back money they borrowed.",
+        "Declining an invitation without sounding rude.",
+        "Reconnecting with an old friend after a long time.",
+
+        // travel / emergencies
+        "Reporting a theft to the local police in a foreign country.",
+        "Explaining symptoms to a doctor or pharmacist.",
+        "Missing a connecting flight and negotiating a voucher.",
+        "Dealing with a lost passport at the embassy.",
+        "Trying to check in early at a hotel when exhausted.",
+        "Asking locals for hidden gem recommendations (not touristy).",
+        "Renting a car and understanding the insurance terms.",
+        "Disputing a taxi fare that seems too high.",
+        "Buying specific medicine at a pharmacy for an allergy.",
+        "Ordering street food with specific dietary needs (allergy/vegan)."
+      ];
+      return topics[Math.floor(Math.random() * topics.length)];
+    };
+
+    const promptInput = isInputEmpty ? getRandomTopic() : input;
 
 
     const isSingleReaderMode = count === 0;
@@ -88,25 +145,19 @@ export async function POST(req: NextRequest) {
           - DO NOT change or "fix" the input text. Use the user's "Input" EXACTLY as it is.
           - SEGMENTATION STRATEGY:
             1. Split the input text into INDIVIDUAL sentences as much as possible for granular analysis.
-            2. ONLY group sentences together if they are very short or tightly connected semantic units (e.g., "Oh really? I didn't know that.").
+            2. ONLY group sentences together if they are very short or tightly connected semantic units.
             3. Prioritize detailed "word_analysis" for each segment.
           - Assign all segments to Speaker "A".
           - Provide detailed Korean translation, grammar_patterns, and word_analysis for each segment.
-          - If the input is empty, generate a 1-line self-introduction as Speaker A.
         `
       : `
           Generate exactly ${count * 2} lines of conversation (alternating between speaker A and B).
-          RANDOM GENERATION:
-          ${isInputEmpty ? "Since the input is empty, pick a random and engaging scenario (e.g., ordering food, job interview, checking into a hotel, meeting a friend, asking for directions)." : "Focus on the provided input."}
-          
-          INPUT HANDLING STRATEGY:
-          1. **If Input is a Topic (e.g. 'Coffee Shop')**: Create a vivid, realistic situational drama.
-          2. **If Input is Vocabulary/Sentence**: Create a coherent dialogue that NATURALLY uses these words.
+          SCENARIO: "${promptInput}"
           
           CRITICAL INSTRUCTION - NATURALNESS PRIORITY:
-          - **"Native-Level Polish"**: Even if the user's input contains awkward or grammatically incorrect target language, YOU MUST FIX IT.
-          - **Upgrade** the expressions to what a real native speaker would say in that situation.
-          - Usage of the input words must be natural, not forced.
+          - **"Native-Level Polish"**: Fix any awkward or incorrect language. Upgrade it to real-world native expressions.
+          - **Topic fidelity**: Stay very close to the specific nuances of the scenario.
+          - **Realism**: Include hesitation markers (e.g., "uh", "well"), slang, or idioms where appropriate.
           
           GENDER ASSIGNMENT:
           - Assign logical genders to Speakers A and B based on the scenario.
@@ -115,7 +166,7 @@ export async function POST(req: NextRequest) {
     const prompt = `
       You are an expert language conversation generator.
       Create a roleplay script based on the following:
-      Input (Topic/Word/Scenario): "${promptInput}"
+      Input Context: "${promptInput}"
       Target Language: ${language}
       Accent/Dialect: General
       Reference Language: Korean
@@ -131,20 +182,22 @@ export async function POST(req: NextRequest) {
       
       1. [grammar_patterns]:
          - Format: "Pattern | Definition and nuance"
-         - Example: "be worth -ing | ~할 가치가 있다. 노력이나 시간을 들일 만한 가치가 있는 일을 추천할 때 사용."
          - Use NEWLINES between patterns.
          
       2. [word_analysis]:
-         - Format: "Word/Phrase | Meaning and explanation"
-         - STRICT REQUIREMENT: Output EACH item on a NEW LINE.
+         - **MANDATORY**: Output a VERTICAL LIST using bullet points (•).
+         - Format: "• Word/Expression | Meaning"
+         - **STRICT REQUIREMENT**: Every single item must start with "•" on a BRAND NEW LINE.
          - Do NOT put multiple items on the same line.
-         - Example Layout:
-           Word1 | Definition1
-           Word2 | Definition2
-           Word3 | Definition3
-         - Analyze meaningful chunks, NOT just single words.
-         - GROUP idioms and phrases (e.g., "get up", "in front of").
-         - Explain functional words (like 'it' as placeholder, 'because' as conjunction) clearly.
+         - Example Structure:
+           • Word1 | Meaning1
+           • Word2 | Meaning2
+           • Phrase A | Meaning A
+         
+         - Breakdown:
+           - Analyze meaningful chunks (not just single words).
+           - Group idioms/phrases.
+           - Explain functional words clearly.
 
       DIALECT INSTRUCTIONS (Vietnamese):
       - Use standard vocabulary that works for both regions if possible.

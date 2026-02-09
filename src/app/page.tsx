@@ -1222,7 +1222,13 @@ export default function Home() {
                               {line.word_analysis && (
                                 <div>
                                   <h4 className="font-bold text-indigo-600 mb-1">[상세 단어 및 문법 분석]</h4>
-                                  <div className="whitespace-pre-wrap">{line.word_analysis}</div>
+                                  <div className="whitespace-pre-wrap space-y-1">
+                                    {line.word_analysis.split('\n').map((item, i) => (
+                                      <div key={i} className={item.trim().startsWith('•') ? 'pl-2' : ''}>
+                                        {item}
+                                      </div>
+                                    ))}
+                                  </div>
                                 </div>
                               )}
                             </div>
