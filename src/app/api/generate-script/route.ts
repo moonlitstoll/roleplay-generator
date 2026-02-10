@@ -188,10 +188,11 @@ export async function POST(req: NextRequest) {
            * For simple, common words, just give the meaning and grammar role directly.
          - **STRICT REQUIREMENT**: 
            * NEVER put multiple items on the same line
-           * ALWAYS use a newline character (\n) between items
+           * ALWAYS use a newline character (\\n) between items
            * EVERY line must start with "•"
            * Analyze the sentence SEQUENTIALLY from start to finish.
            * Explain every single word/particle in Korean.
+           * **DO NOT analyze punctuation marks** (periods, commas, question marks, exclamation marks, ellipsis, colons, semicolons, etc.). Only analyze actual words and particles.
          - Example format:
            • Dăm ba | 겨우 몇 개의, 그까짓 몇 개의 | 수량 앞에 붙어 하찮거나 소량임을 나타내는 표현
            • chai | 병 | 명사 (물건을 세는 단위)
