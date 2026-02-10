@@ -181,8 +181,9 @@ export async function POST(req: NextRequest) {
       FORMATTING RULES (STRICT):
       
       1. [grammar_patterns]:
-         - Format: "Pattern | Definition and nuance | Usage (e.g., Pattern + Noun/Verb)"
-         - **STRICT REQUIREMENT**: For each pattern, explain HOW to use it by specifying what types of words (Noun, Verb, Adjective, etc.) go where.
+         - Format: "Pattern | Definition and nuance | Usage (e.g., Pattern + 명사/동사)"
+         - **STRICT REQUIREMENT**: For each pattern, explain HOW to use it by specifying what types of words (**명사, 동사, 형용사 등 한글 용어 사용**) go where.
+         - All explanations must be in Korean.
          - Use NEWLINES between patterns.
          
       2. [word_analysis]:
@@ -194,7 +195,7 @@ export async function POST(req: NextRequest) {
            * ALWAYS use a newline character (\n) between items
            * EVERY line must start with "•"
            * Analyze the sentence SEQUENTIALLY from start to finish.
-           * Explain every single word/particle.
+           * Explain every single word/particle in Korean.
 
       DIALECT INSTRUCTIONS (Vietnamese):
       - Use standard vocabulary that works for both regions if possible.
