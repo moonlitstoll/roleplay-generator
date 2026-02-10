@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
 
               word_analysis: {
                 type: SchemaType.STRING,
-                description: "Sequential breakdown of words with Korean meanings only. No English. Format: 'word: meaning, word: meaning...'"
+                description: "Sequential word-by-word analysis. Format per line: '• word | meaning | grammar_role'. All in Korean. No English."
               },
             },
             required: ["speaker", "text", "translation", "word_analysis"],
@@ -176,17 +176,27 @@ export async function POST(req: NextRequest) {
       - Use ONLY Korean grammar terms (e.g., 명사, 동사, 형용사, 조사, 어미 등).
 
       FORMATTING RULES (STRICT):
-      
-      2. [word_analysis]:
+
+      [word_analysis]:
          - **CRITICAL FORMATTING RULE**: This MUST be a VERTICAL LIST with each item on a SEPARATE LINE.
          - **MANDATORY**: Start EVERY item with a bullet point (•) followed by a space.
-         - Format for each line: "• Word/Expression | Sequential meaning and role in this specific sentence"
+         - Format for each line: "• Word | Meaning (Korean translation/definition) | Grammar role and contextual note"
+         - The SECOND field (after first |) = The core Korean meaning of the word. Be concise but clear.
+         - The THIRD field (after second |) = Part of speech (품사) and how the word functions in THIS sentence. Include grammar notes like particles, conjugation, or usage context when relevant.
+         - **FOCUS ON OVERALL MEANING AND GRAMMAR STRUCTURE** over syllable-level decomposition.
+           * Syllable breakdown is ONLY needed for complex compound words where it genuinely aids understanding.
+           * For simple, common words, just give the meaning and grammar role directly.
          - **STRICT REQUIREMENT**: 
            * NEVER put multiple items on the same line
            * ALWAYS use a newline character (\n) between items
            * EVERY line must start with "•"
            * Analyze the sentence SEQUENTIALLY from start to finish.
            * Explain every single word/particle in Korean.
+         - Example format:
+           • Dăm ba | 겨우 몇 개의, 그까짓 몇 개의 | 수량 앞에 붙어 하찮거나 소량임을 나타내는 표현
+           • chai | 병 | 명사 (물건을 세는 단위)
+           • sao | 어떻게, 왜 | 의문 부사
+           • được | ~할 수 있다 / (가능성, 허용) | 동사 뒤에 붙어 가능이나 허락을 나타내며, 부정문이나 의문문에서 쓰일 때 '할 수 없다/할 수 있겠는가'의 의미를 강화
 
       DIALECT INSTRUCTIONS (Vietnamese):
       - Use standard vocabulary that works for both regions if possible.

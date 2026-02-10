@@ -1229,14 +1229,20 @@ export default function Home() {
                                   <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm">
                                     {line.word_analysis.split('\n').filter(w => w.trim()).map((wordLine, wIdx, arr) => {
                                       const cleanLine = wordLine.replace(/^•\s*/, '');
-                                      const [word, meaning] = cleanLine.split('|').map(s => s.trim());
+                                      const parts = cleanLine.split('|').map(s => s.trim());
+                                      const word = parts[0];
+                                      const meaning = parts[1] || '';
+                                      const grammarRole = parts[2] || '';
                                       return (
                                         <div key={wIdx} className={`px-4 py-3 flex items-start gap-4 hover:bg-emerald-50/30 transition-colors ${wIdx !== arr.length - 1 ? 'border-b border-gray-50' : ''}`}>
                                           <div className="shrink-0 min-w-[80px]">
                                             <span className="text-emerald-700 font-bold text-base">{word}</span>
                                           </div>
                                           <div className="flex-1">
-                                            <p className="text-gray-600 text-sm leading-snug">{meaning}</p>
+                                            <p className="text-gray-800 font-bold text-sm leading-snug">{meaning}</p>
+                                            {grammarRole && (
+                                              <p className="text-gray-500 text-xs mt-0.5 leading-snug">{grammarRole}</p>
+                                            )}
                                           </div>
                                         </div>
                                       );
