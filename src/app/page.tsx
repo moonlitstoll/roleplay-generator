@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Play, Download, RefreshCw, MessageSquare, Mic, History as HistoryIcon, Trash2, X, ChevronRight, Settings, Globe, Layers, Pause, Volume2, Music } from 'lucide-react';
+import { Play, Download, RefreshCw, MessageSquare, Mic, History as HistoryIcon, Trash2, X, ChevronRight, Settings, Globe, Layers, Pause, Volume2, Music, List, BookOpen, Languages } from 'lucide-react';
 import { mergeAudioToWav } from '../utils/audioMerge';
 import { saveSession, getSessions, deleteSession, clearSessions, SavedSession } from '../utils/storage';
 import { generateExportHTML } from '../utils/exportTemplate';
@@ -1207,32 +1207,64 @@ export default function Home() {
                             </div>
                           </div>
                           {showAnalysis && (
-                            <div className="mt-4 pt-4 border-t border-gray-100 space-y-4 animate-in fade-in duration-300 text-base text-gray-800 leading-relaxed">
-
+                            <div className="mt-4 pt-4 border-t border-gray-100 space-y-6 animate-in fade-in duration-300">
                               {/* Translation */}
-                              <div>
-                                <h4 className="font-bold text-blue-600 mb-1">[한글 문장 해설]</h4>
-                                <p>{line.translation}</p>
+                              <div className="bg-blue-50/50 rounded-xl p-4 border border-blue-100/50">
+                                <div className="flex items-center gap-2 mb-2 text-blue-600">
+                                  <Languages className="w-4 h-4" />
+                                  <span className="text-[10px] font-black uppercase tracking-widest">Translation</span>
+                                </div>
+                                <p className="text-gray-800 font-bold leading-relaxed">{line.translation}</p>
                               </div>
 
-                              {/* Grammar Patterns */}
+                              {/* Patterns */}
                               {line.grammar_patterns && (
-                                <div>
-                                  <h4 className="font-bold text-orange-600 mb-1">[회화 문법 패턴 정의]</h4>
-                                  <div className="whitespace-pre-wrap">{line.grammar_patterns}</div>
+                                <div className="space-y-3">
+                                  <div className="flex items-center gap-2 text-orange-600 pl-1">
+                                    <List className="w-4 h-4" />
+                                    <span className="text-[10px] font-black uppercase tracking-widest">Patterns</span>
+                                  </div>
+                                  <div className="grid gap-3">
+                                    {line.grammar_patterns.split('\n').filter(p => p.trim()).map((pattern, pIdx) => {
+                                      const [title, definition, usage] = pattern.split('|').map(s => s.trim());
+                                      return (
+                                        <div key={pIdx} className="bg-orange-50/30 border border-orange-100/50 rounded-xl p-4 hover:border-orange-200 transition-colors">
+                                          <h5 className="text-orange-700 font-black text-base mb-1">{title}</h5>
+                                          <p className="text-gray-600 text-sm mb-2 leading-snug">{definition}</p>
+                                          {usage && (
+                                            <div className="text-[10px] font-bold text-orange-600 opacity-70 uppercase tracking-tighter">
+                                              {usage}
+                                            </div>
+                                          )}
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
                                 </div>
                               )}
 
                               {/* Word Analysis */}
                               {line.word_analysis && (
-                                <div>
-                                  <h4 className="font-bold text-indigo-600 mb-1">[상세 단어 및 문법 분석]</h4>
-                                  <div className="whitespace-pre-wrap space-y-1">
-                                    {line.word_analysis.split('\n').map((item, i) => (
-                                      <div key={i} className={item.trim().startsWith('•') ? 'pl-2' : ''}>
-                                        {item}
-                                      </div>
-                                    ))}
+                                <div className="space-y-3">
+                                  <div className="flex items-center gap-2 text-emerald-600 pl-1">
+                                    <BookOpen className="w-4 h-4" />
+                                    <span className="text-[10px] font-black uppercase tracking-widest">Word Analysis</span>
+                                  </div>
+                                  <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm">
+                                    {line.word_analysis.split('\n').filter(w => w.trim()).map((wordLine, wIdx, arr) => {
+                                      const cleanLine = wordLine.replace(/^•\s*/, '');
+                                      const [word, meaning] = cleanLine.split('|').map(s => s.trim());
+                                      return (
+                                        <div key={wIdx} className={`px-4 py-3 flex items-start gap-4 hover:bg-emerald-50/30 transition-colors ${wIdx !== arr.length - 1 ? 'border-b border-gray-50' : ''}`}>
+                                          <div className="shrink-0 min-w-[80px]">
+                                            <span className="text-emerald-700 font-bold text-base">{word}</span>
+                                          </div>
+                                          <div className="flex-1">
+                                            <p className="text-gray-600 text-sm leading-snug">{meaning}</p>
+                                          </div>
+                                        </div>
+                                      );
+                                    })}
                                   </div>
                                 </div>
                               )}

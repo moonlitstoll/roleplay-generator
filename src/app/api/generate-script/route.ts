@@ -181,29 +181,20 @@ export async function POST(req: NextRequest) {
       FORMATTING RULES (STRICT):
       
       1. [grammar_patterns]:
-         - Format: "Pattern | Definition and nuance"
+         - Format: "Pattern | Definition and nuance | Usage (e.g., Pattern + Noun/Verb)"
+         - **STRICT REQUIREMENT**: For each pattern, explain HOW to use it by specifying what types of words (Noun, Verb, Adjective, etc.) go where.
          - Use NEWLINES between patterns.
          
       2. [word_analysis]:
          - **CRITICAL FORMATTING RULE**: This MUST be a VERTICAL LIST with each item on a SEPARATE LINE.
          - **MANDATORY**: Start EVERY item with a bullet point (•) followed by a space.
-         - Format for each line: "• Word/Expression | Meaning in Korean"
+         - Format for each line: "• Word/Expression | Sequential meaning and role in this specific sentence"
          - **STRICT REQUIREMENT**: 
            * NEVER put multiple items on the same line
            * ALWAYS use a newline character (\n) between items
            * EVERY line must start with "•"
-         
-         - Example of CORRECT format:
-           • Word1 | 의미1
-           • Word2 | 의미2
-           • Phrase A | 의미 A
-           • Expression B | 의미 B
-         
-         - Content Guidelines:
-           * Analyze meaningful chunks (not just single words)
-           * Group related idioms/phrases together on their own lines
-           * Explain functional words and grammar particles clearly
-           * Order words sequentially as they appear in the sentence
+           * Analyze the sentence SEQUENTIALLY from start to finish.
+           * Explain every single word/particle.
 
       DIALECT INSTRUCTIONS (Vietnamese):
       - Use standard vocabulary that works for both regions if possible.
