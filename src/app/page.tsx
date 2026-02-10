@@ -260,41 +260,52 @@ export default function Home() {
   }, [currentSentenceIndex]);
 
   const togglePlay = React.useCallback(() => {
-    // Handling initial start
-    if (currentSentenceIndex === -1 && totalSentences > 0) {
+    // Use ref for latest value to avoid stale closure
+    const currentIdx = currentSentenceIndexRef.current;
+
+    // Handling initial start (only when truly never played)
+    if (currentIdx === -1 && totalSentences > 0) {
       const url = getUrlForIndex(0);
       if (!url) {
         console.warn("Initial play failed: No URL for index 0");
         return;
       }
-      playSentence(0);
+      // Use handlersRef to avoid dependency on playSentence (declared later)
+      handlersRef.current.playSentence?.(0);
       return;
     }
 
-    const activeAudio = activePlayerRef.current === 'A' ? audioRefA.current : audioRefB.current;
-    if (!activeAudio) return;
-
     if (isPlaying) {
+      // PAUSE
       if (activePlayerRef.current === 'Merged' && mergedAudioRef.current) {
         mergedAudioRef.current.pause();
       } else {
-        activeAudio.pause();
+        const activeAudio = activePlayerRef.current === 'A' ? audioRefA.current : audioRefB.current;
+        activeAudio?.pause();
         const otherAudio = activePlayerRef.current === 'A' ? audioRefB.current : audioRefA.current;
         otherAudio?.pause();
       }
       setIsPlaying(false);
     } else {
-      if (isMergedMode && mergedAudioRef.current) {
+      // RESUME from paused position
+      if (activePlayerRef.current === 'Merged' && mergedAudioRef.current) {
+        mergedAudioRef.current.playbackRate = playbackSpeed;
+        mergedAudioRef.current.play().catch(console.error);
+      } else if (isMergedMode && mergedAudioRef.current) {
+        // Was in merged mode but activePlayerRef got reset — resume merged
         activePlayerRef.current = 'Merged';
         mergedAudioRef.current.playbackRate = playbackSpeed;
         mergedAudioRef.current.play().catch(console.error);
       } else {
-        activeAudio.playbackRate = playbackSpeed;
-        activeAudio.play().catch(e => console.error("Play failed", e));
+        const activeAudio = activePlayerRef.current === 'A' ? audioRefA.current : audioRefB.current;
+        if (activeAudio) {
+          activeAudio.playbackRate = playbackSpeed;
+          activeAudio.play().catch(e => console.error("Play failed", e));
+        }
       }
       setIsPlaying(true);
     }
-  }, [isPlaying, playbackSpeed, currentSentenceIndex, totalSentences, getUrlForIndex, isMergedMode]);
+  }, [isPlaying, playbackSpeed, totalSentences, getUrlForIndex, isMergedMode]);
 
   const playSentence = React.useCallback((index: number) => {
     if (index < 0 || index >= totalSentences) return;
@@ -491,13 +502,13 @@ export default function Home() {
   // Keyboard Shortcuts
   // Keyboard Shortcuts (Stable via Ref)
 
-  const handlersRef = useRef({ togglePlay, handlePrev, handleNext, setRepeatMode });
+  const handlersRef = useRef({ togglePlay, handlePrev, handleNext, setRepeatMode, playSentence });
 
   // Keep ref updated
   useEffect(() => {
-    handlersRef.current = { togglePlay, handlePrev, handleNext, setRepeatMode };
+    handlersRef.current = { togglePlay, handlePrev, handleNext, setRepeatMode, playSentence };
     // MediaSession handler removed
-  }, [togglePlay, handlePrev, handleNext, setRepeatMode]);
+  }, [togglePlay, handlePrev, handleNext, setRepeatMode, playSentence]);
 
   useEffect(() => {
     console.log('[Shortcuts] Initializing keyboard listener on document...');
