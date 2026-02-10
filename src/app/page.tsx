@@ -610,9 +610,9 @@ export default function Home() {
         if (currentSegment) {
           // If we passed the end of the segment, loop back
           // Use a small buffer (e.g., 0.1s) to prevent jarring loops if data is slightly off
-          if (t >= currentSegment.end) {
+          if (t >= currentSegment.end - 0.1) { // Added small buffer for smoother transition near end
             mAudio.currentTime = currentSegment.start;
-            mAudio.play(); // Ensure it keeps playing
+            mAudio.play().catch(console.error);
             return;
           }
         }
@@ -638,14 +638,19 @@ export default function Home() {
       // Actually, 1-L in merged mode means we keep seeking back to segment.start
 
       if (repeatModeRef.current === 'session') {
-        // Native loop handles this mostly, but if it fails or for some reason ends:
         mAudio.currentTime = 0;
-        mAudio.play();
+        mAudio.play().catch(console.error);
       } else if (repeatModeRef.current === 'sentence') {
-        // Not really supported well in merged file without logic in timeupdate check
-        // But for now, let's just let it end or loop whole thing
-        mAudio.currentTime = 0;
-        mAudio.play();
+        // Fallback: If for some reason timeupdate didn't catch the loop, seek back to segment start
+        const currentIdx = currentSentenceIndexRef.current;
+        const currentSegment = audioTimeline.find(s => s.index === currentIdx);
+        if (currentSegment) {
+          mAudio.currentTime = currentSegment.start;
+          mAudio.play().catch(console.error);
+        } else {
+          mAudio.currentTime = 0;
+          mAudio.play().catch(console.error);
+        }
       } else {
         setIsPlaying(false);
       }
@@ -938,7 +943,7 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen p-4 md:p-6 flex flex-col gap-6 relative overflow-x-hidden bg-gray-50">
+    <main className="min-h-screen p-2 md:p-6 flex flex-col gap-6 relative overflow-x-hidden bg-gray-50">
       {/* Background decoration */}
       <div className="absolute top-0 -left-20 w-96 h-96 bg-blue-200/40 rounded-full blur-[100px] pointer-events-none" />
       <div className="absolute bottom-0 -right-20 w-96 h-96 bg-purple-200/40 rounded-full blur-[100px] pointer-events-none" />
@@ -1124,7 +1129,7 @@ export default function Home() {
 
       <div className="flex-1 space-y-6 z-10 min-w-0">
         {generatedSets.length > 0 && (
-          <div className="glass p-1 md:p-10 rounded-2xl md:rounded-3xl min-h-screen flex flex-col bg-white shadow-sm border border-gray-200 mb-24 md:mb-20">
+          <div className="glass p-2 md:p-10 rounded-2xl md:rounded-3xl min-h-screen flex flex-col bg-white shadow-sm border border-gray-200 mb-24 md:mb-20 mx-[-4px] md:mx-0">
 
             <div className="flex items-center justify-between mb-10 pb-6 border-b border-gray-100">
               <div className="flex items-center gap-3">
@@ -1182,7 +1187,7 @@ export default function Home() {
                         </div>
                         <div
                           // Mobile: w-full.
-                          className={`w-full md:max-w-[85%] p-4 md:p-5 rounded-xl md:rounded-2xl transition-all relative group/item shadow-sm border md:border-2 cursor-pointer ${isActive
+                          className={`w-full md:max-w-[85%] p-3 md:p-5 rounded-xl md:rounded-2xl transition-all relative group/item shadow-sm border md:border-2 cursor-pointer ${isActive
                             ? 'border-blue-400 bg-white ring-2 md:ring-4 ring-blue-500/5 shadow-lg'
                             : (line.speaker === 'A' ? 'bg-white border-gray-100 hover:shadow-md' : 'bg-blue-50/50 border-blue-50 hover:shadow-md')
                             }`}
@@ -1198,7 +1203,7 @@ export default function Home() {
                             </div>
 
                             <div className="flex justify-between items-start gap-4">
-                              <p className="text-lg md:text-xl font-medium text-gray-900 mb-2 leading-relaxed flex-1 text-left">{line.text}</p>
+                              <p className="text-lg md:text-xl font-bold text-gray-900 mb-2 leading-relaxed flex-1 text-left">{line.text}</p>
                             </div>
                           </div>
                           {showAnalysis && (
