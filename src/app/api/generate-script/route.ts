@@ -51,16 +51,13 @@ export async function POST(req: NextRequest) {
               speaker: { type: SchemaType.STRING, description: "Speaker identifier (A or B)" },
               text: { type: SchemaType.STRING, description: "The spoken text in target language" },
               translation: { type: SchemaType.STRING, description: "Korean translation" },
-              grammar_patterns: {
-                type: SchemaType.STRING,
-                description: "Key grammar/patterns used (in Korean only). No English."
-              },
+
               word_analysis: {
                 type: SchemaType.STRING,
                 description: "Sequential breakdown of words with Korean meanings only. No English. Format: 'word: meaning, word: meaning...'"
               },
             },
-            required: ["speaker", "text", "translation", "grammar_patterns", "word_analysis"],
+            required: ["speaker", "text", "translation", "word_analysis"],
           }
         }
       },
@@ -148,7 +145,7 @@ export async function POST(req: NextRequest) {
             2. ONLY group sentences together if they are very short or tightly connected semantic units.
             3. Prioritize detailed "word_analysis" for each segment.
           - Assign all segments to Speaker "A".
-          - Provide detailed Korean translation, grammar_patterns, and word_analysis for each segment.
+          - Provide detailed Korean translation and word_analysis for each segment.
         `
       : `
           Generate exactly ${count * 2} lines of conversation (alternating between speaker A and B).
@@ -174,19 +171,12 @@ export async function POST(req: NextRequest) {
       ${baseInstruction}
       
       KOREAN-ONLY EXPLANATIONS (STRICT):
-      - All grammar explanations [grammar_patterns] MUST be in Korean.
       - All word analyses [word_analysis] MUST be in Korean.
       - **DO NOT use any English words, grammar terms (like Noun, Verb, etc.), or explanations.**
       - Use ONLY Korean grammar terms (e.g., 명사, 동사, 형용사, 조사, 어미 등).
 
       FORMATTING RULES (STRICT):
       
-      1. [grammar_patterns]:
-         - Format: "Pattern | Definition and nuance | Usage (e.g., Pattern + 명사/동사)"
-         - **STRICT REQUIREMENT**: For each pattern, explain HOW to use it by specifying what types of words (**명사, 동사, 형용사 등 한글 용어 사용**) go where.
-         - All explanations must be in Korean.
-         - Use NEWLINES between patterns.
-         
       2. [word_analysis]:
          - **CRITICAL FORMATTING RULE**: This MUST be a VERTICAL LIST with each item on a SEPARATE LINE.
          - **MANDATORY**: Start EVERY item with a bullet point (•) followed by a space.

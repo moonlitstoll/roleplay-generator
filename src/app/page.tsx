@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Play, Download, RefreshCw, MessageSquare, Mic, History as HistoryIcon, Trash2, X, ChevronRight, Settings, Globe, Layers, Pause, Volume2, Music, List, BookOpen, Languages } from 'lucide-react';
+import { Play, Download, RefreshCw, MessageSquare, Mic, History as HistoryIcon, Trash2, X, ChevronRight, Settings, Globe, Layers, Pause, Volume2, Music, BookOpen, Languages } from 'lucide-react';
 import { mergeAudioToWav } from '../utils/audioMerge';
 import { saveSession, getSessions, deleteSession, clearSessions, SavedSession } from '../utils/storage';
 import { generateExportHTML } from '../utils/exportTemplate';
@@ -10,7 +10,7 @@ interface ScriptItem {
   speaker: string;
   text: string;
   translation: string;
-  grammar_patterns?: string;
+
   word_analysis?: string;
   segmentIndex?: number;
 }
@@ -1217,31 +1217,7 @@ export default function Home() {
                                 <p className="text-gray-800 font-bold leading-relaxed">{line.translation}</p>
                               </div>
 
-                              {/* Patterns */}
-                              {line.grammar_patterns && (
-                                <div className="space-y-3">
-                                  <div className="flex items-center gap-2 text-orange-600 pl-1">
-                                    <List className="w-4 h-4" />
-                                    <span className="text-[10px] font-black uppercase tracking-widest">Patterns</span>
-                                  </div>
-                                  <div className="grid gap-3">
-                                    {line.grammar_patterns.split('\n').filter(p => p.trim()).map((pattern, pIdx) => {
-                                      const [title, definition, usage] = pattern.split('|').map(s => s.trim());
-                                      return (
-                                        <div key={pIdx} className="bg-orange-50/30 border border-orange-100/50 rounded-xl p-4 hover:border-orange-200 transition-colors">
-                                          <h5 className="text-orange-700 font-black text-base mb-1">{title}</h5>
-                                          <p className="text-gray-600 text-sm mb-2 leading-snug">{definition}</p>
-                                          {usage && (
-                                            <div className="text-[10px] font-bold text-orange-600 opacity-70 uppercase tracking-tighter">
-                                              {usage}
-                                            </div>
-                                          )}
-                                        </div>
-                                      );
-                                    })}
-                                  </div>
-                                </div>
-                              )}
+
 
                               {/* Word Analysis */}
                               {line.word_analysis && (
