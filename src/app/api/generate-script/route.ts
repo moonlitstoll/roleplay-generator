@@ -173,10 +173,11 @@ export async function POST(req: NextRequest) {
       
       ${baseInstruction}
       
-      KOREAN-ONLY EXPLANATIONS:
+      KOREAN-ONLY EXPLANATIONS (STRICT):
       - All grammar explanations [grammar_patterns] MUST be in Korean.
       - All word analyses [word_analysis] MUST be in Korean.
-      - DO NOT use English explanations at all.
+      - **DO NOT use any English words, grammar terms (like Noun, Verb, etc.), or explanations.**
+      - Use ONLY Korean grammar terms (e.g., 명사, 동사, 형용사, 조사, 어미 등).
 
       FORMATTING RULES (STRICT):
       
