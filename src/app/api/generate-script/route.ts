@@ -53,8 +53,17 @@ export async function POST(req: NextRequest) {
               translation: { type: SchemaType.STRING, description: "Korean translation" },
 
               word_analysis: {
-                type: SchemaType.STRING,
-                description: "Sequential word-by-word analysis. Format per line: '• word | meaning | grammar_role'. All in Korean. No English."
+                type: SchemaType.ARRAY,
+                description: "List of word analysis objects for every word in the sentence",
+                items: {
+                  type: SchemaType.OBJECT,
+                  properties: {
+                    word: { type: SchemaType.STRING, description: "The word or particle being analyzed" },
+                    meaning: { type: SchemaType.STRING, description: "Korean meaning" },
+                    grammar: { type: SchemaType.STRING, description: "Grammar role/part of speech in Korean" }
+                  },
+                  required: ["word", "meaning", "grammar"]
+                }
               },
             },
             required: ["speaker", "text", "translation", "word_analysis"],
@@ -178,31 +187,32 @@ export async function POST(req: NextRequest) {
       FORMATTING RULES (STRICT):
 
       [word_analysis]:
-         - **CRITICAL FORMATTING RULE**: This MUST be a VERTICAL LIST with each item on a SEPARATE LINE.
-         - **MANDATORY**: Start EVERY item with a bullet point (•) followed by a space.
-         - Format for each line: "• Word | Meaning (Korean translation/definition) | Grammar role and contextual note"
-         - The SECOND field (after first |) = The core Korean meaning of the word. Be concise but clear.
-         - The THIRD field (after second |) = Part of speech (품사) and how the word functions in THIS sentence. Include grammar notes like particles, conjugation, or usage context when relevant.
-         - **FOCUS ON OVERALL MEANING AND GRAMMAR STRUCTURE** over syllable-level decomposition.
-           * Syllable breakdown is ONLY needed for complex compound words where it genuinely aids understanding.
-           * For simple, common words, just give the meaning and grammar role directly.
-         - **STRICT REQUIREMENT**: 
-           * NEVER put multiple items on the same line
-           * ALWAYS use a newline character (\\n) between items
-           * EVERY line must start with "•"
-           * Analyze the sentence SEQUENTIALLY from start to finish.
-           * Explain every single word/particle in Korean.
-           * **DO NOT analyze punctuation marks** (periods, commas, question marks, exclamation marks, ellipsis, colons, semicolons, etc.). Only analyze actual words and particles.
-         - Example format:
-           • Dăm ba | 겨우 몇 개의, 그까짓 몇 개의 | 수량 앞에 붙어 하찮거나 소량임을 나타내는 표현
-           • chai | 병 | 명사 (물건을 세는 단위)
-           • sao | 어떻게, 왜 | 의문 부사
-           • được | ~할 수 있다 / (가능성, 허용) | 동사 뒤에 붙어 가능이나 허락을 나타내며, 부정문이나 의문문에서 쓰일 때 '할 수 없다/할 수 있겠는가'의 의미를 강화
+         - **CRITICAL**: Return an ARRAY of objects. ONE object for EVERY word/particle in the sentence.
+         - **Coverage**: Do not skip any words. Analyze the sentence completely from start to finish.
+         - fields:
+           * word: The specific word or particle from the text.
+           * meaning: The core Korean meaning.
+           * grammar: Detailed grammar role, part of speech, AND contextual explanation (nuance, dialect info, usage).
+         - **MANDATORY**:
+           * Use ONLY Korean for meaning and grammar.
+           * Do not use English explanation.
+           * **STYLE**: Provide rich, educational details in the 'grammar' field.
+         
+         - **EXAMPLES (Follow this style)**:
+           1. Vietnamese (Standard/Dialect):
+              { "word": "Đành", "meaning": "어쩔 수 없이 ~하다", "grammar": "조동사, 선택의 여지 없이 어떤 행동을 할 수밖에 없음을 나타냄" }
+              { "word": "Sân", "meaning": "무엇(의문대명사)", "grammar": "중부 방언에서 표준어 'gì' (무엇)에 해당합니다." }
+              { "word": "rữa", "meaning": "~니?", "grammar": "중부 방언으로 질문을 나타내는 종결 어미. 표준어의 'vậy' 또는 'à'와 유사함." }
+           
+           2. English:
+              { "word": "BE", "meaning": "~이다, ~되다", "grammar": "존재 동사입니다." }
+              { "word": "GO MAKE", "meaning": "가서 만들다", "grammar": "동사 'go' 뒤에 동사 원형이 와서 '가서 ~하다'라는 의미의 명령문을 이룹니다." }
+              { "word": "LEGACY", "meaning": "유산, 유물", "grammar": "명사로, 후대에 남기는 업적이나 재산을 의미합니다." }
 
       DIALECT INSTRUCTIONS (Vietnamese):
       - Use standard vocabulary that works for both regions if possible.
       
-      Ensure the analysis is detailed yet concise, following exactly the structure provided above.
+      Ensure the analysis is detailed yet concise.
     `;
 
     const result = await model.generateContent(prompt);

@@ -11,8 +11,14 @@ interface ScriptItem {
   text: string;
   translation: string;
 
-  word_analysis?: string;
+  word_analysis?: string | WordAnalysisObj[];
   segmentIndex?: number;
+}
+
+export interface WordAnalysisObj {
+  word: string;
+  meaning: string;
+  grammar: string;
 }
 
 interface GeneratedSet {
@@ -250,14 +256,27 @@ export default function Home() {
 
 
   // Auto-scroll
-  useEffect(() => {
+  // Auto-scroll definition
+  const scrollToActive = React.useCallback(() => {
     if (currentSentenceIndex !== -1) {
       const activeElement = scrollRefs.current[`${currentSentenceIndex}`];
       if (activeElement) {
-        activeElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        // Use 'nearest' or 'center' might be better for toggle, but 'start' is fine if we want consistency
+        // However, if we toggle off, 'start' might be jarring if it was already visible.
+        // Let's stick to 'start' ensuring it moves to the top so user can see context below.
+        activeElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
     }
   }, [currentSentenceIndex]);
+
+  // Auto-scroll Trigger
+  useEffect(() => {
+    // Delay slightly to allow layout to update after toggle
+    const t = setTimeout(() => {
+      scrollToActive();
+    }, 100);
+    return () => clearTimeout(t);
+  }, [currentSentenceIndex, showAnalysis, scrollToActive]);
 
   const togglePlay = React.useCallback(() => {
     // Use ref for latest value to avoid stale closure
@@ -1238,26 +1257,42 @@ export default function Home() {
                                     <span className="text-[10px] font-black uppercase tracking-widest">Word Analysis</span>
                                   </div>
                                   <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm">
-                                    {line.word_analysis.split('\n').filter(w => w.trim()).map((wordLine, wIdx, arr) => {
-                                      const cleanLine = wordLine.replace(/^•\s*/, '');
-                                      const parts = cleanLine.split('|').map(s => s.trim());
-                                      const word = parts[0];
-                                      const meaning = parts[1] || '';
-                                      const grammarRole = parts[2] || '';
-                                      return (
+                                    {Array.isArray(line.word_analysis) ? (
+                                      line.word_analysis.map((item, wIdx, arr) => (
                                         <div key={wIdx} className={`px-4 py-3 flex items-start gap-4 hover:bg-emerald-50/30 transition-colors ${wIdx !== arr.length - 1 ? 'border-b border-gray-50' : ''}`}>
                                           <div className="shrink-0 min-w-[80px]">
-                                            <span className="text-emerald-700 font-bold text-base">{word}</span>
+                                            <span className="text-emerald-700 font-bold text-base">{item.word}</span>
                                           </div>
                                           <div className="flex-1">
-                                            <p className="text-gray-800 font-bold text-sm leading-snug">{meaning}</p>
-                                            {grammarRole && (
-                                              <p className="text-gray-500 text-xs mt-0.5 leading-snug">{grammarRole}</p>
+                                            <p className="text-gray-800 font-bold text-sm leading-snug">{item.meaning}</p>
+                                            {item.grammar && (
+                                              <p className="text-gray-500 text-xs mt-0.5 leading-snug">{item.grammar}</p>
                                             )}
                                           </div>
                                         </div>
-                                      );
-                                    })}
+                                      ))
+                                    ) : (
+                                      (line.word_analysis as string).split('\n').filter((w: string) => w.trim()).map((wordLine: string, wIdx: number, arr: string[]) => {
+                                        const cleanLine = wordLine.replace(/^•\s*/, '');
+                                        const parts = cleanLine.split('|').map((s: string) => s.trim());
+                                        const word = parts[0];
+                                        const meaning = parts[1] || '';
+                                        const grammarRole = parts[2] || '';
+                                        return (
+                                          <div key={wIdx} className={`px-4 py-3 flex items-start gap-4 hover:bg-emerald-50/30 transition-colors ${wIdx !== arr.length - 1 ? 'border-b border-gray-50' : ''}`}>
+                                            <div className="shrink-0 min-w-[80px]">
+                                              <span className="text-emerald-700 font-bold text-base">{word}</span>
+                                            </div>
+                                            <div className="flex-1">
+                                              <p className="text-gray-800 font-bold text-sm leading-snug">{meaning}</p>
+                                              {grammarRole && (
+                                                <p className="text-gray-500 text-xs mt-0.5 leading-snug">{grammarRole}</p>
+                                              )}
+                                            </div>
+                                          </div>
+                                        );
+                                      })
+                                    )}
                                   </div>
                                 </div>
                               )}
