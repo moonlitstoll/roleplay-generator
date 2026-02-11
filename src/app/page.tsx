@@ -264,7 +264,7 @@ export default function Home() {
         // Use 'nearest' or 'center' might be better for toggle, but 'start' is fine if we want consistency
         // However, if we toggle off, 'start' might be jarring if it was already visible.
         // Let's stick to 'start' ensuring it moves to the top so user can see context below.
-        activeElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        activeElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
     }
   }, [currentSentenceIndex]);
@@ -1500,16 +1500,18 @@ export default function Home() {
         <>
           <div className="fixed inset-0 z-[100] bg-black/10 backdrop-blur-[1px]" onClick={() => setShowTurnsPopup(false)} />
           <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[110] bg-white border border-gray-200 shadow-2xl rounded-2xl p-4 w-64 grid grid-cols-5 gap-2 animate-in zoom-in-95 duration-200">
-            <div className="col-span-5 text-center text-xs font-bold text-gray-400 mb-2 uppercase tracking-widest">Select Turns</div>
-            {Array.from({ length: 10 }, (_, i) => i + 1).map(num => (
-              <button
-                key={num}
-                onClick={() => { setTurnCount(num); setShowTurnsPopup(false); }}
-                className={`aspect-square flex items-center justify-center text-sm font-bold rounded-xl transition-all ${turnCount === num ? 'bg-blue-600 text-white shadow-lg scale-105' : 'bg-gray-50 text-gray-700 hover:bg-gray-100'}`}
-              >
-                {num}
-              </button>
-            ))}
+            <div className="col-span-1 text-center text-xs font-bold text-gray-400 mb-2 uppercase tracking-widest w-full">Select Turns</div>
+            <div className="col-span-5 flex justify-center gap-2">
+              {Array.from({ length: 5 }, (_, i) => i + 1).map(num => (
+                <button
+                  key={num}
+                  onClick={() => { setTurnCount(num); setShowTurnsPopup(false); }}
+                  className={`w-10 h-10 flex items-center justify-center text-sm font-bold rounded-xl transition-all ${turnCount === num ? 'bg-blue-600 text-white shadow-lg scale-105' : 'bg-gray-50 text-gray-700 hover:bg-gray-100'}`}
+                >
+                  {num}
+                </button>
+              ))}
+            </div>
           </div>
         </>
       )}

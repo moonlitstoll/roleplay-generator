@@ -192,22 +192,33 @@ export async function POST(req: NextRequest) {
          - fields:
            * word: The specific word or particle from the text.
            * meaning: The core Korean meaning.
-           * grammar: Detailed grammar role, part of speech, AND contextual explanation (nuance, dialect info, usage).
-         - **MANDATORY**:
-           * Use ONLY Korean for meaning and grammar.
-           * Do not use English explanation.
-           * **STYLE**: Provide rich, educational details in the 'grammar' field.
+           * grammar: Detailed grammar role, part of speech, contextual explanation (nuance, dialect info, usage).
+         - **MANDATORY RULES**:
+           1. **Sequential Analysis**: Analyze words in the order they appear.
+           2. **Redundancy**: Re-explain repeated words if contextually important.
+           3. **Vietnamese Compounds**: If a 1-syllable word is part of a compound/phrase, explain its component meaning *inside* the compound's entry. DO NOT split it into separate entries if it breaks the compound's meaning, but explain the parts in the description.
+           4. **Role/Dialect**: Explicitly note dialect usage (e.g., Central Vietnamese).
+           5. **Language**: Use ONLY Korean for meaning and grammar.
          
-         - **EXAMPLES (Follow this style)**:
-           1. Vietnamese (Standard/Dialect):
-              { "word": "Đành", "meaning": "어쩔 수 없이 ~하다", "grammar": "조동사, 선택의 여지 없이 어떤 행동을 할 수밖에 없음을 나타냄" }
-              { "word": "Sân", "meaning": "무엇(의문대명사)", "grammar": "중부 방언에서 표준어 'gì' (무엇)에 해당합니다." }
-              { "word": "rữa", "meaning": "~니?", "grammar": "중부 방언으로 질문을 나타내는 종결 어미. 표준어의 'vậy' 또는 'à'와 유사함." }
-           
-           2. English:
-              { "word": "BE", "meaning": "~이다, ~되다", "grammar": "존재 동사입니다." }
-              { "word": "GO MAKE", "meaning": "가서 만들다", "grammar": "동사 'go' 뒤에 동사 원형이 와서 '가서 ~하다'라는 의미의 명령문을 이룹니다." }
-              { "word": "LEGACY", "meaning": "유산, 유물", "grammar": "명사로, 후대에 남기는 업적이나 재산을 의미합니다." }
+         - **EXAMPLES (STRICTLY FOLLOW THIS STYLE)**:
+
+           **Vietnamese Example 1 (Standard)**:
+            { "word": "Nghe", "meaning": "듣다", "grammar": "동사로, 귀로 소리를 '듣다'는 의미입니다." },
+            { "word": "hấp dẫn", "meaning": "매력적이다, 흥미를 끈다", "grammar": "hấp (吸引 흡) 은 당기다를 dẫn (導 도) 은 이끌다 를 뜻합니다" },
+            { "word": "ghê", "meaning": "끔찍이, 대단히, 정말", "grammar": "부사 또는 감탄사로, 주로 강한 감정이나 놀라움을 나타내며, 구어체에서 동사나 형용사를 강조하는 역할을 합니다." },
+            { "word": "Mà", "meaning": "그런데, ~인데", "grammar": "접속사 또는 조사로, 여기서는 화제의 전환이나 반전을 나타냅니다." },
+            { "word": "bao nhiêu", "meaning": "얼마나 많은", "grammar": "의문 대명사. bao(包/포) 는 싸다, 포함하다, 얼마나를 nhiêu (饒/요) 는 많다, 넉넉하다를 뜻합니다" }
+
+           **Vietnamese Example 2 (Dialect)**:
+            { "word": "Sân", "meaning": "무엇(의문대명사)", "grammar": "중부 방언에서 표준어 'gì' (무엇)에 해당합니다." },
+            { "word": "chả", "meaning": "~하지 않다(부사)", "grammar": "중부 방언에서 표준어 'chẳng' 과 유사하게 사용되지만, 이 문맥에서는 '무엇이 너를 ~하게 하는가'의 구문 일부로 해석될 수 있습니다." },
+            { "word": "mi", "meaning": "너(대명사)", "grammar": "중부 방언에서 표준어 'mày' (너)에 해당합니다." },
+            { "word": "rữa", "meaning": "~니?(종결어미)", "grammar": "중부 방언에서 질문을 나타내는 어미로, 표준어 'vậy' 또는 'à'와 유사합니다." }
+
+           **English Example**:
+            { "word": "BE", "meaning": "~이다, ~되다", "grammar": "존재 동사입니다." },
+            { "word": "SOMETHING GREATER", "meaning": "더 위대한 무언가", "grammar": "'greater'는 'great'의 비교급 형용사로 '더 위대한'을 의미합니다." },
+            { "word": "GO MAKE", "meaning": "가서 만들다", "grammar": "동사 'go' 뒤에 동사 원형이 와서 '가서 ~하다'라는 의미의 명령문을 이룹니다." }
 
       DIALECT INSTRUCTIONS (Vietnamese):
       - Use standard vocabulary that works for both regions if possible.
