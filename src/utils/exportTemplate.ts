@@ -61,6 +61,23 @@ export const generateExportHTML = (
                                 <div class="flex-1">
                                     <p class="text-xl font-medium text-gray-900 mb-1 leading-relaxed">${line.text}</p>
                                     <p class="text-base text-gray-500 italic mb-3">${line.translation}</p>
+                                    ${line.patterns ? `
+                                        <div class="bg-amber-50/50 rounded-xl p-4 border border-amber-100/50 my-4">
+                                            <div class="flex items-center gap-2 mb-2 text-amber-600">
+                                                <span class="text-[10px] font-black uppercase tracking-widest">Sentence Patterns</span>
+                                            </div>
+                                            <div class="bg-white/60 p-3 rounded-lg border border-amber-100/50">
+                                                <code class="text-sm font-bold text-amber-700 block mb-1">${line.patterns.structure}</code>
+                                                <p class="text-xs text-gray-600 font-medium">${line.patterns.meaning}</p>
+                                            </div>
+                                            ${line.patterns.examples ? `
+                                                <div class="space-y-1 mt-2 pl-2">
+                                                    <p class="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Applied Examples</p>
+                                                    ${line.patterns.examples.map((ex: string) => `<p class="text-xs text-gray-700 flex gap-1"><span class="text-amber-400 font-bold">•</span> ${ex}</p>`).join('')}
+                                                </div>
+                                            ` : ''}
+                                        </div>
+                                    ` : ''}
                                     ${line.word_analysis ? `
                                         <div class="mt-3 pt-3 border-t border-gray-100 flex flex-col gap-1">
                                             ${line.word_analysis.split('\n').filter((it: string) => it.trim()).map((it: string) => `

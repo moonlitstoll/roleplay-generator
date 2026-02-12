@@ -52,6 +52,21 @@ export async function POST(req: NextRequest) {
               text: { type: SchemaType.STRING, description: "The spoken text in target language" },
               translation: { type: SchemaType.STRING, description: "Korean translation" },
 
+              patterns: {
+                type: SchemaType.OBJECT,
+                description: "Sentence patterns and structure analysis",
+                properties: {
+                  structure: { type: SchemaType.STRING, description: "The sentence pattern with placeholders (e.g., [A] đÃ£ [V] rồi...)" },
+                  meaning: { type: SchemaType.STRING, description: "Explanation of the pattern's meaning and usage" },
+                  examples: {
+                    type: SchemaType.ARRAY,
+                    description: "Two example sentences using this pattern",
+                    items: { type: SchemaType.STRING }
+                  }
+                },
+                required: ["structure", "meaning", "examples"]
+              },
+
               word_analysis: {
                 type: SchemaType.ARRAY,
                 description: "List of word analysis objects for every word in the sentence",
@@ -66,7 +81,7 @@ export async function POST(req: NextRequest) {
                 }
               },
             },
-            required: ["speaker", "text", "translation", "word_analysis"],
+            required: ["speaker", "text", "translation", "patterns", "word_analysis"],
           }
         }
       },
@@ -154,7 +169,7 @@ export async function POST(req: NextRequest) {
             2. ONLY group sentences together if they are very short or tightly connected semantic units.
             3. Prioritize detailed "word_analysis" for each segment.
           - Assign all segments to Speaker "A".
-          - Provide detailed Korean translation and word_analysis for each segment.
+          - Provide detailed Korean translation, patterns, and word_analysis for each segment.
         `
       : `
           Generate exactly ${count * 2} lines of conversation (alternating between speaker A and B).
@@ -186,54 +201,46 @@ export async function POST(req: NextRequest) {
 
       FORMATTING RULES (STRICT):
 
-      [word_analysis]:
-         - **CRITICAL**: Return an ARRAY of objects. ONE object for EVERY word/particle in the sentence.
-         - **Coverage**: Do not skip any words. Analyze the sentence completely from start to finish.
-         - fields:
-           * word: The specific word or particle from the text.
-           * meaning: The core Korean meaning.
-           * grammar: Detailed grammar role, part of speech, contextual explanation (nuance, dialect info, usage).
-         - **MANDATORY RULES**:
-           1. **Sequential Analysis**: Analyze words in the order they appear.
-           2. **Redundancy**: Re-explain repeated words if contextually important.
-           3. **Vietnamese Compounds**: If a 1-syllable word is part of a compound/phrase, explain its component meaning *inside* the compound's entry. DO NOT split it into separate entries if it breaks the compound's meaning, but explain the parts in the description.
-           4. **Role/Dialect**: Explicitly note dialect usage (e.g., Central Vietnamese).
-           5. **Language**: Use ONLY Korean for meaning and grammar.
-           6. **Vietnamse Specialization**: 1음절 단어가 다음절 단어(복합어/구)에 포함된 경우, 따로 떼지 않고 구성 성분을 다음절 단어의 설명란에서 설명을 할것
-           7. **Exclusion**: Do not include punctuation marks (., ?, !, ,, etc.) as separate analysis items.
+      1. **word_analysis** (Sequential & Detailed):
+         - **Coverage**: Analyze words in the exact order they appear in the sentence. DO NOT skip any words.
+         - **Redundancy**: Even if a word was explained in a previous sentence, explain it again if it's important for the current context.
+         - **Compound Words (Vietnamese)**: Treat compound words (e.g., "hấp dẫn") as a SINGLE entry. Do NOT split them into "hấp" and "dẫn" separately. Explain the individual components (Sino-Vietnamese meanings) *within* the description of the compound word.
+         - **Role & Dialect**: Explicitly mention the part of speech (noun, verb, etc.) and any dialectal usage (e.g., Southern vs. Northern).
+         - **Meaning Blocks (Chunks)**: Group words that form a meaningful chunk (e.g., "mình còn chưa" -> "우리 아직 ~하지 못하다") if it helps understanding, rather than processing mechanically word-by-word.
+         - **Fields**:
+           * word: The word or chunk.
+           * meaning: The Korean meaning.
+           * grammar: Detailed explanation including Sino-Vietnamese roots, grammar function, and dialect notes.
 
-         - **EXAMPLES (STRICTLY FOLLOW THIS STYLE)**:
+      2. **patterns** (Sentence Patterns):
+         - **Goal**: Extract the "skeleton" of the sentence that can be reused with other words.
+         - **Structure**: Replace key variable parts with placeholders like [A], [B], [Verb], [Adj]. 
+           - Example: "Hợp đồng này được ký rồi, mà mình còn chưa nhận được tiền cọc nhỉ?"
+           - Pattern: "[A] được [동사] rồi, mà [B] còn chưa [동사] nhỉ?"
+         - **Meaning**: Explain what this pattern means (e.g., "A는 이미 ~되었는데, B는 아직 ~하지 않았지?").
+         - **Examples**: Provide 2 distinct example sentences using this pattern in the target language, with Korean translations.
 
-           **Vietnamese Example 1 (Standard)**:
-            { "word": "Nghe", "meaning": "듣다", "grammar": "동사로, 귀로 소리를 '듣다'는 의미입니다." },
-            { "word": "hấp dẫn", "meaning": "매력적이다, 흥미를 끈다", "grammar": "hấp (吸引 흡) 은 당기다를 dẫn (導 도) 은 이끌다 를 뜻합니다" },
-            { "word": "ghê", "meaning": "끔찍이, 대단히, 정말", "grammar": "부사 또는 감탄사로, 주로 강한 감정이나 놀라움을 나타내며, 구어체에서 동사나 형용사를 강조하는 역할을 합니다. '정말 ~하다'는 의미입니다." },
-            { "word": "Mà", "meaning": "그런데, ~인데", "grammar": "접속사 또는 조사로, 여기서는 화제의 전환이나 반전을 나타냅니다." },
-            { "word": "mình", "meaning": "나, 우리", "grammar": "대명사로, 상황에 따라 '나' 또는 화자와 청자를 포함하는 '우리'를 의미합니다. 여기서는 '우리'로 해석됩니다." },
-            { "word": "còn", "meaning": "아직, 여전히", "grammar": "부사로, 어떤 상태나 행동이 '아직' 계속되거나 '남아있다'는 것을 나타냅니다." },
-            { "word": "bao nhiêu", "meaning": "얼마나 많은", "grammar": "의문 대명사. bao(包/포) 는 싸다, 포함하다, 얼마나를 nhiêu (饒/요) 는 많다, 넉넉하다를 뜻합니다" },
-            { "word": "việc", "meaning": "일", "grammar": "명사로, '일' 또는 '업무'를 의미합니다." },
-            { "word": "phải", "meaning": "~해야 한다", "grammar": "조동사로, 의무나 필요성을 나타내어 '~해야 한다'는 의미를 가집니다." },
-            { "word": "làm", "meaning": "하다", "grammar": "동사로, 어떤 행동이나 작업을 '하다'는 의미입니다." },
-            { "word": "nhỉ", "meaning": "~죠?, ~을까요?", "grammar": "조사로, 문장 끝에 붙어 부드러운 의문이나 추측, 또는 상대방의 동의를 구하는 뉘앙스를 줍니다. 한국어의 '~죠?', '~을까요?'와 유사합니다." }
+      - **EXAMPLES (STRICTLY FOLLOW THIS STYLE)**:
 
-           **Vietnamese Example 2 (Dialect)**:
-            { "word": "Sân", "meaning": "무엇(의문대명사)", "grammar": "중부 방언에서 표준어 'gì' (무엇)에 해당합니다." },
-            { "word": "chả", "meaning": "~하지 않다(부사)", "grammar": "중부 방언에서 표준어 'chẳng' 과 유사하게 사용되지만, 이 문맥에서는 '무엇이 너를 ~하게 하는가'의 구문 일부로 해석될 수 있습니다." },
-            { "word": "mi", "meaning": "너(대명사)", "grammar": "중부 방언에서 표준어 'mày' (너)에 해당합니다." },
-            { "word": "nhớ", "meaning": "짜증나게 하다, 귀찮게 하다(동사)", "grammar": "중부 방언에서 '짜증나게 하다 귀찮게 하다'의 의미로 사용됩니다. 표준어 'nhớ'는 '기억하다' 또는 '그리워하다'를 의미합니다." },
-            { "word": "rữa", "meaning": "~니?(종결어미)", "grammar": "중부 방언에서 질문을 나타내는 어미로, 표준어 'vậy' 또는 'à'와 유사합니다." }
-
-           **English Example**:
-            { "word": "BE", "meaning": "~이다, ~되다", "grammar": "존재 동사입니다." },
-            { "word": "SOMETHING GREATER", "meaning": "더 위대한 무언가", "grammar": "'greater'는 'great'의 비교급 형용사로 '더 위대한'을 의미합니다." },
-            { "word": "GO MAKE", "meaning": "가서 만들다", "grammar": "동사 'go' 뒤에 동사 원형이 와서 '가서 ~하다'라는 의미의 명령문을 이룹니다." },
-            { "word": "LEGACY", "meaning": "유산, 유물", "grammar": "명사로, 후대에 남기는 업적이나 재산을 의미합니다." }
+        **Vietnamese Structure Example**:
+          "patterns": {
+             "structure": "[A] được [동사] rồi, mà [B] còn chưa [동사] nhỉ?",
+             "meaning": "A는 이미 ~되었는데, B는 아직 ~하지 않았지? (대조적 상황)",
+             "examples": [
+               "Lô hàng được giao rồi, mà khách còn chưa thanh toán nhỉ? (화물은 이미 인도되었는데, 고객이 아직 결제를 안 했지?)",
+               "Cơm được nấu rồi, mà anh còn chưa về nhỉ? (밥은 이미 다 됐는데, 오빠는 아직 안 왔지?)"
+             ]
+          },
+          "word_analysis": [
+            { "word": "Hợp đồng này", "meaning": "이 계약서", "grammar": "명사구. Hợp (合 합) + đồng (同 동) = 계약. này(이)가 붙어 특정 계약을 지칭." },
+            { "word": "được ký rồi", "meaning": "이미 체결되었다", "grammar": "수동태 동사구. được(~되다) + ký(서명하다) + rồi(이미). 서명이 완료된 상태를 의미." },
+            { "word": "khách", "meaning": "고객/손님", "grammar": "명사. services를 이용하는 사람을 지칭." }
+          ]
 
       DIALECT INSTRUCTIONS (Vietnamese):
       - Use standard vocabulary that works for both regions if possible.
       
-      Ensure the analysis is detailed yet concise.
+      Ensure the analysis is detailed, sequential, and visually structured for learning.
     `;
 
     const result = await model.generateContent(prompt);

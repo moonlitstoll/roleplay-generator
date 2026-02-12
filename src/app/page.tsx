@@ -12,6 +12,11 @@ interface ScriptItem {
   translation: string;
 
   word_analysis?: string | WordAnalysisObj[];
+  patterns?: {
+    structure: string;
+    meaning: string;
+    examples: string[];
+  };
   segmentIndex?: number;
 }
 
@@ -1246,6 +1251,35 @@ export default function Home() {
                                 </div>
                                 <p className="text-gray-800 font-bold leading-relaxed">{line.translation}</p>
                               </div>
+
+                              {/* Sentence Patterns */}
+                              {line.patterns && (
+                                <div className="bg-amber-50 rounded-xl p-4 border border-amber-100 mt-4">
+                                  <div className="flex items-center gap-2 mb-3 text-amber-600">
+                                    <Layers className="w-4 h-4" />
+                                    <span className="text-[10px] font-black uppercase tracking-widest">Sentence Patterns</span>
+                                  </div>
+
+                                  <div className="space-y-4">
+                                    <div className="bg-white/60 p-3 rounded-lg border border-amber-100/50">
+                                      <code className="text-sm md:text-base font-bold text-amber-800 block mb-2 font-mono break-words">{line.patterns.structure}</code>
+                                      <p className="text-xs md:text-sm text-gray-700 font-medium leading-relaxed">{line.patterns.meaning}</p>
+                                    </div>
+
+                                    {line.patterns.examples && line.patterns.examples.length > 0 && (
+                                      <div className="pl-2 space-y-2">
+                                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Applied Examples</p>
+                                        {line.patterns.examples.map((ex, i) => (
+                                          <div key={i} className="flex gap-3 text-sm text-gray-700">
+                                            <span className="text-amber-400 font-bold">•</span>
+                                            <span className="leading-snug">{ex}</span>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
 
 
 
