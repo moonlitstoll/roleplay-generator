@@ -980,13 +980,13 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen p-1 md:p-2 flex flex-col gap-4 relative overflow-x-hidden bg-gray-50">
+    <main className="min-h-screen px-0 py-2 md:p-2 flex flex-col gap-4 relative overflow-x-hidden bg-gray-50">
       {/* Background decoration */}
       <div className="absolute top-0 -left-20 w-96 h-96 bg-blue-200/40 rounded-full blur-[100px] pointer-events-none" />
       <div className="absolute bottom-0 -right-20 w-96 h-96 bg-purple-200/40 rounded-full blur-[100px] pointer-events-none" />
 
       {/* Top Header & Controls */}
-      <div className="w-full space-y-4 z-10 transition-all">
+      <div className="w-full space-y-4 z-10 transition-all px-2 md:px-0">
         <div className="glass px-4 lg:px-6 py-4 rounded-2xl flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4 bg-white shadow-sm border border-gray-200">
           <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-2 lg:gap-4">
             <div className="flex items-center justify-between">
@@ -1166,9 +1166,9 @@ export default function Home() {
 
       <div className="flex-1 space-y-6 z-10 min-w-0">
         {generatedSets.length > 0 && (
-          <div className="glass p-2 md:p-6 rounded-2xl md:rounded-3xl min-h-screen flex flex-col bg-white shadow-sm border border-gray-300 mb-24 md:mb-20 mx-[-4px] md:mx-0">
+          <div className="glass p-1 md:p-6 rounded-none md:rounded-3xl min-h-screen flex flex-col bg-white shadow-sm border-0 md:border border-gray-300 mb-24 md:mb-20">
 
-            <div className="flex items-center justify-between mb-10 pb-6 border-b border-gray-100">
+            <div className="flex items-center justify-between mb-4 md:mb-10 px-3 pt-3 md:p-0 pb-6 border-b border-gray-100">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-black rounded-lg">
                   <MessageSquare className="w-5 h-5 text-white" />
@@ -1187,7 +1187,7 @@ export default function Home() {
             </div>
 
             {/* Script Viewer */}
-            <div className="space-y-12">
+            <div className="space-y-4 md:space-y-12">
               {generatedSets.map((set, setIdx) => (
                 <div key={set.id} className="space-y-6">
                   {/* Set Divider - Only show Topic if only one set, or fully labeled if multiple */}
@@ -1224,9 +1224,9 @@ export default function Home() {
                         </div>
                         <div
                           // Mobile: w-full.
-                          className={`w-full md:max-w-[85%] p-3 md:p-5 rounded-xl md:rounded-2xl transition-all relative group/item shadow-sm border md:border-2 cursor-pointer ${isActive
-                            ? 'border-black bg-white ring-2 md:ring-4 ring-black/10 shadow-lg'
-                            : (line.speaker === 'A' ? 'bg-white border-gray-300 hover:shadow-md' : 'bg-gray-50 border-gray-300 hover:shadow-md')
+                          className={`w-full md:max-w-[85%] p-2 md:p-5 rounded-none md:rounded-2xl transition-all relative group/item shadow-sm border-b md:border border-gray-200 md:border-gray-200 cursor-pointer ${isActive
+                            ? 'border-black bg-white ring-0 md:ring-4 ring-black/10 shadow-lg'
+                            : (line.speaker === 'A' ? 'bg-white hover:shadow-md' : 'bg-gray-50 hover:shadow-md')
                             }`}
                           onClick={() => playSentence(line.segmentIndex!)}
                         >
@@ -1246,7 +1246,7 @@ export default function Home() {
                           {showAnalysis && (
                             <div className="mt-4 pt-4 border-t border-gray-100 space-y-6 animate-in fade-in duration-300">
                               {/* Translation */}
-                              <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                              <div className="bg-gray-50 rounded-xl p-3 md:p-4 border border-gray-200">
                                 <div className="flex items-center gap-2 mb-2 text-black">
                                   <Languages className="w-4 h-4" />
                                   <span className="text-[10px] font-black uppercase tracking-widest">Translation</span>
@@ -1256,7 +1256,7 @@ export default function Home() {
 
                               {/* Sentence Patterns */}
                               {line.patterns && (
-                                <div className="bg-gray-50 rounded-xl p-4 border border-gray-200 mt-4">
+                                <div className="bg-gray-50 rounded-xl p-3 md:p-4 border border-gray-200 mt-4">
                                   <div className="flex items-center gap-2 mb-3 text-black">
                                     <Layers className="w-4 h-4" />
                                     <span className="text-[10px] font-black uppercase tracking-widest">Sentence Patterns</span>
@@ -1295,7 +1295,7 @@ export default function Home() {
                                   <div className="bg-white border border-gray-300 rounded-2xl overflow-hidden shadow-sm">
                                     {Array.isArray(line.word_analysis) ? (
                                       line.word_analysis.map((item, wIdx, arr) => (
-                                        <div key={wIdx} className={`px-4 py-3 flex items-start gap-4 hover:bg-gray-50 transition-colors ${wIdx !== arr.length - 1 ? 'border-b border-gray-200' : ''}`}>
+                                        <div key={wIdx} className={`px-3 md:px-4 py-3 flex items-start gap-4 hover:bg-gray-50 transition-colors ${wIdx !== arr.length - 1 ? 'border-b border-gray-200' : ''}`}>
                                           <div className="shrink-0 min-w-[80px]">
                                             <span className="text-black font-bold text-base">{item.word}</span>
                                           </div>
@@ -1315,14 +1315,14 @@ export default function Home() {
                                         const meaning = parts[1] || '';
                                         const grammarRole = parts[2] || '';
                                         return (
-                                          <div key={wIdx} className={`px-4 py-3 flex items-start gap-4 hover:bg-emerald-50/30 transition-colors ${wIdx !== arr.length - 1 ? 'border-b border-gray-50' : ''}`}>
+                                          <div key={wIdx} className={`px-4 py-3 flex items-start gap-4 hover:bg-gray-50 transition-colors ${wIdx !== arr.length - 1 ? 'border-b border-gray-50' : ''}`}>
                                             <div className="shrink-0 min-w-[80px]">
-                                              <span className="text-emerald-700 font-bold text-base">{word}</span>
+                                              <span className="text-black font-bold text-base">{word}</span>
                                             </div>
                                             <div className="flex-1">
-                                              <p className="text-gray-800 font-bold text-sm leading-snug">{meaning}</p>
+                                              <p className="text-black font-bold text-sm leading-snug">{meaning}</p>
                                               {grammarRole && (
-                                                <p className="text-gray-500 text-xs mt-0.5 leading-snug">{grammarRole}</p>
+                                                <p className="text-gray-600 text-xs mt-0.5 leading-snug">{grammarRole}</p>
                                               )}
                                             </div>
                                           </div>
