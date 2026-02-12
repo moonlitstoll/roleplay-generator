@@ -3,7 +3,7 @@ import { GoogleGenerativeAI, SchemaType } from '@google/generative-ai';
 
 export async function POST(req: NextRequest) {
   try {
-    const { input, language, count, apiKey, model: modelName, accentMode = 'all-standard' } = await req.json();
+    const { input, language, count, apiKey, model: modelName, accentMode = 'all-standard', mode = 'roleplay' } = await req.json();
 
     console.log('[API] Request received:', { input, language, count, modelName });
 
@@ -38,10 +38,10 @@ export async function POST(req: NextRequest) {
               properties: {
                 gender: { type: SchemaType.STRING, enum: ["male", "female"], description: "Gender of speaker B" }
               },
-              required: ["gender"]
+              nullable: true
             }
           },
-          required: ["A", "B"]
+          required: ["A"]
         },
         script: {
           type: SchemaType.ARRAY,
@@ -157,10 +157,13 @@ export async function POST(req: NextRequest) {
     const promptInput = isInputEmpty ? getRandomTopic() : input;
 
 
-    const isSingleReaderMode = count === 0;
+    const isAnalysisMode = count === 0 && mode === 'analysis';
+    const isMonologueMode = count === 0 && mode === 'roleplay'; // New Mode
 
-    const baseInstruction = isSingleReaderMode
-      ? `
+    let baseInstruction = '';
+
+    if (isAnalysisMode) {
+      baseInstruction = `
           VERBATIM ANALYSIS MODE ACTIVATED:
           - DO NOT generate a roleplay or conversation.
           - DO NOT change or "fix" the input text. Use the user's "Input" EXACTLY as it is.
@@ -170,8 +173,20 @@ export async function POST(req: NextRequest) {
             3. Prioritize detailed "word_analysis" for each segment.
           - Assign all segments to Speaker "A".
           - Provide detailed Korean translation, patterns, and word_analysis for each segment.
-        `
-      : `
+        `;
+    } else if (isMonologueMode) {
+      baseInstruction = `
+          MONOLOGUE GENERATION MODE ACTIVATED (Speaker A Only):
+          - **GOAL**: Generate a LONG, detailed monologue by Speaker A based on the "Input Context".
+          - **LENGTH**: The user requested "as long as possible". Generate at least 8-12 sentences/segments.
+          - **CONTENT**: Deeply explore the topic, expressing thoughts, feelings, and descriptions.
+          - **FORMAT**:
+            - ONLY Speaker "A". No Speaker "B".
+            - Split the monologue into logical segments (1-2 sentences per segment) for easier reading and analysis.
+          - **STYLE**: Natural, native-level speech with appropriate flow and markers.
+       `;
+    } else {
+      baseInstruction = `
           Generate exactly ${count * 2} lines of conversation (alternating between speaker A and B).
           SCENARIO: "${promptInput}"
           
@@ -182,7 +197,8 @@ export async function POST(req: NextRequest) {
           
           GENDER ASSIGNMENT:
           - Assign logical genders to Speakers A and B based on the scenario.
-      `;
+       `;
+    }
 
     const prompt = `
       You are an expert language conversation generator.

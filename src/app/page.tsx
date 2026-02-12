@@ -816,6 +816,8 @@ export default function Home() {
           input,
           language,
           count: mode === 'analysis' ? 0 : turnCount,
+          // If 0 turns in roleplay mode -> Monologue
+          mode,
           apiKey,
           model: modelType,
           accentMode
@@ -978,7 +980,7 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen p-2 md:p-6 flex flex-col gap-6 relative overflow-x-hidden bg-gray-50">
+    <main className="min-h-screen p-1 md:p-2 flex flex-col gap-4 relative overflow-x-hidden bg-gray-50">
       {/* Background decoration */}
       <div className="absolute top-0 -left-20 w-96 h-96 bg-blue-200/40 rounded-full blur-[100px] pointer-events-none" />
       <div className="absolute bottom-0 -right-20 w-96 h-96 bg-purple-200/40 rounded-full blur-[100px] pointer-events-none" />
@@ -986,17 +988,17 @@ export default function Home() {
       {/* Top Header & Controls */}
       <div className="w-full space-y-4 z-10 transition-all">
         <div className="glass px-4 lg:px-6 py-4 rounded-2xl flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4 bg-white shadow-sm border border-gray-200">
-          <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-4 lg:gap-6">
+          <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-2 lg:gap-4">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-xl lg:text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 tracking-tighter">
+                <h1 className="text-xl lg:text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-blue-900 to-indigo-900 tracking-tighter">
                   RealWait
                 </h1>
-                <p className="text-gray-400 text-[10px] font-bold uppercase tracking-widest">Roleplay Gen</p>
+                <p className="text-gray-900 text-[10px] font-bold uppercase tracking-widest">Roleplay Gen</p>
               </div>
               <div className="flex lg:hidden gap-2">
-                <button onClick={() => setShowHistory(true)} className="p-2 rounded-lg bg-gray-50 border border-gray-200 text-gray-500"><HistoryIcon className="w-4 h-4" /></button>
-                <button onClick={() => setShowAdvanced(!showAdvanced)} className="p-2 rounded-lg bg-gray-50 border border-gray-200 text-gray-500"><Settings className="w-4 h-4" /></button>
+                <button onClick={() => setShowHistory(true)} className="p-2 rounded-lg bg-gray-100 border border-gray-300 text-black"><HistoryIcon className="w-4 h-4" /></button>
+                <button onClick={() => setShowAdvanced(!showAdvanced)} className="p-2 rounded-lg bg-gray-100 border border-gray-300 text-black"><Settings className="w-4 h-4" /></button>
               </div>
             </div>
 
@@ -1010,14 +1012,14 @@ export default function Home() {
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   placeholder={mode === 'roleplay' ? "Enter topic or word..." : "Enter sentence to analyze..."}
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl py-2.5 px-4 text-sm text-gray-800 focus:ring-2 focus:ring-blue-500 outline-none transition-all placeholder:text-gray-400"
+                  className="w-full bg-white border border-gray-300 rounded-xl py-2.5 px-4 text-sm text-black font-medium focus:ring-2 focus:ring-black outline-none transition-all placeholder:text-gray-500"
                 />
               </div>
 
               <button
                 onClick={handleGenerate}
                 disabled={loading}
-                className={`px-6 py-2.5 rounded-xl flex items-center justify-center gap-2 font-bold text-sm shadow-md transition-all ${loading ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700 active:scale-95'
+                className={`px-6 py-2.5 rounded-xl flex items-center justify-center gap-2 font-bold text-sm shadow-md transition-all ${loading ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-black text-white hover:bg-gray-900 active:scale-95'
                   }`}
               >
                 {loading ? (
@@ -1040,14 +1042,14 @@ export default function Home() {
             <div className="flex bg-gray-100 p-1 rounded-xl shadow-inner border border-gray-200 shrink-0">
               <button
                 onClick={() => setMode('roleplay')}
-                className={`px-2.5 py-1.5 rounded-lg text-[9px] font-black tracking-widest transition-all flex items-center gap-1 ${mode === 'roleplay' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+                className={`px-2.5 py-1.5 rounded-lg text-[9px] font-black tracking-widest transition-all flex items-center gap-1 ${mode === 'roleplay' ? 'bg-black text-white shadow-sm' : 'text-gray-500 hover:text-black'}`}
               >
                 <RefreshCw className={`w-3 h-3 ${mode === 'roleplay' && loading ? 'animate-spin' : ''}`} />
                 ROLEPLAY
               </button>
               <button
                 onClick={() => setMode('analysis')}
-                className={`px-2.5 py-1.5 rounded-lg text-[9px] font-black tracking-widest transition-all flex items-center gap-1 ${mode === 'analysis' ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+                className={`px-2.5 py-1.5 rounded-lg text-[9px] font-black tracking-widest transition-all flex items-center gap-1 ${mode === 'analysis' ? 'bg-black text-white shadow-sm' : 'text-gray-500 hover:text-black'}`}
               >
                 <MessageSquare className="w-3 h-3" />
                 ANALYSIS
@@ -1059,7 +1061,7 @@ export default function Home() {
                 <button
                   key={lang}
                   onClick={() => setLanguage(lang as any)}
-                  className={`px-2.5 py-1.5 rounded-lg text-[9px] font-black transition-all ${language === lang ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+                  className={`px-2.5 py-1.5 rounded-lg text-[9px] font-black transition-all ${language === lang ? 'bg-black text-white shadow-sm' : 'text-gray-500 hover:text-black'}`}
                 >
                   {lang === 'Vietnamese' ? 'VN' : 'EN'}
                 </button>
@@ -1072,9 +1074,9 @@ export default function Home() {
                   onClick={() => setShowTurnsPopup(!showTurnsPopup)}
                   className="flex items-center gap-1.5 bg-white border border-gray-200 px-2.5 py-1.5 rounded-xl shadow-sm hover:border-blue-200 transition-colors"
                 >
-                  <MessageSquare className="w-3 h-3 text-blue-500" />
-                  <span className="w-4 text-center text-[10px] font-bold text-gray-700">{turnCount}</span>
-                  <span className="text-[8px] font-black text-gray-400 uppercase tracking-tighter">Turns</span>
+                  <MessageSquare className="w-3 h-3 text-black" />
+                  <span className="w-4 text-center text-[10px] font-bold text-black">{turnCount === 0 ? 'M' : turnCount}</span>
+                  <span className="text-[8px] font-black text-gray-500 uppercase tracking-tighter">Turns</span>
                 </button>
 
                 {showTurnsPopup && (
@@ -1164,20 +1166,20 @@ export default function Home() {
 
       <div className="flex-1 space-y-6 z-10 min-w-0">
         {generatedSets.length > 0 && (
-          <div className="glass p-2 md:p-10 rounded-2xl md:rounded-3xl min-h-screen flex flex-col bg-white shadow-sm border border-gray-200 mb-24 md:mb-20 mx-[-4px] md:mx-0">
+          <div className="glass p-2 md:p-6 rounded-2xl md:rounded-3xl min-h-screen flex flex-col bg-white shadow-sm border border-gray-300 mb-24 md:mb-20 mx-[-4px] md:mx-0">
 
             <div className="flex items-center justify-between mb-10 pb-6 border-b border-gray-100">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-50 rounded-lg">
-                  <MessageSquare className="w-5 h-5 text-blue-600" />
+                <div className="p-2 bg-black rounded-lg">
+                  <MessageSquare className="w-5 h-5 text-white" />
                 </div>
-                <h2 className="text-xl font-black text-gray-800 tracking-tight uppercase">Conversation</h2>
+                <h2 className="text-xl font-black text-black tracking-tight uppercase">Conversation</h2>
               </div>
 
               {/* Analysis Toggle */}
               <button
                 onClick={() => setShowAnalysis(!showAnalysis)}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border transition-all ${showAnalysis ? 'bg-blue-50 border-blue-200 text-blue-600' : 'bg-gray-50 border-gray-200 text-gray-500'}`}
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border transition-all ${showAnalysis ? 'bg-black text-white border-black' : 'bg-gray-100 border-gray-300 text-black'}`}
               >
                 <MessageSquare className="w-4 h-4" />
                 <span className="text-xs font-bold uppercase">{showAnalysis ? 'Hide Analysis' : 'Show Analysis'}</span>
@@ -1214,64 +1216,64 @@ export default function Home() {
                           ${isActive ? 'scale-[1.00] md:scale-[1.02]' : ''}`}
                       >
                         <div className={`hidden md:flex w-10 h-10 rounded-full items-center justify-center shrink-0 font-bold text-sm shadow-md transition-all ${isActive
-                          ? 'ring-4 ring-blue-500/20 ring-offset-2 scale-110'
+                          ? 'ring-4 ring-black/20 ring-offset-2 scale-110'
                           : ''
-                          } ${line.speaker === 'A' ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white' : 'bg-gradient-to-br from-pink-500 to-pink-600 text-white'
+                          } ${line.speaker === 'A' ? 'bg-black text-white' : 'bg-gray-200 text-black border border-gray-400'
                           }`}>
                           {line.speaker}
                         </div>
                         <div
                           // Mobile: w-full.
                           className={`w-full md:max-w-[85%] p-3 md:p-5 rounded-xl md:rounded-2xl transition-all relative group/item shadow-sm border md:border-2 cursor-pointer ${isActive
-                            ? 'border-blue-400 bg-white ring-2 md:ring-4 ring-blue-500/5 shadow-lg'
-                            : (line.speaker === 'A' ? 'bg-white border-gray-100 hover:shadow-md' : 'bg-blue-50/50 border-blue-50 hover:shadow-md')
+                            ? 'border-black bg-white ring-2 md:ring-4 ring-black/10 shadow-lg'
+                            : (line.speaker === 'A' ? 'bg-white border-gray-300 hover:shadow-md' : 'bg-gray-50 border-gray-300 hover:shadow-md')
                             }`}
                           onClick={() => playSentence(line.segmentIndex!)}
                         >
                           <div className="flex flex-col md:block">
                             {/* Mobile Speaker Badge */}
                             <div className={`flex md:hidden items-center gap-2 mb-2`}>
-                              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold shadow-sm ${line.speaker === 'A' ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white' : 'bg-gradient-to-br from-pink-500 to-pink-600 text-white'
+                              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold shadow-sm ${line.speaker === 'A' ? 'bg-black text-white' : 'bg-gray-200 text-black border border-gray-400'
                                 }`}>
                                 {line.speaker}
                               </div>
                             </div>
 
                             <div className="flex justify-between items-start gap-4">
-                              <p className="text-lg md:text-xl font-bold text-gray-900 mb-2 leading-relaxed flex-1 text-left">{line.text}</p>
+                              <p className="text-lg md:text-xl font-bold text-black mb-2 leading-relaxed flex-1 text-left">{line.text}</p>
                             </div>
                           </div>
                           {showAnalysis && (
                             <div className="mt-4 pt-4 border-t border-gray-100 space-y-6 animate-in fade-in duration-300">
                               {/* Translation */}
-                              <div className="bg-blue-50/50 rounded-xl p-4 border border-blue-100/50">
-                                <div className="flex items-center gap-2 mb-2 text-blue-600">
+                              <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                                <div className="flex items-center gap-2 mb-2 text-black">
                                   <Languages className="w-4 h-4" />
                                   <span className="text-[10px] font-black uppercase tracking-widest">Translation</span>
                                 </div>
-                                <p className="text-gray-800 font-bold leading-relaxed">{line.translation}</p>
+                                <p className="text-black font-bold leading-relaxed">{line.translation}</p>
                               </div>
 
                               {/* Sentence Patterns */}
                               {line.patterns && (
-                                <div className="bg-amber-50 rounded-xl p-4 border border-amber-100 mt-4">
-                                  <div className="flex items-center gap-2 mb-3 text-amber-600">
+                                <div className="bg-gray-50 rounded-xl p-4 border border-gray-200 mt-4">
+                                  <div className="flex items-center gap-2 mb-3 text-black">
                                     <Layers className="w-4 h-4" />
                                     <span className="text-[10px] font-black uppercase tracking-widest">Sentence Patterns</span>
                                   </div>
 
                                   <div className="space-y-4">
-                                    <div className="bg-white/60 p-3 rounded-lg border border-amber-100/50">
-                                      <code className="text-sm md:text-base font-bold text-amber-800 block mb-2 font-mono break-words">{line.patterns.structure}</code>
-                                      <p className="text-xs md:text-sm text-gray-700 font-medium leading-relaxed">{line.patterns.meaning}</p>
+                                    <div className="bg-white p-3 rounded-lg border border-gray-200">
+                                      <code className="text-sm md:text-base font-bold text-black block mb-2 font-mono break-words">{line.patterns.structure}</code>
+                                      <p className="text-xs md:text-sm text-black font-medium leading-relaxed">{line.patterns.meaning}</p>
                                     </div>
 
                                     {line.patterns.examples && line.patterns.examples.length > 0 && (
                                       <div className="pl-2 space-y-2">
-                                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Applied Examples</p>
+                                        <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Applied Examples</p>
                                         {line.patterns.examples.map((ex, i) => (
-                                          <div key={i} className="flex gap-3 text-sm text-gray-700">
-                                            <span className="text-amber-400 font-bold">•</span>
+                                          <div key={i} className="flex gap-3 text-sm text-black">
+                                            <span className="text-black font-bold">•</span>
                                             <span className="leading-snug">{ex}</span>
                                           </div>
                                         ))}
@@ -1286,21 +1288,21 @@ export default function Home() {
                               {/* Word Analysis */}
                               {line.word_analysis && (
                                 <div className="space-y-3">
-                                  <div className="flex items-center gap-2 text-emerald-600 pl-1">
+                                  <div className="flex items-center gap-2 text-black pl-1">
                                     <BookOpen className="w-4 h-4" />
                                     <span className="text-[10px] font-black uppercase tracking-widest">Word Analysis</span>
                                   </div>
-                                  <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm">
+                                  <div className="bg-white border border-gray-300 rounded-2xl overflow-hidden shadow-sm">
                                     {Array.isArray(line.word_analysis) ? (
                                       line.word_analysis.map((item, wIdx, arr) => (
-                                        <div key={wIdx} className={`px-4 py-3 flex items-start gap-4 hover:bg-emerald-50/30 transition-colors ${wIdx !== arr.length - 1 ? 'border-b border-gray-50' : ''}`}>
+                                        <div key={wIdx} className={`px-4 py-3 flex items-start gap-4 hover:bg-gray-50 transition-colors ${wIdx !== arr.length - 1 ? 'border-b border-gray-200' : ''}`}>
                                           <div className="shrink-0 min-w-[80px]">
-                                            <span className="text-emerald-700 font-bold text-base">{item.word}</span>
+                                            <span className="text-black font-bold text-base">{item.word}</span>
                                           </div>
                                           <div className="flex-1">
-                                            <p className="text-gray-800 font-bold text-sm leading-snug">{item.meaning}</p>
+                                            <p className="text-black font-bold text-sm leading-snug">{item.meaning}</p>
                                             {item.grammar && (
-                                              <p className="text-gray-500 text-xs mt-0.5 leading-snug">{item.grammar}</p>
+                                              <p className="text-gray-600 text-xs mt-0.5 leading-snug">{item.grammar}</p>
                                             )}
                                           </div>
                                         </div>
@@ -1533,16 +1535,17 @@ export default function Home() {
       {showTurnsPopup && (
         <>
           <div className="fixed inset-0 z-[100] bg-black/10 backdrop-blur-[1px]" onClick={() => setShowTurnsPopup(false)} />
-          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[110] bg-white border border-gray-200 shadow-2xl rounded-2xl p-4 w-64 grid grid-cols-5 gap-2 animate-in zoom-in-95 duration-200">
-            <div className="col-span-1 text-center text-xs font-bold text-gray-400 mb-2 uppercase tracking-widest w-full">Select Turns</div>
-            <div className="col-span-5 flex justify-center gap-2">
-              {Array.from({ length: 5 }, (_, i) => i + 1).map(num => (
+          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[110] bg-white border border-gray-200 shadow-2xl rounded-2xl p-4 w-72 grid grid-cols-6 gap-2 animate-in zoom-in-95 duration-200">
+            <div className="col-span-6 text-center text-xs font-bold text-gray-400 mb-2 uppercase tracking-widest w-full">Select Turns</div>
+            <div className="col-span-6 flex justify-center gap-2 flex-wrap">
+              {/* Added 0 explicitly for Monologue mode */}
+              {[0, 1, 2, 3, 4, 5].map(num => (
                 <button
                   key={num}
                   onClick={() => { setTurnCount(num); setShowTurnsPopup(false); }}
-                  className={`w-10 h-10 flex items-center justify-center text-sm font-bold rounded-xl transition-all ${turnCount === num ? 'bg-blue-600 text-white shadow-lg scale-105' : 'bg-gray-50 text-gray-700 hover:bg-gray-100'}`}
+                  className={`w-10 h-10 flex items-center justify-center text-sm font-bold rounded-xl transition-all ${turnCount === num ? 'bg-black text-white shadow-lg scale-105' : 'bg-gray-100 text-gray-900 hover:bg-gray-200'}`}
                 >
-                  {num}
+                  {num === 0 ? 'M' : num}
                 </button>
               ))}
             </div>
