@@ -199,26 +199,35 @@ export async function POST(req: NextRequest) {
            3. **Vietnamese Compounds**: If a 1-syllable word is part of a compound/phrase, explain its component meaning *inside* the compound's entry. DO NOT split it into separate entries if it breaks the compound's meaning, but explain the parts in the description.
            4. **Role/Dialect**: Explicitly note dialect usage (e.g., Central Vietnamese).
            5. **Language**: Use ONLY Korean for meaning and grammar.
-         
+           6. **Vietnamse Specialization**: 1음절 단어가 다음절 단어(복합어/구)에 포함된 경우, 따로 떼지 않고 구성 성분을 다음절 단어의 설명란에서 설명을 할것
+
          - **EXAMPLES (STRICTLY FOLLOW THIS STYLE)**:
 
            **Vietnamese Example 1 (Standard)**:
             { "word": "Nghe", "meaning": "듣다", "grammar": "동사로, 귀로 소리를 '듣다'는 의미입니다." },
             { "word": "hấp dẫn", "meaning": "매력적이다, 흥미를 끈다", "grammar": "hấp (吸引 흡) 은 당기다를 dẫn (導 도) 은 이끌다 를 뜻합니다" },
-            { "word": "ghê", "meaning": "끔찍이, 대단히, 정말", "grammar": "부사 또는 감탄사로, 주로 강한 감정이나 놀라움을 나타내며, 구어체에서 동사나 형용사를 강조하는 역할을 합니다." },
+            { "word": "ghê", "meaning": "끔찍이, 대단히, 정말", "grammar": "부사 또는 감탄사로, 주로 강한 감정이나 놀라움을 나타내며, 구어체에서 동사나 형용사를 강조하는 역할을 합니다. '정말 ~하다'는 의미입니다." },
             { "word": "Mà", "meaning": "그런데, ~인데", "grammar": "접속사 또는 조사로, 여기서는 화제의 전환이나 반전을 나타냅니다." },
-            { "word": "bao nhiêu", "meaning": "얼마나 많은", "grammar": "의문 대명사. bao(包/포) 는 싸다, 포함하다, 얼마나를 nhiêu (饒/요) 는 많다, 넉넉하다를 뜻합니다" }
+            { "word": "mình", "meaning": "나, 우리", "grammar": "대명사로, 상황에 따라 '나' 또는 화자와 청자를 포함하는 '우리'를 의미합니다. 여기서는 '우리'로 해석됩니다." },
+            { "word": "còn", "meaning": "아직, 여전히", "grammar": "부사로, 어떤 상태나 행동이 '아직' 계속되거나 '남아있다'는 것을 나타냅니다." },
+            { "word": "bao nhiêu", "meaning": "얼마나 많은", "grammar": "의문 대명사. bao(包/포) 는 싸다, 포함하다, 얼마나를 nhiêu (饒/요) 는 많다, 넉넉하다를 뜻합니다" },
+            { "word": "việc", "meaning": "일", "grammar": "명사로, '일' 또는 '업무'를 의미합니다." },
+            { "word": "phải", "meaning": "~해야 한다", "grammar": "조동사로, 의무나 필요성을 나타내어 '~해야 한다'는 의미를 가집니다." },
+            { "word": "làm", "meaning": "하다", "grammar": "동사로, 어떤 행동이나 작업을 '하다'는 의미입니다." },
+            { "word": "nhỉ", "meaning": "~죠?, ~을까요?", "grammar": "조사로, 문장 끝에 붙어 부드러운 의문이나 추측, 또는 상대방의 동의를 구하는 뉘앙스를 줍니다. 한국어의 '~죠?', '~을까요?'와 유사합니다." }
 
            **Vietnamese Example 2 (Dialect)**:
             { "word": "Sân", "meaning": "무엇(의문대명사)", "grammar": "중부 방언에서 표준어 'gì' (무엇)에 해당합니다." },
             { "word": "chả", "meaning": "~하지 않다(부사)", "grammar": "중부 방언에서 표준어 'chẳng' 과 유사하게 사용되지만, 이 문맥에서는 '무엇이 너를 ~하게 하는가'의 구문 일부로 해석될 수 있습니다." },
             { "word": "mi", "meaning": "너(대명사)", "grammar": "중부 방언에서 표준어 'mày' (너)에 해당합니다." },
+            { "word": "nhớ", "meaning": "짜증나게 하다, 귀찮게 하다(동사)", "grammar": "중부 방언에서 '짜증나게 하다 귀찮게 하다'의 의미로 사용됩니다. 표준어 'nhớ'는 '기억하다' 또는 '그리워하다'를 의미합니다." },
             { "word": "rữa", "meaning": "~니?(종결어미)", "grammar": "중부 방언에서 질문을 나타내는 어미로, 표준어 'vậy' 또는 'à'와 유사합니다." }
 
            **English Example**:
             { "word": "BE", "meaning": "~이다, ~되다", "grammar": "존재 동사입니다." },
             { "word": "SOMETHING GREATER", "meaning": "더 위대한 무언가", "grammar": "'greater'는 'great'의 비교급 형용사로 '더 위대한'을 의미합니다." },
-            { "word": "GO MAKE", "meaning": "가서 만들다", "grammar": "동사 'go' 뒤에 동사 원형이 와서 '가서 ~하다'라는 의미의 명령문을 이룹니다." }
+            { "word": "GO MAKE", "meaning": "가서 만들다", "grammar": "동사 'go' 뒤에 동사 원형이 와서 '가서 ~하다'라는 의미의 명령문을 이룹니다." },
+            { "word": "LEGACY", "meaning": "유산, 유물", "grammar": "명사로, 후대에 남기는 업적이나 재산을 의미합니다." }
 
       DIALECT INSTRUCTIONS (Vietnamese):
       - Use standard vocabulary that works for both regions if possible.
