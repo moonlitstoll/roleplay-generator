@@ -1288,21 +1288,21 @@ export default function Home() {
                               {/* Word Analysis */}
                               {line.word_analysis && (
                                 <div className="space-y-3">
-                                  <div className="flex items-center gap-2 text-black pl-1">
+                                  <div className="flex items-center gap-2 text-emerald-700 pl-1">
                                     <BookOpen className="w-4 h-4" />
                                     <span className="text-[10px] font-black uppercase tracking-widest">Word Analysis</span>
                                   </div>
                                   <div className="bg-white border border-gray-300 rounded-2xl overflow-hidden shadow-sm">
                                     {Array.isArray(line.word_analysis) ? (
                                       line.word_analysis.map((item, wIdx, arr) => (
-                                        <div key={wIdx} className={`px-3 md:px-4 py-3 flex items-start gap-4 hover:bg-gray-50 transition-colors ${wIdx !== arr.length - 1 ? 'border-b border-gray-200' : ''}`}>
+                                        <div key={wIdx} className={`px-3 md:px-4 py-3 flex items-start gap-4 hover:bg-emerald-50/50 transition-colors ${wIdx !== arr.length - 1 ? 'border-b border-gray-100' : ''}`}>
                                           <div className="shrink-0 min-w-[80px]">
-                                            <span className="text-black font-bold text-base">{item.word}</span>
+                                            <span className="text-emerald-700 font-bold text-base">{item.word}</span>
                                           </div>
                                           <div className="flex-1">
                                             <p className="text-black font-bold text-sm leading-snug">{item.meaning}</p>
                                             {item.grammar && (
-                                              <p className="text-gray-600 text-xs mt-0.5 leading-snug">{item.grammar}</p>
+                                              <p className="text-black text-xs mt-0.5 leading-snug">{item.grammar}</p>
                                             )}
                                           </div>
                                         </div>
@@ -1315,14 +1315,14 @@ export default function Home() {
                                         const meaning = parts[1] || '';
                                         const grammarRole = parts[2] || '';
                                         return (
-                                          <div key={wIdx} className={`px-4 py-3 flex items-start gap-4 hover:bg-gray-50 transition-colors ${wIdx !== arr.length - 1 ? 'border-b border-gray-50' : ''}`}>
+                                          <div key={wIdx} className={`px-4 py-3 flex items-start gap-4 hover:bg-emerald-50/50 transition-colors ${wIdx !== arr.length - 1 ? 'border-b border-gray-100' : ''}`}>
                                             <div className="shrink-0 min-w-[80px]">
-                                              <span className="text-black font-bold text-base">{word}</span>
+                                              <span className="text-emerald-700 font-bold text-base">{word}</span>
                                             </div>
                                             <div className="flex-1">
                                               <p className="text-black font-bold text-sm leading-snug">{meaning}</p>
                                               {grammarRole && (
-                                                <p className="text-gray-600 text-xs mt-0.5 leading-snug">{grammarRole}</p>
+                                                <p className="text-black text-xs mt-0.5 leading-snug">{grammarRole}</p>
                                               )}
                                             </div>
                                           </div>
