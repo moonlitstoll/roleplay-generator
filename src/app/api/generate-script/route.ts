@@ -200,6 +200,7 @@ export async function POST(req: NextRequest) {
            4. **Role/Dialect**: Explicitly note dialect usage (e.g., Central Vietnamese).
            5. **Language**: Use ONLY Korean for meaning and grammar.
            6. **Vietnamse Specialization**: 1음절 단어가 다음절 단어(복합어/구)에 포함된 경우, 따로 떼지 않고 구성 성분을 다음절 단어의 설명란에서 설명을 할것
+           7. **Exclusion**: Do not include punctuation marks (., ?, !, ,, etc.) as separate analysis items.
 
          - **EXAMPLES (STRICTLY FOLLOW THIS STYLE)**:
 
