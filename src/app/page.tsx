@@ -1168,23 +1168,7 @@ export default function Home() {
         {generatedSets.length > 0 && (
           <div className="glass p-1 md:p-6 rounded-none md:rounded-3xl min-h-screen flex flex-col bg-white shadow-sm border-0 md:border border-gray-300 mb-24 md:mb-20">
 
-            <div className="flex items-center justify-between mb-4 md:mb-10 px-3 pt-3 md:p-0 pb-6 border-b border-gray-100">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-black rounded-lg">
-                  <MessageSquare className="w-5 h-5 text-white" />
-                </div>
-                <h2 className="text-xl font-black text-black tracking-tight uppercase">Conversation</h2>
-              </div>
 
-              {/* Analysis Toggle */}
-              <button
-                onClick={() => setShowAnalysis(!showAnalysis)}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border transition-all ${showAnalysis ? 'bg-black text-white border-black' : 'bg-gray-100 border-gray-300 text-black'}`}
-              >
-                <MessageSquare className="w-4 h-4" />
-                <span className="text-xs font-bold uppercase">{showAnalysis ? 'Hide Analysis' : 'Show Analysis'}</span>
-              </button>
-            </div>
 
             {/* Script Viewer */}
             <div className="space-y-4 md:space-y-12">
