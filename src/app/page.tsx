@@ -1244,7 +1244,7 @@ export default function Home() {
                             </div>
                           </div>
                           {showAnalysis && (
-                            <div className="mt-4 pt-4 border-t border-gray-100 space-y-6 animate-in fade-in duration-300">
+                            <div className="mt-4 pt-4 border-t border-gray-100 space-y-2 animate-in fade-in duration-300">
                               {/* Translation */}
                               <div className="bg-gray-50 rounded-xl p-3 md:p-4 border border-gray-200">
                                 <div className="flex items-center gap-2 mb-2 text-black">
@@ -1256,7 +1256,7 @@ export default function Home() {
 
                               {/* Sentence Patterns */}
                               {line.patterns && (
-                                <div className="bg-gray-50 rounded-xl p-3 md:p-4 border border-gray-200 mt-4">
+                                <div className="bg-gray-50 rounded-xl p-3 md:p-4 border border-gray-200 mt-0">
                                   <div className="flex items-center gap-2 mb-3 text-black">
                                     <Layers className="w-4 h-4" />
                                     <span className="text-[10px] font-black uppercase tracking-widest">Sentence Patterns</span>
@@ -1271,7 +1271,7 @@ export default function Home() {
                                     {line.patterns.examples && line.patterns.examples.length > 0 && (
                                       <div className="pl-2 space-y-2">
                                         <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Applied Examples</p>
-                                        {line.patterns.examples.map((ex, i) => (
+                                        {line.patterns.examples.slice(0, 1).map((ex, i) => (
                                           <div key={i} className="flex gap-3 text-sm text-black">
                                             <span className="text-black font-bold">•</span>
                                             <span className="leading-snug">{ex}</span>
