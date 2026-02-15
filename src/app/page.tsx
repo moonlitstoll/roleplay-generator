@@ -1171,9 +1171,9 @@ export default function Home() {
 
 
             {/* Script Viewer */}
-            <div className="space-y-4 md:space-y-12">
+            <div className="space-y-2 md:space-y-4">
               {generatedSets.map((set, setIdx) => (
-                <div key={set.id} className="space-y-6">
+                <div key={set.id} className="space-y-3">
                   {/* Set Divider - Only show Topic if only one set, or fully labeled if multiple */}
                   {generatedSets.length > 1 ? (
                     <div className="relative flex items-center justify-center pt-4">
@@ -1195,7 +1195,7 @@ export default function Home() {
                         key={idx}
                         ref={el => { scrollRefs.current[segmentKey] = el; }}
                         // Mobile: Always flex-col (stacked), No gap.
-                        className={`flex flex-col md:gap-4 group transition-all duration-500 scroll-mt-2 md:scroll-mt-4 
+                        className={`flex flex-col md:gap-2 group transition-all duration-500 scroll-mt-2 md:scroll-mt-4 
                           ${line.speaker === 'A' ? 'md:flex-row' : 'md:flex-row-reverse'} 
                           ${isActive ? 'scale-[1.00] md:scale-[1.02]' : ''}`}
                       >
@@ -1208,7 +1208,7 @@ export default function Home() {
                         </div>
                         <div
                           // Mobile: w-full.
-                          className={`w-full md:max-w-[85%] p-2 md:p-5 rounded-none md:rounded-2xl transition-all relative group/item shadow-sm border-b md:border border-gray-200 md:border-gray-200 cursor-pointer ${isActive
+                          className={`w-full md:max-w-[85%] p-2 md:p-3 rounded-none md:rounded-2xl transition-all relative group/item shadow-sm border-b md:border border-gray-200 md:border-gray-200 cursor-pointer ${isActive
                             ? 'border-black bg-white ring-0 md:ring-4 ring-black/10 shadow-lg'
                             : (line.speaker === 'A' ? 'bg-white hover:shadow-md' : 'bg-gray-50 hover:shadow-md')
                             }`}
@@ -1216,7 +1216,7 @@ export default function Home() {
                         >
                           <div className="flex flex-col md:block">
                             {/* Mobile Speaker Badge */}
-                            <div className={`flex md:hidden items-center gap-2 mb-2`}>
+                            <div className={`flex md:hidden items-center gap-2 mb-1`}>
                               <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold shadow-sm ${line.speaker === 'A' ? 'bg-black text-white' : 'bg-gray-200 text-black border border-gray-400'
                                 }`}>
                                 {line.speaker}
@@ -1224,13 +1224,13 @@ export default function Home() {
                             </div>
 
                             <div className="flex justify-between items-start gap-4">
-                              <p className="text-lg md:text-xl font-bold text-black mb-2 leading-relaxed flex-1 text-left">{line.text}</p>
+                              <p className="text-lg md:text-xl font-bold text-black mb-1 leading-relaxed flex-1 text-left">{line.text}</p>
                             </div>
                           </div>
                           {showAnalysis && (
-                            <div className="mt-4 pt-4 border-t border-gray-100 space-y-2 animate-in fade-in duration-300">
+                            <div className="mt-2 pt-2 border-t border-gray-100 space-y-2 animate-in fade-in duration-300">
                               {/* Translation */}
-                              <div className="bg-gray-50 rounded-xl p-3 md:p-4 border border-gray-200">
+                              <div className="bg-gray-50 rounded-xl p-2 md:p-3 border border-gray-200">
                                 <div className="flex items-center gap-2 mb-2 text-black">
                                   <Languages className="w-4 h-4" />
                                   <span className="text-[10px] font-black uppercase tracking-widest">Translation</span>
@@ -1240,7 +1240,7 @@ export default function Home() {
 
                               {/* Sentence Patterns */}
                               {line.patterns && (
-                                <div className="bg-gray-50 rounded-xl p-3 md:p-4 border border-gray-200 mt-0">
+                                <div className="bg-gray-50 rounded-xl p-2 md:p-3 border border-gray-200 mt-0">
                                   <div className="flex items-center gap-2 mb-3 text-black">
                                     <Layers className="w-4 h-4" />
                                     <span className="text-[10px] font-black uppercase tracking-widest">Sentence Patterns</span>
@@ -1279,7 +1279,7 @@ export default function Home() {
                                   <div className="bg-white border border-gray-300 rounded-2xl overflow-hidden shadow-sm">
                                     {Array.isArray(line.word_analysis) ? (
                                       line.word_analysis.map((item, wIdx, arr) => (
-                                        <div key={wIdx} className={`px-3 md:px-4 py-3 flex items-start gap-2 hover:bg-emerald-50/50 transition-colors ${wIdx !== arr.length - 1 ? 'border-b border-gray-100' : ''}`}>
+                                        <div key={wIdx} className={`px-3 md:px-4 py-1.5 flex items-start gap-2 hover:bg-emerald-50/50 transition-colors ${wIdx !== arr.length - 1 ? 'border-b border-gray-100' : ''}`}>
                                           <div className="shrink-0 max-w-[30%] w-full break-words">
                                             <span className="text-emerald-700 font-bold text-base">{item.word}</span>
                                           </div>
