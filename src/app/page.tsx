@@ -1173,7 +1173,7 @@ export default function Home() {
             {/* Script Viewer */}
             <div className="space-y-2 md:space-y-4">
               {generatedSets.map((set, setIdx) => (
-                <div key={set.id} className="space-y-3">
+                <div key={set.id} className="space-y-1">
                   {/* Set Divider - Only show Topic if only one set, or fully labeled if multiple */}
                   {generatedSets.length > 1 ? (
                     <div className="relative flex items-center justify-center pt-4">
@@ -1224,13 +1224,13 @@ export default function Home() {
                             </div>
 
                             <div className="flex justify-between items-start gap-4">
-                              <p className="text-lg md:text-xl font-bold text-black mb-1 leading-relaxed flex-1 text-left">{line.text}</p>
+                              <p className="text-lg md:text-xl font-bold text-black mb-0 leading-relaxed flex-1 text-left">{line.text}</p>
                             </div>
                           </div>
                           {showAnalysis && (
-                            <div className="mt-2 pt-2 border-t border-gray-100 space-y-2 animate-in fade-in duration-300">
+                            <div className="mt-1 pt-1 border-t border-gray-100 space-y-2 animate-in fade-in duration-300">
                               {/* Translation */}
-                              <div className="bg-gray-50 rounded-xl p-2 md:p-3 border border-gray-200">
+                              <div className="bg-gray-50 rounded-xl p-1.5 md:p-2 border border-gray-200">
                                 <div className="flex items-center gap-2 mb-2 text-black">
                                   <Languages className="w-4 h-4" />
                                   <span className="text-[10px] font-black uppercase tracking-widest">Translation</span>
@@ -1240,20 +1240,20 @@ export default function Home() {
 
                               {/* Sentence Patterns */}
                               {line.patterns && (
-                                <div className="bg-gray-50 rounded-xl p-2 md:p-3 border border-gray-200 mt-0">
-                                  <div className="flex items-center gap-2 mb-3 text-black">
+                                <div className="bg-gray-50 rounded-xl p-1.5 md:p-2 border border-gray-200 mt-0">
+                                  <div className="flex items-center gap-2 mb-1.5 text-black">
                                     <Layers className="w-4 h-4" />
                                     <span className="text-[10px] font-black uppercase tracking-widest">Sentence Patterns</span>
                                   </div>
 
-                                  <div className="space-y-4">
+                                  <div className="space-y-1">
                                     <div className="bg-white p-3 rounded-lg border border-gray-200">
-                                      <code className="text-sm md:text-base font-bold text-black block mb-2 font-mono break-words">{line.patterns.structure}</code>
+                                      <code className="text-sm md:text-base font-bold text-black block mb-0 font-mono break-words">{line.patterns.structure}</code>
                                       <p className="text-xs md:text-sm text-black font-medium leading-relaxed">{line.patterns.meaning}</p>
                                     </div>
 
                                     {line.patterns.examples && line.patterns.examples.length > 0 && (
-                                      <div className="pl-2 space-y-2">
+                                      <div className="pl-2 space-y-0.5">
                                         <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Applied Examples</p>
                                         {line.patterns.examples.slice(0, 1).map((ex, i) => (
                                           <div key={i} className="flex gap-3 text-sm text-black">
