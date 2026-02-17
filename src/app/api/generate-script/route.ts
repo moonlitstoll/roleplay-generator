@@ -201,62 +201,46 @@ export async function POST(req: NextRequest) {
     }
 
     const prompt = `
-      You are an expert language conversation generator.
-      Create a roleplay script based on the following:
-      Input Context: "${promptInput}"
-      Target Language: ${language}
-      Accent/Dialect: General
-      Reference Language: Korean
+      너는 베트남어와 영어를 가르치는 전문 튜터야. 아래의 8가지 규칙을 엄격하게 적용하여 "${language}"로 대화를 생성하고 각 문장을 분석해 줘.
+
+      **[8가지 분석 규칙]**
+      1. **순차 및 전수 분석**: 문장 내 모든 단어와 덩어리를 등장 순서대로 하나도 빠짐없이 분석한다.
+      2. **중복 설명 허용**: 앞선 문장에서 나온 단어라도 현재 문장에 있다면 다시 설명한다.
+      3. **의미 덩어리(Chunk) 분석 (핵심)**: 단어를 기계적으로 쪼개지 마라. sửa chữa(수리), máy tính(컴퓨터), keeping an eye on(주시하다)처럼 의미가 연결되는 단어들은 하나의 항목으로 묶어서 분석한다.
+      4. **어원 및 한자어 병기**: 
+         - 베트남어: 복합어 항목 내에서 각 음절의 한자 뜻을 명확히 적을 것. 예: thông tin (通 통 - 통하다 + 信 신 - 소식).
+         - 영어: 접두사, 어근(Root)의 의미를 한자어처럼 풀이할 것. 예: submit (sub: 아래로 + mit: 보내다).
+      5. **최소한의 뼈대 공식**: 구체적인 명사나 수식어는 걷어내고 어디든 갈아 끼울 수 있는 최소한의 공식만 추출한다. 변수에 대한 부연 설명(예: [A]는 상황이다 등)은 생략한다.
+      6. **실전 예문 및 해석**: 추출한 뼈대 공식을 그대로 활용한 짧은 **'실전 예문'**과 그 **'예문 해석'**을 반드시 포함한다.
+      7. **역할 명시**: 품사, 문법적 기능(주어, 동사구, 전치사구 등)을 상세히 기록한다.
+      8. **언어 및 가독성**: 모든 설명은 한국어로 진행하며, 모바일 가독성을 위해 볼드체와 기호를 적절히 사용한다.
+
+      **[출력 데이터 매핑]**
+      - \`translation\`: 문장에 대한 전체 한글 해석
+      - \`patterns\`: 
+        - \`structure\`: 최소한의 뼈대 공식 (예: [A] càng [V1], [A] sẽ càng [V2])
+        - \`meaning\`: 공식의 의미 (예: [A]가 [V1]할수록 더 [V2]해질 것이다)
+        - \`examples\`: ["실전 예문: [예문]", "예문 해석: [해석]"] 형식으로 두 개의 항목을 넣을 것.
+      - \`word_analysis\`: 문장의 모든 단어/청크를 순서대로 분석한 객체 배열.
+        - \`word\`: 단어 또는 의미 덩어리 (Chunk)
+        - \`meaning\`: 한국어 의미 설명 (청크의 경우 의미 전체)
+        - \`grammar\`: ([역할]) [어원/한자/어근 풀이]. 예: (동사) Xác (確 확 - 확실하다) + nhận (認 인 - 인정하다)
+
+      **[참조 예시 (베트남어)]**
+      문장: "Chỉ cần bạn xác nhận thông tin về dự án mới 및 hoàn thành báo cáo đúng hạn, công ty sẽ xem xét tăng lương cho bạn."
+      - patterns: { structure: "Chỉ cần [주어] [동사1], [주어] sẽ [동사2]", meaning: "([주어]가 [동사1]하기만 하면, [주어]가 [동사2]할 것이다)", examples: ["실전 예문: Chỉ cần làm xong, công ty sẽ tăng lương.", "예문 해석: 다 하기만 하면, 회사가 월급 올려줄 거야."] }
+      - word_analysis: [ { word: "Chỉ cần", meaning: "단 한 가지의 필수 조건을 제시함", grammar: "(조건 접속사) Chỉ(단지) + cần(필요하다)" }, { word: "xác nhận", meaning: "확실히 인지했음을 밝힘", grammar: "(동사) Xác (確 확 - 확실하다) + nhận (認 인 - 인정하다)" } ... ]
+
+      **[참조 예시 (영어)]**
+      문장: "Even though I submitted the proposal well before the deadline, the client still hasn't gotten back to me."
+      - patterns: { structure: "Even though [주어] [동사1], [주어] still hasn't [동사2] yet", meaning: "비록 [주어]가 [동사1] 했지만, [주어]는 여전히 아직 [동사2]를 안 했네", examples: ["실전 예문: Even though I sent it, they still haven't replied yet.", "예문 해석: 보냈는데도 여전히 아직 답장이 없어."] }
+      - word_analysis: [ { word: "Even though", meaning: "비록 ~일지라도. 예상 밖의 반전을 이끄는 신호", grammar: "(양보 접속사)" }, { word: "I submitted", meaning: "내가 제출했다", grammar: "(주어+동사) sub (under-아래로) + mit (send-보내다) → 서류를 아래서 위로 내밀다" } ... ]
+
+      **[사용자 입력 상황]**
+      상황: "${promptInput}"
+      대상 언어: ${language}
       
       ${baseInstruction}
-      
-      KOREAN-ONLY EXPLANATIONS (STRICT):
-      - All word analyses [word_analysis] MUST be in Korean.
-      - **DO NOT use any English words, grammar terms (like Noun, Verb, etc.), or explanations.**
-      - Use ONLY Korean grammar terms (e.g., 명사, 동사, 형용사, 조사, 어미 등).
-
-      FORMATTING RULES (STRICT):
-
-      1. **word_analysis** (Sequential & Detailed):
-         - **Coverage**: Analyze words in the exact order they appear in the sentence. DO NOT skip any words.
-         - **Redundancy**: Even if a word was explained in a previous sentence, explain it again if it's important for the current context.
-         - **Compound Words (Vietnamese)**: Treat compound words (e.g., "hấp dẫn") as a SINGLE entry. Do NOT split them into "hấp" and "dẫn" separately. Explain the individual components (Sino-Vietnamese meanings) *within* the description of the compound word.
-         - **Role & Dialect**: Explicitly mention the part of speech (noun, verb, etc.) and any dialectal usage (e.g., Southern vs. Northern).
-         - **Meaning Blocks (Chunks)**: Group words that form a meaningful chunk (e.g., "mình còn chưa" -> "우리 아직 ~하지 못하다") if it helps understanding, rather than processing mechanically word-by-word.
-         - **Fields**:
-           * word: The word or chunk.
-           * meaning: The Korean meaning.
-           * grammar: Detailed explanation including Sino-Vietnamese roots, grammar function, and dialect notes.
-
-      2. **patterns** (Sentence Patterns):
-         - **Goal**: Extract the "skeleton" of the sentence that can be reused with other words.
-         - **Structure**: Replace key variable parts with placeholders like [A], [B], [Verb], [Adj]. 
-           - Example: "Hợp đồng này được ký rồi, mà mình còn chưa nhận được tiền cọc nhỉ?"
-           - Pattern: "[A] được [동사] rồi, mà [B] còn chưa [동사] nhỉ?"
-         - **Meaning**: Explain what this pattern means (e.g., "A는 이미 ~되었는데, B는 아직 ~하지 않았지?").
-         - **Examples**: Provide 2 distinct example sentences using this pattern in the target language, with Korean translations.
-
-      - **EXAMPLES (STRICTLY FOLLOW THIS STYLE)**:
-
-        **Vietnamese Structure Example**:
-          "patterns": {
-             "structure": "[A] được [동사] rồi, mà [B] còn chưa [동사] nhỉ?",
-             "meaning": "A는 이미 ~되었는데, B는 아직 ~하지 않았지? (대조적 상황)",
-             "examples": [
-               "Lô hàng được giao rồi, mà khách còn chưa thanh toán nhỉ? (화물은 이미 인도되었는데, 고객이 아직 결제를 안 했지?)",
-               "Cơm được nấu rồi, mà anh còn chưa về nhỉ? (밥은 이미 다 됐는데, 오빠는 아직 안 왔지?)"
-             ]
-          },
-          "word_analysis": [
-            { "word": "Hợp đồng này", "meaning": "이 계약서", "grammar": "명사구. Hợp (合 합) + đồng (同 동) = 계약. này(이)가 붙어 특정 계약을 지칭." },
-            { "word": "được ký rồi", "meaning": "이미 체결되었다", "grammar": "수동태 동사구. được(~되다) + ký(서명하다) + rồi(이미). 서명이 완료된 상태를 의미." },
-            { "word": "khách", "meaning": "고객/손님", "grammar": "명사. services를 이용하는 사람을 지칭." }
-          ]
-
-      DIALECT INSTRUCTIONS (Vietnamese):
-      - Use standard vocabulary that works for both regions if possible.
-      
-      Ensure the analysis is detailed, sequential, and visually structured for learning.
     `;
 
     const result = await model.generateContent(prompt);

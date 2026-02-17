@@ -715,9 +715,11 @@ export default function Home() {
   const [showHistory, setShowHistory] = useState(false);
 
   useEffect(() => {
-    loadHistory();
     const storedKey = localStorage.getItem('gemini_api_key');
     if (storedKey) setApiKey(storedKey);
+
+    const storedModel = localStorage.getItem('gemini_model_type');
+    if (storedModel) setModelType(storedModel);
   }, []);
 
   useEffect(() => {
@@ -1139,12 +1141,16 @@ export default function Home() {
               <label className="font-bold text-xs uppercase text-gray-400">Model</label>
               <select
                 value={modelType}
-                onChange={(e) => setModelType(e.target.value)}
-                className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2.5 outline-none"
+                onChange={(e) => {
+                  const newModel = e.target.value;
+                  setModelType(newModel);
+                  localStorage.setItem('gemini_model_type', newModel);
+                }}
+                className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2.5 outline-none font-bold text-black"
               >
+                <option value="gemini-2.0-flash">Gemini 2 Flash</option>
                 <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
-                <option value="gemini-pro">Gemini Pro</option>
-                <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
+                <option value="gemini-2.5-flash-lite">Gemini 2.5 Flash Lite</option>
               </select>
             </div>
           </div>
@@ -1254,9 +1260,9 @@ export default function Home() {
 
                                     {line.patterns.examples && line.patterns.examples.length > 0 && (
                                       <div className="pl-2 space-y-0.5">
-                                        <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Applied Examples</p>
-                                        {line.patterns.examples.slice(0, 1).map((ex, i) => (
-                                          <div key={i} className="flex gap-3 text-sm text-black">
+                                        <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Practical Examples</p>
+                                        {line.patterns.examples.map((ex, i) => (
+                                          <div key={i} className="flex gap-2 text-sm text-black">
                                             <span className="text-black font-bold">•</span>
                                             <span className="leading-snug">{ex}</span>
                                           </div>
