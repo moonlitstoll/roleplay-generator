@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Play, Download, RefreshCw, MessageSquare, Mic, History as HistoryIcon, Trash2, X, ChevronRight, Settings, Globe, Layers, Pause, Volume2, Music, BookOpen, Languages } from 'lucide-react';
+import { Play, Download, RefreshCw, MessageSquare, Mic, History as HistoryIcon, Trash2, X, ChevronRight, Settings, Globe, Pause, Volume2, Music, BookOpen, Languages } from 'lucide-react';
 import { mergeAudioToWav } from '../utils/audioMerge';
 import { saveSession, getSessions, deleteSession, clearSessions, SavedSession } from '../utils/storage';
 import { generateExportHTML } from '../utils/exportTemplate';
@@ -12,11 +12,6 @@ interface ScriptItem {
   translation: string;
 
   word_analysis?: string | WordAnalysisObj[];
-  patterns?: {
-    structure: string;
-    meaning: string;
-    examples: string[];
-  };
   segmentIndex?: number;
 }
 
@@ -528,13 +523,13 @@ export default function Home() {
   // Keyboard Shortcuts
   // Keyboard Shortcuts (Stable via Ref)
 
-  const handlersRef = useRef({ togglePlay, handlePrev, handleNext, setRepeatMode, playSentence });
+  const handlersRef = useRef({ togglePlay, handlePrev, handleNext, setRepeatMode, playSentence, setShowAnalysis });
 
   // Keep ref updated
   useEffect(() => {
-    handlersRef.current = { togglePlay, handlePrev, handleNext, setRepeatMode, playSentence };
+    handlersRef.current = { togglePlay, handlePrev, handleNext, setRepeatMode, playSentence, setShowAnalysis };
     // MediaSession handler removed
-  }, [togglePlay, handlePrev, handleNext, setRepeatMode, playSentence]);
+  }, [togglePlay, handlePrev, handleNext, setRepeatMode, playSentence, setShowAnalysis]);
 
   useEffect(() => {
     console.log('[Shortcuts] Initializing keyboard listener on document...');
@@ -583,6 +578,12 @@ export default function Home() {
         e.preventDefault();
         console.log('[Shortcuts] Action: RepeatMode Toggle');
         handlersRef.current.setRepeatMode(prev => prev === 'sentence' ? 'session' : 'sentence');
+      }
+      // B: Toggle Word Analysis
+      else if (key.toLowerCase() === 'b' || code === 'KeyB') {
+        e.preventDefault();
+        console.log('[Shortcuts] Action: Toggle Word Analysis');
+        handlersRef.current.setShowAnalysis(prev => !prev);
       }
     };
 
@@ -1251,34 +1252,7 @@ export default function Home() {
                                 <p className="text-black font-bold leading-relaxed">{line.translation}</p>
                               </div>
 
-                              {/* Sentence Patterns */}
-                              {line.patterns && (
-                                <div className="bg-gray-50 rounded-xl p-1.5 md:p-2 border border-gray-200 mt-0">
-                                  <div className="flex items-center gap-2 mb-1.5 text-black">
-                                    <Layers className="w-4 h-4" />
-                                    <span className="text-[10px] font-black uppercase tracking-widest">Sentence Patterns</span>
-                                  </div>
 
-                                  <div className="space-y-1">
-                                    <div className="bg-white p-3.5 md:p-4 rounded-xl border border-gray-200 shadow-sm">
-                                      <div className="text-[17px] md:text-xl font-medium text-black block mb-1.5 tracking-tight break-words leading-tight">{line.patterns.structure}</div>
-                                      <p className="text-xs md:text-sm text-gray-600 font-semibold leading-relaxed pl-0.5">{line.patterns.meaning}</p>
-                                    </div>
-
-                                    {line.patterns.examples && line.patterns.examples.length > 0 && (
-                                      <div className="pl-2 space-y-0.5">
-                                        <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Practical Examples</p>
-                                        {line.patterns.examples.map((ex, i) => (
-                                          <div key={i} className="flex gap-2 text-sm text-black">
-                                            <span className="text-black font-bold">•</span>
-                                            <span className="leading-snug">{ex}</span>
-                                          </div>
-                                        ))}
-                                      </div>
-                                    )}
-                                  </div>
-                                </div>
-                              )}
 
 
 
