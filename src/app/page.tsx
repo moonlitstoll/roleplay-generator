@@ -1291,19 +1291,24 @@ export default function Home() {
                                   </div>
                                   <div className="bg-white border border-gray-300 rounded-2xl overflow-hidden shadow-sm">
                                     {Array.isArray(line.word_analysis) ? (
-                                      line.word_analysis.map((item, wIdx, arr) => (
-                                        <div key={wIdx} className={`px-3 md:px-4 py-1.5 flex items-start gap-2 hover:bg-emerald-50/50 transition-colors ${wIdx !== arr.length - 1 ? 'border-b border-gray-100' : ''}`}>
-                                          <div className="shrink-0 max-w-[30%] w-full break-words">
-                                            <span className="text-emerald-700 font-bold text-base">{item.word}</span>
+                                      line.word_analysis
+                                        .filter(item => {
+                                          const cleanWord = item.word?.trim();
+                                          return cleanWord && !(/^[\p{P}\p{S}]+$/u.test(cleanWord));
+                                        })
+                                        .map((item, wIdx, arr) => (
+                                          <div key={wIdx} className={`px-3 md:px-4 py-1.5 flex items-start gap-2 hover:bg-emerald-50/50 transition-colors ${wIdx !== arr.length - 1 ? 'border-b border-gray-100' : ''}`}>
+                                            <div className="shrink-0 max-w-[30%] w-full break-words">
+                                              <span className="text-emerald-700 font-bold text-base">{item.word}</span>
+                                            </div>
+                                            <div className="flex-1">
+                                              <p className="text-black font-bold text-sm leading-snug">{item.meaning}</p>
+                                              {item.grammar && (
+                                                <p className="text-black text-xs mt-0.5 leading-snug">{item.grammar}</p>
+                                              )}
+                                            </div>
                                           </div>
-                                          <div className="flex-1">
-                                            <p className="text-black font-bold text-sm leading-snug">{item.meaning}</p>
-                                            {item.grammar && (
-                                              <p className="text-black text-xs mt-0.5 leading-snug">{item.grammar}</p>
-                                            )}
-                                          </div>
-                                        </div>
-                                      ))
+                                        ))
                                     ) : (
                                       (line.word_analysis as string).split('\n').filter((w: string) => w.trim()).map((wordLine: string, wIdx: number, arr: string[]) => {
                                         const cleanLine = wordLine.replace(/^•\s*/, '');
