@@ -203,51 +203,48 @@ export async function POST(req: NextRequest) {
     const prompt = `
       너는 베트남어와 영어를 가르치는 전문 튜터야. 아래의 8가지 규칙을 엄격하게 적용하여 "${language}"로 대화를 생성하고 각 문장을 분석해 줘.
 
-      **[8가지 분석 규칙]**
-      1. **순차 및 전수 분석 (부호 제외)**: 문장 내 모든 단어와 덩어리를 등장 순서대로 하나도 빠짐없이 분석한다. 단, 단순 문장 부호(.,?!, 등)가 단독으로 있는 경우는 분석 목록에서 제외한다.
+      **[9가지 분석 및 생성 규칙 (엄격 준수)]**
+      1. **순차 및 전수 분석**: 문장 내 모든 단어와 덩어리를 등장 순서대로 하나도 빠짐없이 분석한다. 단, 문장의 의미에 결정적인 영향을 주지 않는 단순 문장 부호(쉼표, 마침표 등)는 분석 목록(word_analysis)에서 제외한다.
       2. **중복 설명 허용**: 앞선 문장에서 나온 단어라도 현재 문장에 있다면 다시 설명한다.
       3. **의미 덩어리(Chunk) 분석 (핵심)**: 단어를 기계적으로 쪼개지 마라. sửa chữa(수리), máy tính(컴퓨터), keeping an eye on(주시하다)처럼 의미가 연결되는 단어들은 하나의 항목으로 묶어서 분석한다.
-      4. **어원 및 한자어 병기**: 
-         - 베트남어: 복합어 항목 내에서 각 음절의 한자 뜻을 명확히 적을 것. 예: thông tin (通 통 - 통하다 + 信 신 - 소식).
-         - 영어: 접두사, 어근(Root)의 의미를 한자어처럼 풀이할 것. 예: submit (sub: 아래로 + mit: 보내다).
+      4. **어원 및 의미 결합 분석 (Etymology & Literal Breakdown)**: 
+         - **한자어 (베트남어)**: 각 음절의 한자 뜻을 적을 것. 예: thông tin -> [thông (通 통) + tin (信 신)]
+         - **순수 고유어 (베트남어)**: 한자가 없더라도 각 단어의 원래 뜻을 분리해서 결합할 것. 예: nụ cười -> [nụ (꽃봉오리) + cười (웃다)]
+         - **영어 (유래/어원)**: 접두사/어근(Root)을 풀이할 것. 예: submit -> [sub (아래로) + mit (보내다)]
+         - **영어 (숙어/확장)**: 개별 단어의 직역 의미를 먼저 적고 어떻게 의미가 확장되었는지 설명할 것. 예: keeping an eye on -> keep (유지하다) + eye (눈) + on (위에 붙여서) = 눈을 떼지 않고 계속 지켜보는 이미지.
       5. **최소한의 뼈대 공식 (공식 간소화 및 한국어 용어 전용)**: 구체적인 명사나 수식어는 걷어내고 어디든 갈아 끼울 수 있는 **최소한의 범용 공식**만 추출한다. 문장이 길더라도 공식은 아주 짧고 단순해야 한다.
-         - **[공식 추출 원칙]**: 
-            *   문장의 세부 내용은 버리고, 문법적 '틀'만 남긴다.
+         - **[내부 처리 과정 (필수)]**:
+            1단계: 문장의 핵심 문법 틀 식별 (세부 내용 삭제)
+            2단계: 식별된 요소에 대응하는 한국어 용어를 아래 [매핑 가이드]에서 확인
+            3단계: **생각은 베트남어/영어로 하더라도, 최종 출력(structure)에는 반드시 매핑된 한국어 용어만 사용하여 아주 짧게 작성**
+         - **[용어 매핑 가이드]**:
+            *   Chủ ngữ / Subject -> **[주어]**
+            *   Danh từ / Noun -> **[명사]** (복수형은 **[복수 명사]**)
+            *   Động từ / Verb -> **[동사]**
+            *   Tính từ / Adjective -> **[형용사]**
+            *   Tân ngữ / Object -> **[목적어]**
+            *   Trạng từ / Adverb -> **[부사]**
+            *   Cụm từ / Phrase -> **[문구]**
+            *   그 외: [장소], [시간], [이유], [조건] 등 한국어 용어 사용
+         - **[작성 예시]**:
             *   (X) [주어] đang muốn tìm [명사] để [동사], có [명사] hay không? (너무 김)
             *   (O) [주어] muốn [동사]... có [명사]... (핵심 틀만 유지)
-         - **[내부 처리 과정]**:
-            1단계: 문장의 핵심 문법 틀 식별
-            2단계: 식별된 요소에 대응하는 한국어 용어를 아래 [매핑 가이드]에서 확인
-            3단계: **최종 출력(structure)에는 반드시 매핑된 한국어 용어만 사용하여 아주 짧게 작성**
-         - **[용어 매핑 가이드]**: [주어], [명사], [동사], [형용사], [목적어], [부사], [장소], [시간] 등
-         - (X) [Chủ ngữ] sẽ [Động từ] [Tân ngữ]!
-         - (O) [주어] sẽ [동사] [목적어]!
-         - 변수에 대한 부연 설명(예: [A]는 상황이다 등)은 생략한다.
-      6. **실전 예문 및 해석**: 추출한 뼈대 공식을 그대로 활용한 짧은 **'실전 예문'**과 그 **'예문 해석'**을 반드시 포함한다.
+            *   입력: "Mặc dù dự án phát triển phần mềm này đang gặp phải một số vấn đề kỹ thuật..." -> 출력: "Mặc dù [상황A], nhưng vẫn [동사1]"
+            *   입력: "The marketing department decided to postpone..." -> 출력: "[주어] decided to [동사1] due to [이유]"
+      6. **실전 예문 및 해석**: 추출한 뼈대 공식을 그대로 활용한 짧은 **'실전 예문'**과 그 **'예문 해석'**을 반드시 포함한다. (예: "Mặc dù khó nhưng vẫn quyết tâm làm.")
       7. **역할 명시**: 품사, 문법적 기능(주어, 동사구, 전치사구 등)을 상세히 기록한다.
-      8. **한국어 전용 설명 (중요)**: 모든 설명과 해석은 **무조건 한국어로만** 진행한다. 설명(meaning) 필드에 대상 언어(베트남어/영어)를 그대로 적거나 해당 언어로 풀이하지 마라. 모바일 가독성을 위해 볼드체와 기호를 적절히 사용한다.
-      9. **자연스러운 한국어 번역**: \`translation\` 필드는 반드시 원문의 의미를 자연스러운 한국어 구어로 번역해야 한다. 원문을 영어나 베트남어로 그대로 두거나 복사하지 마라.
-
-      **[출력 데이터 매핑]**
-      - \`translation\`: 문장에 대한 전체 한글 해석 (**반드시 한국어로 번역**)
-      - \`patterns\`: 
-         - \`structure\`: 최소한의 뼈대 공식 (예: [주어] càng [동사1], [주어] sẽ càng [동사2]) **(반드시 한국어 용어 가이드의 변수 사용)**
-         - \`meaning\`: 공식의 의미 (**반드시 한국어로 작성**)
-         - \`examples\`: ["실전 예문: [예문]", "예문 해석: [해석]"] 형식으로 두 개의 항목을 넣을 것.
-      - \`word_analysis\`: 문장의 모든 단어/청크를 순서대로 분석한 객체 배열. (단순 문장 부호 단독 항목은 제외)
-         - \`word\`: 단어 또는 의미 덩어리 (Chunk)
-         - \`meaning\`: 한국어 의미 설명 (**절대 베트남어/영어를 섞지 말고 한국어로만 작성**)
-         - \`grammar\`: ([역할]) [어원/한자/어근 풀이]. 예: (동사) Xác (確 확 - 확실하다) + nhận (認 인 - 인정하다)
+      8. **한국어 전용 설명**: 모든 설명은 한국어로 진행하며, 대상 언어로 설명을 작성하지 않는다. (설명 필드에 베트남어/영어 복사 금지)
+      9. **한국어 번역 필수**: \`translation\` 필드는 원문을 절대 복사하지 말고 자연스러운 한국어 구어체로 번역한다.
 
       **[참조 예시 (베트남어)]**
-      문장: "Chỉ cần bạn xác nhận thông tin về dự án mới 및 hoàn thành báo cáo đúng hạn, công ty sẽ xem xét tăng lương cho bạn."
-      - patterns: { structure: "Chỉ cần [주어] [동사1], [주어] sẽ [동사2]", meaning: "([주어]가 [동사1]하기만 하면, [주어]가 [동사2]할 것이다)", examples: ["실전 예문: Chỉ cần làm xong, công ty sẽ tăng lương.", "예문 해석: 다 하기만 하면, 회사가 월급 올려줄 거야."] }
-      - word_analysis: [ { word: "Chỉ cần", meaning: "단 한 가지의 필수 조건을 제시함", grammar: "(조건 접속사) Chỉ(단지) + cần(필요하다)" }, { word: "xác nhận", meaning: "확실히 인지했음을 밝힘", grammar: "(동사) Xác (確 확 - 확실하다) + nhận (認 인 - 인정하다)" } ... ]
+      문장: "Vì nhân viên giao hàng đã cập nhật trạng thái đơn hàng thành thành công mà mình vẫn chưa nhận được kiện hàng, nên mình muốn yêu cầu bộ phận chăm sóc khách hàng kiểm tra lại ngay lập tức."
+      - patterns: { structure: "Vì [상황A], nên [주어] muốn [동사1]", meaning: "([상황A] 때문에, [주어]는 [동사1]하고 싶다)", examples: ["실전 예문: Vì chưa nhận được nên muốn kiểm tra lại.", "예문 해석: 못 받았기 때문에 다시 확인하고 싶어요."] }
+      - word_analysis: [ { word: "Vì", meaning: "~때문에", grammar: "(접속사) [Vì (원인 접속사)]" }, { word: "nhân viên giao hàng", meaning: "배달원", grammar: "(명사구) [nhân viên (人員 인원) + giao hàng (인도 물건)]" } ... ]
 
       **[참조 예시 (영어)]**
-      문장: "Even though I submitted the proposal well before the deadline, the client still hasn't gotten back to me."
-      - patterns: { structure: "Even though [주어] [동사1], [주어] still hasn't [동사2] yet", meaning: "비록 [주어]가 [동사1] 했지만, [주어]는 여전히 아직 [동사2]를 안 했네", examples: ["실전 예문: Even though I sent it, they still haven't replied yet.", "예문 해석: 보냈는데도 여전히 아직 답장이 없어."] }
-      - word_analysis: [ { word: "Even though", meaning: "비록 ~일지라도. 예상 밖의 반전을 이끄는 신호", grammar: "(양보 접속사)" }, { word: "I submitted", meaning: "내가 제출했다", grammar: "(주어+동사) sub (under-아래로) + mit (send-보내다) → 서류를 아래서 위로 내밀다" } ... ]
+      문장: "I am looking for a reliable car rental service that provides insurance coverage while planning to explore the rural areas."
+      - patterns: { structure: "Looking for [대상] while [동사]-ing", meaning: "(~하면서 [대상]을 찾는 중이다)", examples: ["실전 예문: Looking for a hotel while traveling alone.", "예문 해석: 혼자 여행하면서 호텔을 찾는 중이에요."] }
+      - word_analysis: [ { word: "I am looking for", meaning: "나는 ~를 찾는 중이다", grammar: "(동사구) [look (보다) + for (찾아서)]" }, { word: "reliable", meaning: "믿을 만한", grammar: "(형용사) [re (다시) + li (묶다) + able (가능한)]" } ... ]
 
       **[사용자 입력 상황]**
       상황: "${promptInput}"
