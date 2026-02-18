@@ -1218,7 +1218,7 @@ export default function Home() {
                         <div
                           // Mobile: w-full.
                           className={`w-full md:max-w-[85%] p-2 md:p-3 rounded-none md:rounded-2xl transition-all relative group/item shadow-sm border-b md:border border-gray-200 md:border-gray-200 cursor-pointer ${isActive
-                            ? 'border-black bg-white ring-0 md:ring-4 ring-black/10 shadow-lg'
+                            ? 'border-l-4 border-l-purple-600 bg-purple-50/30 ring-0 md:ring-1 ring-purple-100 shadow-md'
                             : (line.speaker === 'A' ? 'bg-white hover:shadow-md' : 'bg-gray-50 hover:shadow-md')
                             }`}
                           onClick={() => playSentence(line.segmentIndex!)}
