@@ -60,7 +60,7 @@ export async function POST(req: NextRequest) {
                   meaning: { type: SchemaType.STRING, description: "Explanation of the pattern's meaning and usage" },
                   examples: {
                     type: SchemaType.ARRAY,
-                    description: "Two example sentences using this pattern",
+                    description: "One single short example sentence using this pattern",
                     items: { type: SchemaType.STRING }
                   }
                 },
@@ -231,19 +231,19 @@ export async function POST(req: NextRequest) {
             *   (X) [감탄사] [감탄사]. [주어] [동사] [상대방] [동사] [무엇] [의문사]? (절대 금지: 태그만 나열됨)
             *   (O) [감탄사] à... [주어] muốn [상대방] giúp [무엇] không? (핵심 키워드 'muốn', 'giúp', 'không' 유지)
             *   (O) Although [주어] [동사], [주어] still [동사] (영어 키워드 유지)
-      6. **실전 예문 및 해석**: 추출한 뼈대 공식을 그대로 활용한 짧은 **'실전 예문'**과 그 **'예문 해석'**을 반드시 포함한다. (예: "Mặc dù khó nhưng vẫn quyết tâm làm.")
+      6. **실전 예문 및 해석**: 추출한 뼈대 공식을 그대로 활용한 **단 하나의 짧은 '실전 예문'**과 그 **'예문 해석'**을 반드시 포함한다. (예: "Vì chưa nhận được nên muốn kiểm tra lại.")
       7. **역할 명시**: 품사, 문법적 기능(주어, 동사구, 전치사구 등)을 상세히 기록한다.
       8. **한국어 전용 설명**: 모든 설명은 한국어로 진행하며, 대상 언어로 설명을 작성하지 않는다. (설명 필드에 베트남어/영어 복사 금지)
       9. **한국어 번역 필수**: \`translation\` 필드는 원문을 절대 복사하지 말고 자연스러운 한국어 구어체로 번역한다.
 
       **[참조 예시 (베트남어)]**
       문장: "Vì nhân viên giao hàng đã cập nhật trạng thái đơn hàng thành thành công mà mình vẫn chưa nhận được kiện hàng, nên mình muốn yêu cầu bộ phận chăm sóc khách hàng kiểm tra lại ngay lập tức."
-      - patterns: { structure: "Vì [상황A], nên [주어] muốn [동사1]", meaning: "([상황A] 때문에, [주어]는 [동사1]하고 싶다)", examples: ["실전 예문: Vì chưa nhận được nên muốn kiểm tra lại.", "예문 해석: 못 받았기 때문에 다시 확인하고 싶어요."] }
+      - patterns: { structure: "Vì [상황A], nên [주어] muốn [동사1]", meaning: "([상황A] 때문에, [주어]는 [동사1]하고 싶다)", examples: ["실전 예문: Vì chưa nhận được nên muốn kiểm tra lại. (못 받았기 때문에 다시 확인하고 싶어요.)"] }
       - word_analysis: [ { word: "Vì", meaning: "~때문에", grammar: "(접속사) [Vì (원인 접속사)]" }, { word: "nhân viên giao hàng", meaning: "배달원", grammar: "(명사구) [nhân viên (人員 인원) + giao hàng (인도 물건)]" } ... ]
 
       **[참조 예시 (영어)]**
       문장: "I am looking for a reliable car rental service that provides insurance coverage while planning to explore the rural areas."
-      - patterns: { structure: "Looking for [대상] while [동사]-ing", meaning: "(~하면서 [대상]을 찾는 중이다)", examples: ["실전 예문: Looking for a hotel while traveling alone.", "예문 해석: 혼자 여행하면서 호텔을 찾는 중이에요."] }
+      - patterns: { structure: "Looking for [대상] while [동사]-ing", meaning: "(~하면서 [대상]을 찾는 중이다)", examples: ["실전 예문: Looking for a hotel while traveling alone. (혼자 여행하면서 호텔을 찾는 중이에요.)"] }
       - word_analysis: [ { word: "I am looking for", meaning: "나는 ~를 찾는 중이다", grammar: "(동사구) [look (보다) + for (찾아서)]" }, { word: "reliable", meaning: "믿을 만한", grammar: "(형용사) [re (다시) + li (묶다) + able (가능한)]" } ... ]
 
       **[사용자 입력 상황]**
