@@ -1261,7 +1261,7 @@ export default function Home() {
 
                                   <div className="space-y-1">
                                     <div className="bg-white p-3.5 md:p-4 rounded-xl border border-gray-200 shadow-sm">
-                                      <div className="text-[17px] md:text-xl font-black text-black block mb-1.5 tracking-tight break-words leading-tight">{line.patterns.structure}</div>
+                                      <div className="text-[17px] md:text-xl font-bold text-black block mb-1.5 tracking-tight break-words leading-tight">{line.patterns.structure}</div>
                                       <p className="text-xs md:text-sm text-gray-600 font-semibold leading-relaxed pl-0.5">{line.patterns.meaning}</p>
                                     </div>
 
