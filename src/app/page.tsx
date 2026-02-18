@@ -92,6 +92,8 @@ export default function Home() {
   const [showAnalysis, setShowAnalysis] = useState(true);
   const [isGapActive, setIsGapActive] = useState(false);
   const [showTurnsPopup, setShowTurnsPopup] = useState(false);
+  const [showInputModal, setShowInputModal] = useState(false);
+  const [tempInput, setTempInput] = useState('');
 
   // Dual Audio Refs for Ping-Pong Playback
   const audioRefA = useRef<HTMLAudioElement | null>(null);
@@ -1011,14 +1013,16 @@ export default function Home() {
 
             {/* Main Action Bar */}
             <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-3">
-              <div className="relative flex-1 lg:w-96">
-                <input
-                  type="text"
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  placeholder={mode === 'roleplay' ? "Enter topic or word..." : "Enter sentence to analyze..."}
-                  className="w-full bg-white border border-gray-300 rounded-xl py-2.5 px-4 text-sm text-black font-medium focus:ring-2 focus:ring-black outline-none transition-all placeholder:text-gray-500"
-                />
+              <div
+                className="relative flex-1 lg:w-96 cursor-pointer"
+                onClick={() => {
+                  setTempInput(input);
+                  setShowInputModal(true);
+                }}
+              >
+                <div className="w-full bg-white border border-gray-300 rounded-xl py-2.5 px-4 text-sm text-black font-medium transition-all hover:border-gray-400 min-h-[42px] flex items-center overflow-hidden whitespace-nowrap overflow-ellipsis">
+                  {input || (mode === 'roleplay' ? "Enter topic or word..." : "Enter sentence to analyze...")}
+                </div>
               </div>
 
               <button
@@ -1498,7 +1502,7 @@ export default function Home() {
                 <div key={session.id} onClick={() => loadSession(session)} className="group p-4 rounded-xl border border-gray-100 hover:border-blue-200 hover:bg-blue-50/50 cursor-pointer transition-all relative">
                   <div className="flex justify-between items-start mb-2">
                     <span className="text-xs font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded-md uppercase tracking-wide">{session.language}</span>
-                    <button onClick={(e) => deleteHistoryItem(e, session.id)} className="opacity-0 group-hover:opacity-100 p-1.5 hover:bg-red-100 text-red-500 rounded-md transition-all"><Trash2 className="w-3.5 h-3.5" /></button>
+                    <button onClick={(e) => deleteHistoryItem(e, session.id)} className="p-1.5 bg-red-50 hover:bg-red-100 text-red-500 rounded-md transition-all border border-red-100 shadow-sm"><Trash2 className="w-3.5 h-3.5" /></button>
                   </div>
                   <h3 className="font-bold text-gray-800 line-clamp-2 leading-snug mb-1">{session.input || "Random Topic"}</h3>
                   <p className="text-[10px] text-gray-400 font-medium">{new Date(session.timestamp).toLocaleString()}</p>
@@ -1544,6 +1548,44 @@ export default function Home() {
             </div>
           </div>
         </>
+      )}
+      {/* Root Level Input Modal */}
+      {showInputModal && (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowInputModal(false)} />
+          <div className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="p-6 space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-black text-gray-800 uppercase tracking-tight">Enter Context</h3>
+                <button onClick={() => setShowInputModal(false)} className="p-2 hover:bg-gray-100 rounded-full text-gray-400"><X className="w-5 h-5" /></button>
+              </div>
+              <textarea
+                autoFocus
+                value={tempInput}
+                onChange={(e) => setTempInput(e.target.value)}
+                placeholder={mode === 'roleplay' ? "Describe a situation, conversation topic, or just a word..." : "Paste the sentence you want to analyze verbatim..."}
+                className="w-full h-48 bg-gray-50 border border-gray-200 rounded-2xl p-4 text-black font-medium focus:ring-2 focus:ring-black outline-none resize-none"
+              />
+              <div className="flex gap-2 pt-2">
+                <button
+                  onClick={() => setTempInput('')}
+                  className="px-4 py-2.5 rounded-xl border border-gray-200 text-gray-500 font-bold text-sm hover:bg-gray-50 transition-all"
+                >
+                  Clear
+                </button>
+                <button
+                  onClick={() => {
+                    setInput(tempInput);
+                    setShowInputModal(false);
+                  }}
+                  className="flex-1 bg-black text-white py-2.5 rounded-xl font-bold text-sm shadow-lg hover:bg-gray-900 active:scale-95 transition-all"
+                >
+                  Done
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </main >
   );
