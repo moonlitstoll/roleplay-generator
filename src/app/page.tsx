@@ -720,6 +720,9 @@ export default function Home() {
 
     const storedModel = localStorage.getItem('gemini_model_type');
     if (storedModel) setModelType(storedModel);
+
+    // Initial load
+    loadHistory();
   }, []);
 
   useEffect(() => {
