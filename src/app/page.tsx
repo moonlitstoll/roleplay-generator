@@ -266,7 +266,7 @@ export default function Home() {
         // Use 'nearest' or 'center' might be better for toggle, but 'start' is fine if we want consistency
         // However, if we toggle off, 'start' might be jarring if it was already visible.
         // Let's stick to 'start' ensuring it moves to the top so user can see context below.
-        activeElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        activeElement.scrollIntoView({ behavior: 'auto', block: 'start' });
       }
     }
   }, [currentSentenceIndex]);
@@ -1209,7 +1209,7 @@ export default function Home() {
                         key={idx}
                         ref={el => { scrollRefs.current[segmentKey] = el; }}
                         // Mobile: Always flex-col (stacked), No gap.
-                        className={`flex flex-col md:gap-2 group transition-all duration-500 scroll-mt-24 md:scroll-mt-28 snap-start snap-always
+                        className={`flex flex-col md:gap-2 group transition-all duration-500 snap-start snap-always
                           ${line.speaker === 'A' ? 'md:flex-row' : 'md:flex-row-reverse'} 
                           ${isActive ? 'scale-[1.00] md:scale-[1.02]' : ''}`}
                       >
