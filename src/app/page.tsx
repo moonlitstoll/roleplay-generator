@@ -1209,7 +1209,7 @@ export default function Home() {
                         key={idx}
                         ref={el => { scrollRefs.current[segmentKey] = el; }}
                         // Mobile: Always flex-col (stacked), No gap.
-                        className={`flex flex-col md:gap-2 group transition-all duration-500 scroll-mt-24 md:scroll-mt-28 snap-start
+                        className={`flex flex-col md:gap-2 group transition-all duration-500 scroll-mt-24 md:scroll-mt-28 snap-start snap-always
                           ${line.speaker === 'A' ? 'md:flex-row' : 'md:flex-row-reverse'} 
                           ${isActive ? 'scale-[1.00] md:scale-[1.02]' : ''}`}
                       >
