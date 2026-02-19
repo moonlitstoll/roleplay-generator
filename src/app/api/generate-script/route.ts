@@ -188,7 +188,7 @@ export async function POST(req: NextRequest) {
     const prompt = `
       너는 베트남어와 영어를 가르치는 전문 튜터야. 아래의 8가지 규칙을 엄격하게 적용하여 "${language}"로 대화를 생성하고 각 문장을 분석해 줘.
 
-      **[9가지 분석 및 생성 규칙 (엄격 준수)]**
+      **[7가지 분석 및 생성 규칙 (엄격 준수)]**
       1. **순차 및 전수 분석**: 문장 내 모든 의미 있는 단어와 덩어리를 분석한다.
          - **[🚨 절대 제약 사항 🚨]**: 문장 부호(., ?, !, ,, ", ' 등)는 절대로 \`word_analysis\` 목록에 포함시키지 마라. 오직 뜻이 있는 단어와 표현만 분석한다. (의미 없는 기호 분석 금지)
          - **[🚨 추가 금지 사항 🚨]**: 단어 자체가 문장 부호인 항목을 JSON 배열에 생성하는 것 자체를 금지한다. (\`?\`나 \`.\` 같은 항목 생성 금지)
@@ -215,12 +215,32 @@ export async function POST(req: NextRequest) {
       7. **한국어 번역 필수**: \`translation\` 필드는 원문을 절대 복사하지 말고 자연스러운 한국어 구어체로 번역한다.
 
       **[참조 예시 (베트남어)]**
-      문장: "Vì nhân viên giao hàng đã cập nhật trạng thái đơn hàng thành thành công mà mình vẫn chưa nhận được kiện hàng, nên mình muốn yêu cầu bộ phận chăm sóc khách hàng kiểm tra lại ngay lập tức."
-      - word_analysis: [ { word: "Vì", meaning: "~때문에", grammar: "(접속사) [Vì (원인 접속사)]" }, { word: "nhân viên giao hàng", meaning: "배달원", grammar: "(명사구) [nhân viên (人員 인원) + giao hàng (인도 물건)]" } ... ]
+      문장: "Mặc dù dự án phát triển phần mềm này đang gặp phải một số vấn đề kỹ thuật phát sinh ngoài ý muốn, nhưng chúng tôi vẫn quyết tâm hoàn thành đúng tiến độ đã đề ra."
+      - word_analysis: [ 
+        { "word": "Mặc dù", "meaning": "비록 ~일지라도", "grammar": "(접속사) [Mặc (~에도 불구하고) + dù (설령 ~일지라도)]" },
+        { "word": "dự án phát triển phần mềm", "meaning": "소프트웨어 개발 프로젝트", "grammar": "(명사구) [dự án (豫案 예안 - 프로젝트) + phát triển (發展 발전 - 개발) + phần mềm (소프트웨어)]" },
+        { "word": "này", "meaning": "이 (이것)", "grammar": "(지시형용사) [này (이것)]" },
+        { "word": "đang gặp phải", "meaning": "~에 직면하고 있다", "grammar": "(동사구) [đang (~중) + gặp phải (맞닥뜨리다)]" },
+        { "word": "một số vấn đề kỹ thuật", "meaning": "몇몇 기술적 문제", "grammar": "(명사구) [một số (몇몇) + vấn đề (問題 문제) + kỹ thuật (技術 기술)]" },
+        { "word": "phát sinh ngoài ý muốn", "meaning": "예상 밖의(뜻밖에 발생한)", "grammar": "(형용사구) [phát sinh (發生 발생) + ngoài ý muốn (의도 밖의)]" },
+        { "word": "nhưng", "meaning": "그러나, 하지만", "grammar": "(접속사) [nhưng (그러나)]" },
+        { "word": "chúng tôi", "meaning": "우리(상대방 제외)", "grammar": "(주어) [chúng (복수) + tôi (나)]" },
+        { "word": "vẫn quyết tâm", "meaning": "여전히 결심하다", "grammar": "(부사+동사) [vẫn (여전히) + quyết tâm (決心 결심)]" },
+        { "word": "hoàn thành", "meaning": "완수하다", "grammar": "(동사) [hoàn thành (完成 완성)]" },
+        { "word": "đúng tiến độ", "meaning": "일정에 맞게", "grammar": "(부사구) [đúng (맞다) + tiến độ (進度 진도)]" },
+        { "word": "đã đề ra", "meaning": "제시된/내놓은", "grammar": "(형용사구) [đã (과거) + đề ra (제시하다)]" }
+      ]
 
       **[참조 예시 (영어)]**
-      문장: "I am looking for a reliable car rental service that provides insurance coverage while planning to explore the rural areas."
-      - word_analysis: [ { word: "I am looking for", meaning: "나는 ~를 찾는 중이다", grammar: "(동사구) [look (보다) + for (찾아서)]" }, { word: "reliable", meaning: "믿을 만한", grammar: "(형용사) [re (다시) + li (묶다) + able (가능한)]" } ... ]
+      문장: "The marketing department decided to postpone the launch of the new product due to some unexpected budget constraints."
+      - word_analysis: [
+        { "word": "the marketing department", "meaning": "마케팅 부서", "grammar": "(명사구) [marketing (시장에 내놓는 일) + department (de: 분리 + part: 부분 + ment: 명사형)]" },
+        { "word": "decided to postpone", "meaning": "연기하기로 결정했다", "grammar": "(동사구) [decided (결정했다) + postpone (post: 뒤에 + pone: 놓다)]" },
+        { "word": "the launch", "meaning": "출시/발사", "grammar": "(명사) [launch (출시/발사)]" },
+        { "word": "of the new product", "meaning": "신제품의", "grammar": "(전치사구) [of (~의) + new product (신제품)]" },
+        { "word": "due to", "meaning": "~때문에", "grammar": "(전치사구) [due to (~때문에)]" },
+        { "word": "some unexpected budget constraints", "meaning": "예기치 못한 예산 제약", "grammar": "(명사구) [some (일부) + unexpected (un: 아님 + ex: 밖 + pect: 보다 - 예상 밖의) + budget (예산) + constraints (con: 함께 + strain: 묶다 - 제약)]" }
+      ]
 
       **[사용자 입력 상황]**
       상황: "${promptInput}"
