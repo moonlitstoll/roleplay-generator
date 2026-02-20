@@ -7,6 +7,9 @@ const outfit = Outfit({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "RealTalk Roleplay Generator",
   description: "Generate native-level roleplay conversations with AI",
+  icons: {
+    icon: "/favicon.ico",
+  },
 };
 
 export default function RootLayout({

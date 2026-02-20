@@ -49,7 +49,7 @@ export default function Home() {
   const [modelType, setModelType] = useState('gemini-2.5-flash');
   const [input, setInput] = useState('');
   const [apiKey, setApiKey] = useState('');
-  const [turnCount, setTurnCount] = useState(4);
+  const [turnCount, setTurnCount] = useState(2);
   const [mode, setMode] = useState<'roleplay' | 'analysis'>('roleplay');
   const [accentMode, setAccentMode] = useState('standard-simulated');
   const [loading, setLoading] = useState(false);
