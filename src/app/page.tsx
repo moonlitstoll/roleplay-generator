@@ -1196,114 +1196,126 @@ export default function Home() {
                         key={idx}
                         ref={el => { scrollRefs.current[segmentKey] = el; }}
                         // Mobile: Always flex-col (stacked), No gap.
-                        className={`flex flex-col md:gap-2 group transition-all duration-500 snap-start snap-always
+                        className={`flex flex-col md:gap-4 group transition-all duration-500 snap-start snap-always
                           ${line.speaker === 'A' ? 'md:flex-row' : 'md:flex-row-reverse'} 
-                          ${isActive ? 'scale-[1.00] md:scale-[1.02]' : ''}`}
+                          ${isActive ? 'scale-[1.00] md:scale-[1.01]' : ''}`}
                       >
-                        <div className={`hidden md:flex w-10 h-10 rounded-full items-center justify-center shrink-0 font-bold text-sm shadow-md transition-all ${isActive
-                          ? 'ring-4 ring-black/20 ring-offset-2 scale-110'
+                        {/* Desktop Speaker Indicator - Outside the sticky box to keep it on the side if needed, 
+                            OR we can move it inside for easier sticky management. 
+                            Let's keep it relative to the content box. */}
+                        <div className={`hidden md:flex w-10 h-10 rounded-full items-center justify-center shrink-0 font-bold text-sm shadow-md transition-all self-start mt-2 ${isActive
+                          ? 'ring-4 ring-black/20 ring-offset-2 scale-110 z-30'
                           : ''
                           } ${line.speaker === 'A' ? 'bg-black text-white' : 'bg-gray-200 text-black border border-gray-400'
                           }`}>
                           {line.speaker}
                         </div>
+
                         <div
                           // Mobile: w-full.
-                          className={`w-full md:max-w-[85%] p-2 md:p-3 rounded-none md:rounded-2xl transition-all relative group/item shadow-sm border-b md:border border-gray-200 md:border-gray-200 cursor-pointer ${isActive
-                            ? 'border-l-4 border-l-purple-600 bg-purple-50/30 ring-0 md:ring-1 ring-purple-100 shadow-md'
+                          className={`w-full md:max-w-[85%] rounded-none md:rounded-3xl transition-all relative group/item shadow-sm border-b md:border border-gray-200 cursor-pointer overflow-hidden ${isActive
+                            ? 'border-l-4 border-l-blue-600 bg-blue-50/30 ring-0 md:ring-1 ring-blue-100 shadow-lg z-20'
                             : (line.speaker === 'A' ? 'bg-white hover:shadow-md' : 'bg-gray-50 hover:shadow-md')
                             }`}
                           onClick={() => playSentence(line.segmentIndex!)}
                         >
-                          <div className="flex flex-col md:block">
-                            {/* Mobile Speaker Badge */}
-                            <div className={`flex md:hidden items-center gap-2 mb-1`}>
-                              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold shadow-sm ${line.speaker === 'A' ? 'bg-black text-white' : 'bg-gray-200 text-black border border-gray-400'
-                                }`}>
-                                {line.speaker}
+                          {/* STICKY HEADER: Speaker (Mobile) + Main Text */}
+                          <div className={`p-4 transition-all ${isActive ? 'sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-blue-100/50 py-4 shadow-sm' : 'p-3'}`}>
+                            <div className="flex flex-col md:block">
+                              {/* Mobile Speaker Badge */}
+                              <div className={`flex md:hidden items-center gap-2 mb-2`}>
+                                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold shadow-sm ${line.speaker === 'A' ? 'bg-black text-white' : 'bg-gray-200 text-black border border-gray-400'
+                                  }`}>
+                                  {line.speaker}
+                                </div>
+                                <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Speaker {line.speaker}</span>
                               </div>
-                            </div>
 
-                            <div className="flex justify-between items-start gap-4">
-                              <p className="text-lg md:text-xl font-bold text-black mb-0 leading-relaxed flex-1 text-left">{line.text}</p>
+                              <div className="flex justify-between items-start gap-4">
+                                <p className={`text-lg md:text-2xl font-black text-black mb-0 leading-tight flex-1 text-left ${isActive ? 'tracking-tight' : ''}`}>{line.text}</p>
+                              </div>
                             </div>
                           </div>
-                          {showAnalysis && (
-                            <div className="mt-1 pt-1 border-t border-gray-100 space-y-2 animate-in fade-in duration-300">
-                              {/* Translation */}
-                              <div className="bg-gray-50 rounded-xl p-1.5 md:p-2 border border-gray-200">
-                                <div className="flex items-center gap-2 mb-2 text-black">
-                                  <Languages className="w-4 h-4" />
-                                  <span className="text-[10px] font-black uppercase tracking-widest">Translation</span>
-                                </div>
-                                <p className="text-black font-bold leading-relaxed">{line.translation}</p>
-                              </div>
 
-
-
-
-
-                              {/* Word Analysis */}
-                              {line.word_analysis && (
-                                <div className="space-y-2">
-                                  <div className="flex items-center gap-2 text-emerald-700 pl-1">
-                                    <BookOpen className="w-4 h-4" />
-                                    <span className="text-[10px] font-black uppercase tracking-widest">Word Analysis</span>
+                          {/* NON-STICKY BODY: Translation + Analysis */}
+                          <div className="p-3 md:p-4 pt-0">
+                            {showAnalysis && (
+                              <div className="mt-1 pt-1 border-t border-gray-100 space-y-2 animate-in fade-in duration-300">
+                                {/* Translation */}
+                                <div className="bg-gray-50 rounded-xl p-1.5 md:p-2 border border-gray-200">
+                                  <div className="flex items-center gap-2 mb-2 text-black">
+                                    <Languages className="w-4 h-4" />
+                                    <span className="text-[10px] font-black uppercase tracking-widest">Translation</span>
                                   </div>
-                                  <div className="bg-white border border-gray-300 rounded-2xl overflow-hidden shadow-sm">
-                                    {Array.isArray(line.word_analysis) ? (
-                                      line.word_analysis
-                                        .filter(item => {
-                                          const cleanWord = item.word?.trim();
-                                          return cleanWord && !(/^[\p{P}\p{S}]+$/u.test(cleanWord));
+                                  <p className="text-black font-bold leading-relaxed">{line.translation}</p>
+                                </div>
+
+
+
+
+
+                                {/* Word Analysis */}
+                                {line.word_analysis && (
+                                  <div className="space-y-2">
+                                    <div className="flex items-center gap-2 text-emerald-700 pl-1">
+                                      <BookOpen className="w-4 h-4" />
+                                      <span className="text-[10px] font-black uppercase tracking-widest">Word Analysis</span>
+                                    </div>
+                                    <div className="bg-white border border-gray-300 rounded-2xl overflow-hidden shadow-sm">
+                                      {Array.isArray(line.word_analysis) ? (
+                                        line.word_analysis
+                                          .filter(item => {
+                                            const cleanWord = item.word?.trim();
+                                            return cleanWord && !(/^[\p{P}\p{S}]+$/u.test(cleanWord));
+                                          })
+                                          .map((item, wIdx, arr) => (
+                                            <div key={wIdx} className={`px-3 md:px-4 py-1.5 flex items-start gap-2 hover:bg-emerald-50/50 transition-colors ${wIdx !== arr.length - 1 ? 'border-b border-gray-100' : ''}`}>
+                                              <div className="shrink-0 max-w-[30%] w-full break-words">
+                                                <span className="text-emerald-700 font-bold text-base">{item.word}</span>
+                                              </div>
+                                              <div className="flex-1">
+                                                <p className="text-black font-bold text-sm leading-snug">{item.meaning}</p>
+                                                {item.grammar && (
+                                                  <p className="text-black text-xs mt-0.5 leading-snug">{item.grammar}</p>
+                                                )}
+                                              </div>
+                                            </div>
+                                          ))
+                                      ) : (
+                                        (line.word_analysis as string).split('\n').filter((w: string) => w.trim()).map((wordLine: string, wIdx: number, arr: string[]) => {
+                                          const cleanLine = wordLine.replace(/^•\s*/, '');
+                                          const parts = cleanLine.split('|').map((s: string) => s.trim());
+                                          const word = parts[0];
+                                          const meaning = parts[1] || '';
+                                          const grammarRole = parts[2] || '';
+                                          return (
+                                            <div key={wIdx} className={`px-4 py-3 flex items-start gap-2 hover:bg-emerald-50/50 transition-colors ${wIdx !== arr.length - 1 ? 'border-b border-gray-100' : ''}`}>
+                                              <div className="shrink-0 max-w-[30%] w-full break-words">
+                                                <span className="text-emerald-700 font-bold text-base">{word}</span>
+                                              </div>
+                                              <div className="flex-1">
+                                                <p className="text-black font-bold text-sm leading-snug">{meaning}</p>
+                                                {grammarRole && (
+                                                  <p className="text-black text-xs mt-0.5 leading-snug">{grammarRole}</p>
+                                                )}
+                                              </div>
+                                            </div>
+                                          );
                                         })
-                                        .map((item, wIdx, arr) => (
-                                          <div key={wIdx} className={`px-3 md:px-4 py-1.5 flex items-start gap-2 hover:bg-emerald-50/50 transition-colors ${wIdx !== arr.length - 1 ? 'border-b border-gray-100' : ''}`}>
-                                            <div className="shrink-0 max-w-[30%] w-full break-words">
-                                              <span className="text-emerald-700 font-bold text-base">{item.word}</span>
-                                            </div>
-                                            <div className="flex-1">
-                                              <p className="text-black font-bold text-sm leading-snug">{item.meaning}</p>
-                                              {item.grammar && (
-                                                <p className="text-black text-xs mt-0.5 leading-snug">{item.grammar}</p>
-                                              )}
-                                            </div>
-                                          </div>
-                                        ))
-                                    ) : (
-                                      (line.word_analysis as string).split('\n').filter((w: string) => w.trim()).map((wordLine: string, wIdx: number, arr: string[]) => {
-                                        const cleanLine = wordLine.replace(/^•\s*/, '');
-                                        const parts = cleanLine.split('|').map((s: string) => s.trim());
-                                        const word = parts[0];
-                                        const meaning = parts[1] || '';
-                                        const grammarRole = parts[2] || '';
-                                        return (
-                                          <div key={wIdx} className={`px-4 py-3 flex items-start gap-2 hover:bg-emerald-50/50 transition-colors ${wIdx !== arr.length - 1 ? 'border-b border-gray-100' : ''}`}>
-                                            <div className="shrink-0 max-w-[30%] w-full break-words">
-                                              <span className="text-emerald-700 font-bold text-base">{word}</span>
-                                            </div>
-                                            <div className="flex-1">
-                                              <p className="text-black font-bold text-sm leading-snug">{meaning}</p>
-                                              {grammarRole && (
-                                                <p className="text-black text-xs mt-0.5 leading-snug">{grammarRole}</p>
-                                              )}
-                                            </div>
-                                          </div>
-                                        );
-                                      })
-                                    )}
+                                      )}
+                                    </div>
                                   </div>
-                                </div>
-                              )}
-                            </div>
-                          )}
+                                )}
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
                     );
-                  })}
+                  );
+                })}
                 </div>
               ))}
-              <div className="h-24" />
             </div>
           </div>
         )}
