@@ -76,7 +76,7 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [duration, setDuration] = useState(0); // Current Sentence Duration
   const [playbackSpeed, setPlaybackSpeed] = useState(1.0);
-  const [repeatMode, setRepeatMode] = useState<'none' | 'sentence' | 'session'>('session');
+  const [repeatMode, setRepeatMode] = useState<'sentence' | 'session'>('session');
 
   // Active state
   const [currentSentenceIndex, setCurrentSentenceIndex] = useState(-1);
@@ -216,7 +216,7 @@ export default function Home() {
 
   // Helper: Determine next Step (Index)
   // Returns { index, url }
-  const getNextStep = React.useCallback((currentIdx: number, total: number, sets: GeneratedSet[], mode: 'session' | 'sentence' | 'none') => {
+  const getNextStep = React.useCallback((currentIdx: number, total: number, sets: GeneratedSet[], mode: 'sentence' | 'session') => {
     let nextIdx = currentIdx;
 
     // Handle Sentence Loop IMMEDIATELY
@@ -647,8 +647,8 @@ export default function Home() {
 
         if (currentSegment) {
           // If we passed the end of the segment, loop back
-          // Use a small buffer (e.g., 0.1s) to prevent jarring loops if data is slightly off
-          if (t >= currentSegment.end - 0.1) { // Added small buffer for smoother transition near end
+          // Use a small buffer (e.g., 0.05s) to prevent jarring loops
+          if (t >= currentSegment.end - 0.05) {
             mAudio.currentTime = currentSegment.start;
             mAudio.play().catch(console.error);
             return;
@@ -659,9 +659,6 @@ export default function Home() {
       // Sync active segment for UI highlighting
       const segment = audioTimeline.find(s => t >= s.start && t < s.end);
       if (segment && segment.index !== currentSentenceIndexRef.current) {
-        // Only update if we are NOT in sentence mode (or if logic failed above)
-        // Actually, if we are in sentence mode, we shouldn't be here unless we drifted into next segment
-        // Enforce current index if sentence mode?
         if (repeatModeRef.current !== 'sentence') {
           setCurrentSentenceIndex(segment.index);
           currentSentenceIndexRef.current = segment.index;
@@ -670,16 +667,10 @@ export default function Home() {
     };
 
     const handleEnded = () => {
-      // Loop logic for merged is simple: 
-      // If session loop, just play from 0.
-      // If 1-L, seek to start of current segment? (This is hard in merged)
-      // Actually, 1-L in merged mode means we keep seeking back to segment.start
-
       if (repeatModeRef.current === 'session') {
         mAudio.currentTime = 0;
         mAudio.play().catch(console.error);
       } else if (repeatModeRef.current === 'sentence') {
-        // Fallback: If for some reason timeupdate didn't catch the loop, seek back to segment start
         const currentIdx = currentSentenceIndexRef.current;
         const currentSegment = audioTimeline.find(s => s.index === currentIdx);
         if (currentSegment) {
@@ -689,19 +680,16 @@ export default function Home() {
           mAudio.currentTime = 0;
           mAudio.play().catch(console.error);
         }
-      } else {
-        setIsPlaying(false);
       }
     };
 
-    // Loop for single sentence check (optional: could do in timeupdate) by checking if t > segment.end -> seek segment.start
-
     mAudio.addEventListener('timeupdate', handleTimeUpdate);
     mAudio.addEventListener('ended', handleEnded);
+
     return () => {
       mAudio.removeEventListener('timeupdate', handleTimeUpdate);
       mAudio.removeEventListener('ended', handleEnded);
-    }
+    };
   }, [audioTimeline, isMergedMode]);
 
   // Rate update for merged
@@ -879,8 +867,7 @@ export default function Home() {
 
     } catch (error: any) {
       console.error(error);
-      console.error(error);
-      // alert(`Error: ${error.message}`); // Suppress alert as per user request
+      setError(error.message || 'An unexpected error occurred during generation');
     } finally {
       // Save Session on completion (if we have audio)
       if (Object.keys(setAudioUrls).length > 0) {

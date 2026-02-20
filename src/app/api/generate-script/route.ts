@@ -250,7 +250,13 @@ export async function POST(req: NextRequest) {
     `;
 
     const result = await model.generateContent(prompt);
-    const text = result.response.text();
+    let text = result.response.text();
+
+    // Clean up markdown code blocks if present
+    if (text.includes('```')) {
+      text = text.replace(/```json|```/g, '').trim();
+    }
+
     const data = JSON.parse(text);
 
     return NextResponse.json(data);
