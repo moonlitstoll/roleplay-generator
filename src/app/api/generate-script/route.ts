@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenerativeAI, SchemaType } from '@google/generative-ai';
+import { generateContentWithRetry } from '@/utils/gemini';
 
 export async function POST(req: NextRequest) {
   try {
@@ -249,7 +250,7 @@ export async function POST(req: NextRequest) {
       ${baseInstruction}
     `;
 
-    const result = await model.generateContent(prompt);
+    const result = await generateContentWithRetry(model, prompt);
     let text = result.response.text();
 
     // Clean up markdown code blocks if present
@@ -262,9 +263,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(data);
   } catch (error: any) {
     console.error('[API] Error generating script:', error);
+
+    // Check if it's a rate limit error to return 429
+    const isRateLimit = error.message?.includes('429') ||
+      error.message?.includes('Resource exhausted') ||
+      error.message?.includes('Too Many Requests');
+
     return NextResponse.json({
-      error: 'Failed to generate script',
+      error: isRateLimit ? 'Rate limit exceeded' : 'Failed to generate script',
       details: error.message
-    }, { status: 500 });
+    }, { status: isRateLimit ? 429 : 500 });
   }
 }
