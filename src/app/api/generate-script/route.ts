@@ -271,7 +271,9 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       error: isRateLimit ? 'Rate limit exceeded' : 'Failed to generate script',
-      details: error.message
+      details: isRateLimit
+        ? 'Gemini 2.0 Flash has lower rate limits. Please try again in 30-60 seconds, or switch to Gemini 2.5 Flash for better stability.'
+        : error.message
     }, { status: isRateLimit ? 429 : 500 });
   }
 }
