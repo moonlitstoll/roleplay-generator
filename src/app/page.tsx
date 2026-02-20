@@ -462,9 +462,6 @@ export default function Home() {
         title: `Sentence ${currentSentenceIndex + 1} of ${total}`,
         artist: "RealWait Roleplay",
         album: generatedSetsRef.current[0]?.input || "Roleplay Session",
-        artwork: [
-          { src: '/icon.png', sizes: '512x512', type: 'image/png' }
-        ]
       });
 
       // Update position state for better sync on lock screen
