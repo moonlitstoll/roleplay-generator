@@ -202,7 +202,12 @@ export async function POST(req: NextRequest) {
 
       **[📱 출력 포맷 가이드 (word_analysis 내 grammar 필드 구성)]**
       \`grammar\` 필드는 다음 수직형 리스트 구조를 엄격히 따른다 (개행 문자 \\n 사용):
-      "청크 제목 [역할]: 청크 전체 의미 \\n [단어 / 뜻 / 어원 및 이미지 상세 해설]"
+      "청크 제목 [역할]: 청크 전체 의미 \\n [단어1 / 뜻 / 상세 해설] \\n [단어2 / 뜻 / 상세 해설]"
+      **중요: 모든 대괄호([ ])로 시작하는 설명 항목은 반드시 각각 새로운 줄(\\n)에서 시작해야 한다.**
+
+      **[⚠️ 강제 이행 명령]**
+      1. **무조건적 전수 분석**: 문장이 아무리 짧거나 단순하더라도 위 7대 원칙에 따라 '단어 단위'로 쪼개어 분석해야 하며, 분석을 생략하는 문장이 있어서는 절대 안 된다.
+      2. **가독성 극대화**: 모든 \`grammar\` 필드 내의 개별 단어 해설([단어 / 뜻 / ...])은 반드시 개행 문자(\\n)를 삽입하여 줄바꿈 처리를 한다. 한 줄에 두 개 이상의 대괄호 항목이 오는 것을 금지한다.
 
       **[🇺🇸 영어 정밀 분석 참조 예시 1]**
       원본: Because the global economic situation is constantly changing, our company must develop flexible strategies to secure a competitive advantage in the international market.
@@ -222,7 +227,7 @@ export async function POST(req: NextRequest) {
       - word_analysis: [
         { "word": "Mặc dù quá trình công nghiệp hóa", "meaning": "비록 공업화 과정이", "grammar": "Mặc dù quá trình công nghiệp hóa [양보 접속사/주어]: 비록 공업화 과정이 \\n [Mặc dù / 비록 ~일지라도 / Mặc(불구하고) + dù(설령) = 어떤 상황을 인정하면서도 반전을 꾀하는 논리] \\n [quá trình / 과정 / 過(과: 지나다) + 程(정: 길/한도) = 어떤 일이 진행되어 나가는 길목] \\n [công nghiệp hóa / 공업화 / 工(공: 일) + 業(업: 일) + 化(화: 되다) = 산업적인 체제로 변화함]" },
         { "word": "mang lại nhiều lợi ích về kinh tế", "meaning": "경제에 관한 많은 이익을 가져오다", "grammar": "mang lại nhiều lợi ích về kinh tế [동사/목적어]: 경제에 관한 많은 이익을 가져오다 \\n [mang lại / 가져오다 / mang(지니다/들다) + lại(오다) = 외부의 것을 내 쪽으로 끌어오는 동작] \\n [nhiều / 많은 / 수량이나 정도가 풍부한 상태] \\n [lợi ích / 이익 / 利(리: 이롭다) + 益(익: 더하다) = 나에게 도움이 되고 보탬이 되는 것] \\n [về / ~에 관하여 / 화제가 향하는 방향을 지정] \\n [kinh tế / 경제 / 經(경: 다스리다) + 濟(제: 건너다) = 세상을 경영하고 백성을 구제하는 흐름]" },
-        { "word": "nhưng chúng ta cần phải có trách nhiệm", "meaning": "하지만 우리는 책임을 가져야 한다", "grammar": "nhưng chúng ta cần phải có trách nhiệm [반전 접속사/주어2/동사2]: 하지만 우리는 책임을 가져야 한다 \\n [nhưng / 하지만 / 앞의 이익에도 불구하고 꼭 해야 할 '의무'를 강조하는 전환점] \\n [chúng ta / 우리 / 청자를 포함하여 우리 모두가 주체임을 나타냄] \\n [cần phải / ~해야 한다 / cần(필요하다) + phải(당연히 ~이다) = 반드시 이행해야 할 당위성] \\n [có / 가지다 / 존재하게 하거나 소유하는 상태] \\n [trách nhiệm / 책임 / 責(책: 꾸짖다/맡기다) + 任(임: 맡기다) = 마땅히 짊어야 할 임무]" },
+        { "word": "nhưng chúng ta cần phải có trách nhiệm", "meaning": "하지만 우리는 책임을 가져야 한다", "grammar": "nhưng chúng ta cần phải có trách nhiệm [반전 접속사/주어2/동사2]: 하지만 우리는 책임을 가져야 한다 \\n [nhưng / 하지만 / 앞의 이익에도 불구하고 꼭 해야 할 '의무'를 강조하는 전환점] \\n [chúng ta / 우리 / 청자를 포함하여 우리 모두가 주체임을 나타냄] \\n [cần phải / ~해야 한다 / cần(필요하다) + phải(당연히 ~이다) = 반드시 이행해야 할 당위성] \\n [có / 가지다 / 존재하게 하거나 소유하는 상태] \\n [trách nhiệm / 책임 / 責(책: 꾸짖다/맡기다) + 任(임: 맡기다) = 마땅히 짊어져야 할 임무]" },
         { "word": "bảo vệ môi trường", "meaning": "환경을 보호하다", "grammar": "bảo vệ môi trường [목적어2]: 환경을 보호하다 \\n [bảo vệ / 보호 / 保(보: 지키다) + 衛(위: 지키다) = 외부의 위협으로부터 안전하게 지킴] \\n [môi trường / 환경 / 媒(매: 매개) + 境(경: 지경) = 우리를 둘러싸고 있는 주변의 모든 세계]" },
         { "word": "để đảm bảo sự phát triển bền vững", "meaning": "지속 가능한 발전을 보장하기 위해", "grammar": "để đảm bảo sự phát triển bền vững [목적 부사구]: 지속 가능한 발전을 보장하기 위해 \\n [để / ~하기 위해 / 행동의 최종 지향점을 예고] \\n [đảm bảo / 보장 / 擔(담: 메다) + 保(보: 지키다) = 어깨에 메고 끝까지 책임지고 지킴] \\n [sự phát triển / 발전 / sự(일/사건) + phát(發: 피어나다) + triển(展: 펴지다) = 에너지가 밖으로 뻗어 나가며 성장함] \\n [bền vững / 지속 가능한/공고한 / bền(단단하다) + vững(굳건하다) = 쉽게 흔들리지 않고 오래 유지되는 이미지]" }
       ]
