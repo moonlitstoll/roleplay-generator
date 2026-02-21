@@ -202,34 +202,36 @@ export async function POST(req: NextRequest) {
 
       **[📱 출력 포맷 가이드 (word_analysis 내 grammar 필드 구성)]**
       \`grammar\` 필드는 다음 수직형 리스트 구조를 엄격히 따른다 (개행 문자 \\n 사용):
-      "청크 제목 [역할]: 청크 전체 의미 \\n [단어1 / 뜻 / 상세 해설] \\n [단어2 / 뜻 / 상세 해설]"
-      **중요: 모든 대괄호([ ])로 시작하는 설명 항목은 반드시 각각 새로운 줄(\\n)에서 시작해야 한다.**
+      "[단어1 / 뜻 / 상세 해설] \\n [단어2 / 뜻 / 상세 해설]"
+      **중요 Rules:**
+      1. **헤더 삭제**: '청크 제목 [역할]: 의미' 와 같은 첫 줄(중복 정보)을 피하고, 즉시 개별 단어 분석(\`[ ]\`)부터 시작한다.
+      2. **무조건 줄바꿈**: 모든 대괄호([ ]) 항목은 반드시 개행 문자(\\n)를 삽입하여 새로운 줄에서 시작해야 한다. 한 줄에 두 개 이상의 대괄호 항목이 오는 것을 금지한다.
 
       **[⚠️ 강제 이행 명령]**
       1. **무조건적 전수 분석**: 문장이 아무리 짧거나 단순하더라도 위 7대 원칙에 따라 '단어 단위'로 쪼개어 분석해야 하며, 분석을 생략하는 문장이 있어서는 절대 안 된다.
-      2. **가독성 극대화**: 모든 \`grammar\` 필드 내의 개별 단어 해설([단어 / 뜻 / ...])은 반드시 개행 문자(\\n)를 삽입하여 줄바꿈 처리를 한다. 한 줄에 두 개 이상의 대괄호 항목이 오는 것을 금지한다.
+      2. **가독성 극대화**: 모든 \`grammar\` 필드는 불필요한 서술 없이 곧바로 \`[단어 / 뜻 / 이미지 및 어원]\` 형식의 리스트로 시작한다.
 
       **[🇺🇸 영어 정밀 분석 참조 예시 1]**
       원본: Because the global economic situation is constantly changing, our company must develop flexible strategies to secure a competitive advantage in the international market.
       - translation: 세계 경제 상황이 끊임없이 변하고 있기 때문에, 우리 회사는 국제 시장에서 경쟁 우위를 확보하기 위해 유연한 전략을 개발해야 합니다.
       - word_analysis: [
-        { "word": "Because the global economic situation", "meaning": "세계 경제 상황이 ~하기 때문에", "grammar": "Because the global economic situation [원인 접속사/주어]: 세계 경제 상황이 ~하기 때문에 \\n [Because / ~때문에 / 뒤에 나오는 문장이 이 모든 상황의 '근거'임을 미리 예고하는 논리적 표지판] \\n [the / 그 / 우리가 현재 논의하고 있는 바로 그 대상을 지칭] \\n [global / 세계적인 / 지구본 전체를 아우르는 거대한 시각적 이미지] \\n [economic / 경제의 / 돈과 자원이 흐르고 순환하는 시스템에 관련된] \\n [situation / 상황 / 특정 시점에 사람들이 처해 있는 입체적인 형편이나 모습]" },
-        { "word": "is constantly changing", "meaning": "끊임없이 변하고 있다", "grammar": "is constantly changing [동사]: 끊임없이 변하고 있다 \\n [is / ~이다 / 현재의 상태를 나타내는 연결 고리] \\n [constantly / 끊임없이 / 멈추지 않고 시계추처럼 계속해서 이어지는 움직임] \\n [changing / 변하는 / 이전의 모습에서 새로운 모습으로 탈바꿈하는 역동적인 그림]" },
-        { "word": "our company must develop", "meaning": "우리 회사는 개발해야 한다", "grammar": "our company must develop [주어2/동사2]: 우리 회사는 개발해야 한다 \\n [our / 우리의 / 내가 속해 있는 공동체의 소유권을 강조] \\n [company / 회사 / 사람들이 함께(com-) 빵을 먹으며(pan-) 일하는 집단] \\n [must / 반드시 ~해야 한다 / 선택의 여지가 없는 강한 의무나 필요성의 압박] \\n [develop / 개발하다 / 껍질을 벗겨내어 알맹이를 키우듯 새로운 것을 만들어가는 과정]" },
-        { "word": "flexible strategies", "meaning": "유연한 전략들을", "grammar": "flexible strategies [목적어]: 유연한 전략들을 \\n [flexible / 유연한 / 고정되지 않고 상황에 따라 고무줄처럼 휘어질 수 있는 이미지] \\n [strategies / 전략들 / 승리를 위해 머릿속으로 그린 치밀하고 거대한 계획의 조각들]" },
-        { "word": "to secure a competitive advantage", "meaning": "경쟁 우위를 확보하기 위해", "grammar": "to secure a competitive advantage [목적 부사구]: 경쟁 우위를 확보하기 위해 \\n [to / ~하기 위해 / 행동의 에너지가 나아가는 최종 목적지] \\n [secure / 확보하다 / 불안정한 것을 꽉 붙잡아 안전하게 내 것으로 만드는 그림] \\n [a / 하나의 / 여러 가능성 중 하나를 구체화함] \\n [competitive / 경쟁적인 / 서로 앞서려고 다투는 에너지가 느껴지는 상태] \\n [advantage / 우위/이점 / 남들보다 한 발자국 앞서 있는 유리한 위치]" },
-        { "word": "in the international market", "meaning": "국제 시장에서", "grammar": "in the international market [전치사구]: 국제 시장에서 \\n [in / ~안에서 / 거대한 시장이라는 공간의 테두리 내부] \\n [the / 그 / 우리가 활동하는 바로 그 영역] \\n [international / 국제적인 / 국가(nation)와 국가 사이(inter-)를 넘나드는 넓은 범위] \\n [market / 시장 / 물건과 가치가 끊임없이 교환되는 활기찬 장소]" }
+        { "word": "Because the global economic situation", "meaning": "세계 경제 상황이 ~하기 때문에", "grammar": "[Because / ~때문에 / 뒤에 나오는 문장이 이 모든 상황의 '근거'임을 미리 예고하는 논리적 표지판] \\n [the / 그 / 우리가 현재 논의하고 있는 바로 그 대상을 지칭] \\n [global / 세계적인 / 지구본 전체를 아우르는 거대한 시각적 이미지] \\n [economic / 경제의 / 돈과 자원이 흐르고 순환하는 시스템에 관련된] \\n [situation / 상황 / 특정 시점에 사람들이 처해 있는 입체적인 형편이나 모습]" },
+        { "word": "is constantly changing", "meaning": "끊임없이 변하고 있다", "grammar": "[is / ~이다 / 현재의 상태를 나타내는 연결 고리] \\n [constantly / 끊임없이 / 멈추지 않고 시계추처럼 계속해서 이어지는 움직임] \\n [changing / 변하는 / 이전의 모습에서 새로운 모습으로 탈바꿈하는 역동적인 그림]" },
+        { "word": "our company must develop", "meaning": "우리 회사는 개발해야 한다", "grammar": "[our / 우리의 / 내가 속해 있는 공동체의 소유권을 강조] \\n [company / 회사 / 사람들이 함께(com-) 빵을 먹으며(pan-) 일하는 집단] \\n [must / 반드시 ~해야 한다 / 선택의 여지가 없는 강한 의무나 필요성의 압박] \\n [develop / 개발하다 / 껍질을 벗겨내어 알맹이를 키우듯 새로운 것을 만들어가는 과정]" },
+        { "word": "flexible strategies", "meaning": "유연한 전략들을", "grammar": "[flexible / 유연한 / 고정되지 않고 상황에 따라 고무줄처럼 휘어질 수 있는 이미지] \\n [strategies / 전략들 / 승리를 위해 머릿속으로 그린 치밀하고 거대한 계획의 조랑들]" },
+        { "word": "to secure a competitive advantage", "meaning": "경쟁 우위를 확보하기 위해", "grammar": "[to / ~하기 위해 / 행동의 에너지가 나아가는 최종 목적지] \\n [secure / 확보하다 / 불안정한 것을 꽉 붙잡아 안전하게 내 것으로 만드는 그림] \\n [a / 하나의 / 여러 가능성 중 하나를 구체화함] \\n [competitive / 경쟁적인 / 서로 앞서려고 다투는 에너지가 느껴지는 상태] \\n [advantage / 우위/이점 / 남들보다 한 발자국 앞서 있는 유리한 위치]" },
+        { "word": "in the international market", "meaning": "국제 시장에서", "grammar": "[in / ~안에서 / 거대한 시장이라는 공간의 테두리 내부] \\n [the / 그 / 우리가 활동하는 바로 그 영역] \\n [international / 국제적인 / 국가(nation)와 국가 사이(inter-)를 넘나드는 넓은 범위] \\n [market / 시장 / 물건과 가치가 끊임없이 교환되는 활기찬 장소]" }
       ]
 
       **[🇻🇳 베트남어 정밀 분석 참조 예시 1]**
       원본: Mặc dù quá trình công nghiệp hóa mang lại nhiều lợi ích về kinh tế, nhưng chúng ta cần phải có trách nhiệm bảo vệ môi trường để đảm bảo sự phát triển bền vững.
       - translation: 비록 공업화 과정이 경제적으로 많은 이익을 가져다주지만, 우리는 지속 가능한 발전을 보장하기 위해 환경을 보호해야 할 책임이 있습니다.
       - word_analysis: [
-        { "word": "Mặc dù quá trình công nghiệp hóa", "meaning": "비록 공업화 과정이", "grammar": "Mặc dù quá trình công nghiệp hóa [양보 접속사/주어]: 비록 공업화 과정이 \\n [Mặc dù / 비록 ~일지라도 / Mặc(불구하고) + dù(설령) = 어떤 상황을 인정하면서도 반전을 꾀하는 논리] \\n [quá trình / 과정 / 過(과: 지나다) + 程(정: 길/한도) = 어떤 일이 진행되어 나가는 길목] \\n [công nghiệp hóa / 공업화 / 工(공: 일) + 業(업: 일) + 化(화: 되다) = 산업적인 체제로 변화함]" },
-        { "word": "mang lại nhiều lợi ích về kinh tế", "meaning": "경제에 관한 많은 이익을 가져오다", "grammar": "mang lại nhiều lợi ích về kinh tế [동사/목적어]: 경제에 관한 많은 이익을 가져오다 \\n [mang lại / 가져오다 / mang(지니다/들다) + lại(오다) = 외부의 것을 내 쪽으로 끌어오는 동작] \\n [nhiều / 많은 / 수량이나 정도가 풍부한 상태] \\n [lợi ích / 이익 / 利(리: 이롭다) + 益(익: 더하다) = 나에게 도움이 되고 보탬이 되는 것] \\n [về / ~에 관하여 / 화제가 향하는 방향을 지정] \\n [kinh tế / 경제 / 經(경: 다스리다) + 濟(제: 건너다) = 세상을 경영하고 백성을 구제하는 흐름]" },
-        { "word": "nhưng chúng ta cần phải có trách nhiệm", "meaning": "하지만 우리는 책임을 가져야 한다", "grammar": "nhưng chúng ta cần phải có trách nhiệm [반전 접속사/주어2/동사2]: 하지만 우리는 책임을 가져야 한다 \\n [nhưng / 하지만 / 앞의 이익에도 불구하고 꼭 해야 할 '의무'를 강조하는 전환점] \\n [chúng ta / 우리 / 청자를 포함하여 우리 모두가 주체임을 나타냄] \\n [cần phải / ~해야 한다 / cần(필요하다) + phải(당연히 ~이다) = 반드시 이행해야 할 당위성] \\n [có / 가지다 / 존재하게 하거나 소유하는 상태] \\n [trách nhiệm / 책임 / 責(책: 꾸짖다/맡기다) + 任(임: 맡기다) = 마땅히 짊어져야 할 임무]" },
-        { "word": "bảo vệ môi trường", "meaning": "환경을 보호하다", "grammar": "bảo vệ môi trường [목적어2]: 환경을 보호하다 \\n [bảo vệ / 보호 / 保(보: 지키다) + 衛(위: 지키다) = 외부의 위협으로부터 안전하게 지킴] \\n [môi trường / 환경 / 媒(매: 매개) + 境(경: 지경) = 우리를 둘러싸고 있는 주변의 모든 세계]" },
-        { "word": "để đảm bảo sự phát triển bền vững", "meaning": "지속 가능한 발전을 보장하기 위해", "grammar": "để đảm bảo sự phát triển bền vững [목적 부사구]: 지속 가능한 발전을 보장하기 위해 \\n [để / ~하기 위해 / 행동의 최종 지향점을 예고] \\n [đảm bảo / 보장 / 擔(담: 메다) + 保(보: 지키다) = 어깨에 메고 끝까지 책임지고 지킴] \\n [sự phát triển / 발전 / sự(일/사건) + phát(發: 피어나다) + triển(展: 펴지다) = 에너지가 밖으로 뻗어 나가며 성장함] \\n [bền vững / 지속 가능한/공고한 / bền(단단하다) + vững(굳건하다) = 쉽게 흔들리지 않고 오래 유지되는 이미지]" }
+        { "word": "Mặc dù quá trình công nghiệp hóa", "meaning": "비록 공업화 과정이", "grammar": "[Mặc dù / 비록 ~일지라도 / Mặc(불구하고) + dù(설령) = 어떤 상황을 인정하면서도 반전을 꾀하는 논리] \\n [quá trình / 과정 / 過(과: 지나다) + 程(정: 길/한도) = 어떤 일이 진행되어 나가는 길목] \\n [công nghiệp hóa / 공업화 / 工(공: 일) + 業(업: 일) + 化(화: 되다) = 산업적인 체제로 변화함]" },
+        { "word": "mang lại nhiều lợi ích về kinh tế", "meaning": "경제에 관한 많은 이익을 가져오다", "grammar": "[mang lại / 가져오다 / mang(지니다/들다) + lại(오다) = 외부의 것을 내 쪽으로 끌어오는 동작] \\n [nhiều / 많은 / 수량이나 정도가 풍부한 상태] \\n [lợi ích / 이익 / 利(리: 이롭다) + 益(익: 더하다) = 나에게 도움이 되고 보탬이 되는 것] \\n [về / ~에 관하여 / 화제가 향하는 방향을 지정] \\n [kinh tế / 경제 / 經(경: 다스리다) + 濟(제: 건너다) = 세상을 경영하고 백성을 구제하는 흐름]" },
+        { "word": "nhưng chúng ta cần phải có trách nhiệm", "meaning": "하지만 우리는 책임을 가져야 한다", "grammar": "[nhưng / 하지만 / 앞의 이익에도 불구하고 꼭 해야 할 '의무'를 강조하는 전환점] \\n [chúng ta / 우리 / 청자를 포함하여 우리 모두가 주체임을 나타냄] \\n [cần phải / ~해야 한다 / cần(필요하다) + phải(당연히 ~이다) = 반드시 이행해야 할 당위성] \\n [có / 가지다 / 존재하게 하거나 소유하는 상태] \\n [trách nhiệm / 책임 / 責(책: 꾸짖다/맡기다) + 任(임: 맡기다) = 마땅히 짊어져야 할 임무]" },
+        { "word": "bảo vệ môi trường", "meaning": "환경을 보호하다", "grammar": "[bảo vệ / 보호 / 保(보: 지키다) + 衛(위: 지키다) = 외부의 위협으로부터 안전하게 지킴] \\n [môi trường / 환경 / 媒(매: 매개) + 境(경: 지경) = 우리를 둘러싸고 있는 주변의 모든 세계]" },
+        { "word": "để đảm bảo sự phát triển bền vững", "meaning": "지속 가능한 발전을 보장하기 위해", "grammar": "[để / ~하기 위해 / 행동의 최종 지향점을 예고] \\n [đảm bảo / 보장 / 擔(담: 메다) + 保(보: 지키다) = 어깨에 메고 끝까지 책임지고 지킴] \\n [sự phát triển / 발전 / sự(일/사건) + phát(發: 피어나다) + triển(展: 펴지다) = 에너지가 밖으로 뻗어 나가며 성장함] \\n [bền vững / 지속 가능한/공고한 / bền(단단하다) + vững(굳건하다) = 쉽게 흔들리지 않고 오래 유지되는 이미지]" }
       ]
 
       **[사용자 입력 상황]**
