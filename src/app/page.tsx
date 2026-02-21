@@ -1229,7 +1229,7 @@ export default function Home() {
                               </div>
 
                               <div className="flex justify-between items-start gap-4">
-                                <p className={`text-lg md:text-2xl font-bold text-black mb-0 leading-tight flex-1 text-left ${isActive ? 'tracking-tight' : ''}`}>{line.text}</p>
+                                <p className={`text-lg md:text-2xl font-semibold text-[#1a1a1a] mb-0 leading-[1.7] flex-1 text-left tracking-normal ${isActive ? '' : ''}`}>{line.text}</p>
                               </div>
                             </div>
                           </div>
@@ -1242,9 +1242,9 @@ export default function Home() {
                                 <div className="bg-gray-50 rounded-xl p-1.5 md:p-2 border border-gray-200">
                                   <div className="flex items-center gap-2 mb-2 text-black">
                                     <Languages className="w-4 h-4" />
-                                    <span className="text-[10px] font-bold uppercase tracking-widest">Translation</span>
+                                    <span className="text-[10px] font-semibold uppercase tracking-widest">Translation</span>
                                   </div>
-                                  <p className="text-black font-bold leading-relaxed">{line.translation}</p>
+                                  <p className="text-[#1a1a1a] font-semibold leading-[1.7]">{line.translation}</p>
                                 </div>
 
 
@@ -1268,12 +1268,12 @@ export default function Home() {
                                           .map((item, wIdx, arr) => (
                                             <div key={wIdx} className={`px-3 md:px-4 py-1.5 flex items-start gap-2 hover:bg-emerald-50/50 transition-colors ${wIdx !== arr.length - 1 ? 'border-b border-gray-100' : ''}`}>
                                               <div className="shrink-0 max-w-[30%] w-full break-words">
-                                                <span className="text-emerald-700 font-bold text-base">{item.word}</span>
+                                                <span className="text-emerald-700 font-semibold text-base">{item.word}</span>
                                               </div>
                                               <div className="flex-1">
-                                                <p className="text-black font-bold text-sm leading-snug">{item.meaning}</p>
+                                                <p className="text-[#1a1a1a] font-semibold text-sm leading-[1.7]">{item.meaning}</p>
                                                 {item.grammar && (
-                                                  <p className="text-black text-xs mt-0.5 leading-snug">{item.grammar}</p>
+                                                  <p className="text-gray-600 text-xs mt-0.5 leading-[1.7]">{item.grammar}</p>
                                                 )}
                                               </div>
                                             </div>

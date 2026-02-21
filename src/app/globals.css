@@ -12,10 +12,11 @@ html {
 }
 
 body {
-  color: var(--foreground);
+  color: #1a1a1a;
   background: var(--background);
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   scroll-snap-type: y mandatory;
+  line-height: 1.7;
 }
 
 @layer utilities {
