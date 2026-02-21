@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
                   properties: {
                     word: { type: SchemaType.STRING, description: "The word or particle being analyzed" },
                     meaning: { type: SchemaType.STRING, description: "Korean meaning" },
-                    grammar: { type: SchemaType.STRING, description: "Grammar role/part of speech in Korean" }
+                    grammar: { type: SchemaType.STRING, description: "Deep Scan Analysis (Etymology/Hanja/Imagery) in Korean" }
                   },
                   required: ["word", "meaning", "grammar"]
                 }
@@ -202,17 +202,18 @@ export async function POST(req: NextRequest) {
 
       **[📱 출력 포맷 가이드 (word_analysis 내 grammar 필드 구성)]**
       \`grammar\` 필드는 각 항목을 서로 다른 줄에 표시하기 위해 반드시 **개행 문자(\\n)**를 사용하여 연결한다:
-      "**[단어1 / 뜻 / 상세 해설] \\n [단어2 / 뜻 / 상세 해설] \\n [청크 / 뜻 / 상세 해설]**"
+      "**[단어1 / 뜻 / 딥스캔(어원/이미지) 해설] \\n [단어2 / 뜻 / 딥스캔(어원/이미지) 해설] \\n [청크 / 뜻 / 딥스캔(어원/이미지) 해설]**"
 
       **중요 Rules (절대 준수):**
       1. **헤더 삭제**: '청크 제목 [역할]: 의미' 와 같은 첫 줄(중복 정보)을 절대 쓰지 말고, 즉시 첫 번째 대괄호 분석(\`[ ]\`)부터 시작한다.
       2. **강제 줄바꿈**: 모든 대괄호([ ]) 항목 사이에는 반드시 개행 문자 \`\\n\`을 삽입해야 한다. 모든 분석 항목이 화면에서 세로로 한 줄씩 배치되도록 하는 것이 핵심이다.
-      3. **가독성**: 한 줄에 두 개 이상의 대괄호 항목이 오는 것을 엄격히 금지한다.
+      3. **가독성(형식)**: 한 줄에 두 개 이상의 대괄호 항목이 오는 것을 엄격히 금지한다.
 
       **[⚠️ 강제 이행 명령]**
-      1. **한국어 전용**: 당신의 사용자는 한국인 학습자이다. 따라서 원문을 제외한 모든 텍스트는 **무조건 한국어**여야 한다. 베트남어를 영어로 번역하거나 영어 단어를 영어로 설명하는 것을 엄격히 금지한다.
-      2. **무조건적 전수 분석**: 문장이 아무리 짧거나 단순하더라도 위 7대 원칙에 따라 '단어 단위'로 쪼개어 분석해야 하며, 분석을 생략하는 문장이 있어서는 절대 안 된다.
-      3. **가독성 극대화**: 모든 \`grammar\` 필드는 불필요한 서술 없이 곧바로 \`[단어 / 뜻 / 이미지 및 어원]\` 형식의 리스트로 시작한다.
+      1. **필수적 딥스캔(Deep Scan)**: '가독성'은 헤더 삭제를 의미할 뿐, **내용을 간소화하는 것이 아니다.** 베트남어 단어는 한자(Hanja) 병기를, 영어 및 일반 단어는 시각적 이미지를 **반드시 포함**해야 한다. 이를 생략하고 단순 문법 명칭만 적는 것은 시스템 지침 위반이다.
+      2. **한국어 전용**: 당신의 사용자는 한국인 학습자이다. 따라서 원문을 제외한 모든 텍스트는 **무조건 한국어**여야 한다. 베트남어를 영어로 번역하거나 영어 단어를 영어로 설명하는 것을 엄격히 금지한다.
+      3. **무조건적 전수 분석**: 문장이 아무리 짧거나 단순하더라도 위 7대 원칙에 따라 '단어 단위'로 쪼개어 분석해야 하며, 분석을 생략하는 문장이 있어서는 절대 안 된다.
+      4. **가독성 극대화**: 모든 \`grammar\` 필드는 불필요한 서술 없이 곧바로 \`[단어 / 뜻 / 딥스캔 해설]\` 형식의 리스트로 시작한다.
 
       **[🇺🇸 영어 정밀 분석 참조 예시 1]**
       원본: Because the global economic situation is constantly changing, our company must develop flexible strategies to secure a competitive advantage in the international market.
