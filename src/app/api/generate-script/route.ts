@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
                   properties: {
                     word: { type: SchemaType.STRING, description: "The meaningful chunk or phrase being analyzed" },
                     meaning: { type: SchemaType.STRING, description: "Korean meaning" },
-                    grammar: { type: SchemaType.STRING, description: "Deep Scan Analysis (Etymology/Hanja/Imagery) in Korean" }
+                    grammar: { type: SchemaType.STRING, description: "STRICTLY KOREAN ONLY - Deep Scan Analysis (No English permitted! Violation = Error)" }
                   },
                   required: ["word", "meaning", "grammar"]
                 }
@@ -196,9 +196,9 @@ export async function POST(req: NextRequest) {
       2. **전수 분석**: 문장 내 모든 청크와 남은 단어들을 등장 순서대로 빠짐없이 분석한다. (부호 제외)
       3. **독립적 재설명**: 중복 단어/청크라도 매번 처음부터 끝까지 상세히 풀이한다. (생략 절대 불가)
       4. **역할 명시**: 문법적 역할은 [주어], [동사], [목적어], [원인 접속사] 등 약어 없이 풀어서 표기한다.
-      5. **언어 통제 (절대 원칙)**: 원문(text)을 제외한 **모든 항목(translation, meaning, grammar)은 반드시 한국어로만 작성**한다. **영어나 다른 외국어로 번역하는 행위를 절대 금지**하며, 위반 시 시스템 오류로 간주한다.
-      6. **[Deep Scan] 베트남어**: 다음절 단어는 전체 뜻 아래에 개별 음절의 한자(Hanja/훈독)를 매칭하고, 회화 시 연상해야 할 논리적 이미지를 설명한다.
-      7. **[Deep Scan] 영어**: 단어의 문맥적 뜻과 더불어, 해당 단어가 머릿속에 그리는 시각적 이미지와 의미의 확장을 설명한다.
+      5. **언어 통제 (최상위 절대 원칙)**: 원문(text)을 제외한 **모근 항목(translation, meaning, grammar)은 100% 한국어로만 작성**한다. **영단어(예: and, so, polite, you)를 단 한 단어라도 섞어서 설명하는 행위를 절대 금지**하며, 이를 어길 시 시스템 심각 오류로 간주한다.
+      6. **[Deep Scan] 베트남어**: 다음절 단어는 전체 뜻 아래에 개별 음절의 한자(Hanja/훈독)를 매칭하고, 회화 시 연상해야 할 논리적 이미지를 설명한다. (영문 뜻 병기 절대 금지)
+      7. **[Deep Scan] 영어**: 단어의 문맥적 뜻과 더불어, 해당 단어가 머릿속에 그리는 시각적 이미지와 의미의 확장을 설명한다. (영어로 다시 설명하는 행위 절대 금지)
 
       **[📱 출력 포맷 가이드 (word_analysis 내 grammar 필드 구성)]**
       \`grammar\` 필드는 각 항목을 서로 다른 줄에 표시하기 위해 반드시 **개행 문자(\\n)**를 사용하여 연결한다:
@@ -212,9 +212,13 @@ export async function POST(req: NextRequest) {
       **[⚠️ 강제 이행 명령]**
       1. **덩어리화(Chunking)**: 개별 단어의 파편화된 분석을 지양하고, **의미 단위의 덩어리(Chunk)를 우선적**으로 보여주어 회화적 감각을 키워라.
       2. **필수적 딥스캔(Deep Scan)**: '가독성'은 헤더 삭제를 의미할 뿐, **내용을 간소화하는 것이 아니다.** 단어는 한자(Hanja) 병기를, 영어 및 일반 단어는 시각적 이미지를 **반드시 포함**해야 한다.
-      3. **한국어 전용**: 당신의 사용자는 한국인 학습자이다. 원문을 제외한 모든 텍스트는 **무조건 한국어**여야 한다. 베트남어를 영어로 번역하거나 영어 단어를 영어로 설명하는 것을 엄격히 금지한다.
-      4. **무조건적 전수 분석**: 문장이 아무리 짧거나 단순하더라도 위 7대 원칙에 따라 분석해야 하며, 분석을 생략하는 문장이 있어서는 절대 안 된다.
-      5. **가독성 극대화**: 모든 \`grammar\` 필드는 불필요한 서술 없이 곧바로 \`[단어 / 뜻 / 딥스캔 해설]\` 형식의 리스트로 시작한다.
+      3. **한국어 전용 (Zero English)**: 당신의 사용자는 한국인 학습자이다. 원문을 제외한 모든 텍스트에서 영단어를 영원히 제거하라. 베트남어를 영어로 번역하거나, 영어 단어 옆에 영문을 병기(예: [Dạ / 네 / polite])하는 모든 행위를 즉각 중단하라.
+      4. **금지된 예시 (NEVER DO THIS)**:
+         - `[Dạ / 네 / polite acknowledgement]` (X) -> 영문 제거 대상
+         - `[한 / 하나 / one]` (X) -> 영문 제거 대상
+         - `[및 / 그리고 / and]` (X) -> 영문 제거 대상
+      5. **무조건적 전수 분석**: 문장이 아무리 짧거나 단순하더라도 위 7대 원칙에 따라 분석해야 하며, 분석을 생략하는 문장이 있어서는 절대 안 된다.
+      6. **가독성 극대화**: 모든 \`grammar\` 필드는 불필요한 서술 없이 곧바로 \`[단어 / 뜻 / 딥스캔 해설]\` 형식의 리스트로 시작한다.
 
       **[🇺🇸 영어 정밀 분석 참조 예시 1]**
       원본: Because the global economic situation is constantly changing, our company must develop flexible strategies to secure a competitive advantage.
