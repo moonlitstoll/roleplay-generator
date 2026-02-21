@@ -199,7 +199,7 @@ export async function POST(req: NextRequest) {
          - **베트남어**: 다음절 단어는 전체 뜻 아래에 개별 음절의 한자(훈독 포함) 또는 고유어 원뜻을 1:1로 매칭한다.
          - **영어**: 개별 단어의 문맥적 뜻과 이미지 확장을 설명한다. (어원 및 음절 분해 생략)
       5. **역할 명시**: 청크 제목 옆에 [S], [V], [O], [접속사], [주어], [동사구], [명사구] 등 문법적 역할을 반드시 명시한다.
-      6. **설명 언어 통제**: 원문을 제외한 모든 해설은 반드시 한국어로만 작성한다.
+      6. **설명 언어 통제**: 원문(\`text\` 필드)을 제외한 모든 필드(\`translation\`, \`meaning\`, \`grammar\`)는 반드시 한국어로만 작성한다. '월남어', '베트남어', 'English' 와 같은 언어명 태그 기재는 절대 금지한다.
 
       **[📱 출력 포맷 가이드 (word_analysis 내 grammar 필드 구성)]**
       \`grammar\` 필드는 다음 수직형 리스트 구조를 엄격히 따른다 (개행 문자 \\n 사용):
@@ -230,6 +230,7 @@ export async function POST(req: NextRequest) {
 
       **[🇺🇸 영어 정밀 분석 참조 예시]**
       원본: The marketing department decided to postpone the launch because the budget was insufficient.
+      - translation: 마케팅 부서는 예산이 부족했기 때문에 출시를 연기하기로 결정했습니다.
       - word_analysis: [
         { "word": "The marketing department", "meaning": "마케팅 부서", "grammar": "[S]: 마케팅 부서 \\n [The / 그 / 특정 정관사] \\n [marketing / 마케팅 / 시장 활동] \\n [department / 부서 / 조직의 일부]" },
         { "word": "decided to postpone", "meaning": "연기하기로 결정했다", "grammar": "[V]: 연기하기로 결정했다 \\n [decided / 결정했다 / 선택을 확정함] \\n [to postpone / 연기하는 것을 / 시간을 뒤로 미룸]" },
@@ -240,6 +241,7 @@ export async function POST(req: NextRequest) {
 
       **[🇺🇸 영어 추가 정밀 분석 예시]**
       원본: The experienced software engineers spent several weeks developing a highly sophisticated algorithm to enhance the overall performance of the system.
+      - translation: 숙련된 소프트웨어 엔지니어들은 시스템의 전반적인 성능을 향상시키기 위해 매우 정교한 알고리즘을 개발하는 데 몇 주를 보냈습니다.
       - word_analysis: [
         { "word": "The experienced software engineers", "meaning": "경험 많은 소프트웨어 엔지니어들", "grammar": "[S]: 경험 많은 소프트웨어 엔지니어들 \\n [The / 그 / 특정 정관사] \\n [experienced / 경험 많은 / 많은 일을 겪어 숙련된 느낌] \\n [software / 소프트웨어 / 형태가 유연한 프로그램 덩어리] \\n [engineers / 엔지니어들 / 기술을 설계하고 다루는 사람들]" },
         { "word": "spent several weeks", "meaning": "몇 주를 보냈다", "grammar": "[V]: 몇 주를 보냈다 \\n [spent / 소비했다 / 시간이나 돈을 써서 없애는 이미지] \\n [several / 몇몇의 / 대여섯 개 정도의 적당한 수] \\n [weeks / 주(week)들 / 7일 단위의 시간 묶음]" },
