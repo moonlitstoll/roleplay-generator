@@ -154,11 +154,10 @@ export async function POST(req: NextRequest) {
           - DO NOT generate a roleplay or conversation.
           - DO NOT change or "fix" the input text. Use the user's "Input" EXACTLY as it is.
           - SEGMENTATION STRATEGY:
-            1. Split the input text into INDIVIDUAL sentences as much as possible for granular analysis.
-            2. ONLY group sentences together if they are very short or tightly connected semantic units.
-            3. Prioritize detailed "word_analysis" for each segment.
+            1. Split the input text into INDIVIDUAL sentences for granular analysis.
           - Assign all segments to Speaker "A".
-          - Provide detailed Korean translation, patterns, and word_analysis for each segment.
+          - Provide ALL descriptions, including translations and word analysis, in Korean ONLY.
+          - Provide 초정밀 분석 (Deep Scan) for each segment according to the rules and examples.
         `;
     } else if (isMonologueMode) {
       baseInstruction = `
@@ -207,7 +206,8 @@ export async function POST(req: NextRequest) {
       "청크 제목 [역할]: 청크 전체 의미 \\n [단어1 / 뜻 / 한자(훈독) 또는 어근 이미지] \\n [단어2 / 뜻 / 한자(훈독) 또는 어근 이미지]"
 
       **[🇻🇳 베트남어 정밀 분석 참조 예시]**
-      원본: Vì nhân viên giao hàng đã cập nhật trạng thái đơn hàng thành công, nên mình muốn kiểm tra lại.
+      원본: Vì nhân viên giao hàng đã cập nhật trạng thái đơn hàng thành공, nên mình muốn kiểm tra lại.
+      - translation: 배달원이 주문 상태를 성공적으로 업데이트했기 때문에, 다시 확인해보고 싶습니다.
       - word_analysis: [
         { "word": "Vì", "meaning": "~때문에", "grammar": "[접속사]: ~때문에 \\n [Vì / ~때문에 / 원인 유도]" },
         { "word": "nhân viên giao hàng", "meaning": "배달원", "grammar": "[S]: 배달원 \\n [nhân viên / 직원 / 人(인: 사람) + 員(원: 인원)] \\n [giao hàng / 배달 / giao(넘겨주다) + hàng(물건)]" },
@@ -232,7 +232,20 @@ export async function POST(req: NextRequest) {
       원본: The marketing department decided to postpone the launch because the budget was insufficient.
       - word_analysis: [
         { "word": "The marketing department", "meaning": "마케팅 부서", "grammar": "[S]: 마케팅 부서 \\n [The / 그 / 특정 정관사] \\n [marketing / 마케팅 / 시장 활동] \\n [department / 부서 / 조직의 일부]" },
-        { "word": "decided to postpone", "meaning": "연기하기로 결정했다", "grammar": "[V]: 연기하기로 결정했다 \\n [decided / 결정했다 / 선택을 확정함] \\n [to postpone / 연기하는 것을 / 시간을 뒤로 미룸]" }
+        { "word": "decided to postpone", "meaning": "연기하기로 결정했다", "grammar": "[V]: 연기하기로 결정했다 \\n [decided / 결정했다 / 선택을 확정함] \\n [to postpone / 연기하는 것을 / 시간을 뒤로 미룸]" },
+        { "word": "the launch", "meaning": "출시", "grammar": "[O]: 출시 \\n [the launch / 새로운 것을 처음 내놓는 행위]" },
+        { "word": "because", "meaning": "~때문에", "grammar": "[접속사]: ~때문에 \\n [because / ~라는 근거로]" },
+        { "word": "the budget was insufficient", "meaning": "예산이 부족했다", "grammar": "[S2/V2]: 예산이 부족했다 \\n [the budget / 계획된 자금 규모] \\n [was / ~였다 / 과거 상태] \\n [insufficient / 충분하지 못한 / 모자란 상태]" }
+      ]
+
+      **[🇺🇸 영어 추가 정밀 분석 예시]**
+      원본: The experienced software engineers spent several weeks developing a highly sophisticated algorithm to enhance the overall performance of the system.
+      - word_analysis: [
+        { "word": "The experienced software engineers", "meaning": "경험 많은 소프트웨어 엔지니어들", "grammar": "[S]: 경험 많은 소프트웨어 엔지니어들 \\n [The / 그 / 특정 정관사] \\n [experienced / 경험 많은 / 많은 일을 겪어 숙련된 느낌] \\n [software / 소프트웨어 / 형태가 유연한 프로그램 덩어리] \\n [engineers / 엔지니어들 / 기술을 설계하고 다루는 사람들]" },
+        { "word": "spent several weeks", "meaning": "몇 주를 보냈다", "grammar": "[V]: 몇 주를 보냈다 \\n [spent / 소비했다 / 시간이나 돈을 써서 없애는 이미지] \\n [several / 몇몇의 / 대여섯 개 정도의 적당한 수] \\n [weeks / 주(week)들 / 7일 단위의 시간 묶음]" },
+        { "word": "developing a highly sophisticated algorithm", "meaning": "매우 정교한 알고리즘을 개발하는 것", "grammar": "[동명사구]: 매우 정교한 알고리즘을 개발하는 것 \\n [developing / 개발하는 / 무언가를 점진적으로 키워나가는 과정] \\n [a / 하나의 / 불특정 단수] \\n [highly / 매우 / 높은 수준으로 치켜세우는 느낌] \\n [sophisticated / 정교한 / 복잡하게 얽혀 있어 수준이 높은 상태] \\n [algorithm / 알고리즘 / 문제를 해결하기 위한 일련의 절차]" },
+        { "word": "to enhance the overall performance", "meaning": "전반적인 성능을 향상시키기 위해", "grammar": "[부사구]: 전반적인 성능을 향상시키기 위해 \\n [to / ~하기 위해 / 앞으로 나아갈 목적지] \\n [enhance / 향상시키다 / 가치나 능력을 더 끌어올리는 그림] \\n [the / 그 / 특정 정관사] \\n [overall / 전반적인 / 머리 위로 덮개를 다 씌운 듯 전체적인] \\n [performance / 성능 / 기계나 사람이 실제로 해내는 성과]" },
+        { "word": "of the system", "meaning": "시스템의", "grammar": "[전치사구]: 시스템의 \\n [of / ~의 / 전체에 속한 일부분을 나타내는 연결] \\n [the / 그 / 특정 정관사] \\n [system / 시스템 / 하나로 짜여진 체계]" }
       ]
 
       **[사용자 입력 상황]**
