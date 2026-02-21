@@ -983,7 +983,7 @@ export default function Home() {
           <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-2 lg:gap-4">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-xl lg:text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-blue-900 to-indigo-900 tracking-tighter">
+                <h1 className="text-xl lg:text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-900 to-indigo-900 tracking-tighter">
                   RealWait
                 </h1>
                 <p className="text-gray-900 text-[10px] font-bold uppercase tracking-widest">Roleplay Gen</p>
@@ -1036,14 +1036,14 @@ export default function Home() {
             <div className="flex bg-gray-100 p-1 rounded-xl shadow-inner border border-gray-200 shrink-0">
               <button
                 onClick={() => setMode('roleplay')}
-                className={`px-2.5 py-1.5 rounded-lg text-[9px] font-black tracking-widest transition-all flex items-center gap-1 ${mode === 'roleplay' ? 'bg-black text-white shadow-sm' : 'text-gray-500 hover:text-black'}`}
+                className={`px-2.5 py-1.5 rounded-lg text-[9px] font-bold tracking-widest transition-all flex items-center gap-1 ${mode === 'roleplay' ? 'bg-black text-white shadow-sm' : 'text-gray-500 hover:text-black'}`}
               >
                 <RefreshCw className={`w-3 h-3 ${mode === 'roleplay' && loading ? 'animate-spin' : ''}`} />
                 ROLEPLAY
               </button>
               <button
                 onClick={() => setMode('analysis')}
-                className={`px-2.5 py-1.5 rounded-lg text-[9px] font-black tracking-widest transition-all flex items-center gap-1 ${mode === 'analysis' ? 'bg-black text-white shadow-sm' : 'text-gray-500 hover:text-black'}`}
+                className={`px-2.5 py-1.5 rounded-lg text-[9px] font-bold tracking-widest transition-all flex items-center gap-1 ${mode === 'analysis' ? 'bg-black text-white shadow-sm' : 'text-gray-500 hover:text-black'}`}
               >
                 <MessageSquare className="w-3 h-3" />
                 ANALYSIS
@@ -1055,7 +1055,7 @@ export default function Home() {
                 <button
                   key={lang}
                   onClick={() => setLanguage(lang as any)}
-                  className={`px-2.5 py-1.5 rounded-lg text-[9px] font-black transition-all ${language === lang ? 'bg-black text-white shadow-sm' : 'text-gray-500 hover:text-black'}`}
+                  className={`px-2.5 py-1.5 rounded-lg text-[9px] font-bold transition-all ${language === lang ? 'bg-black text-white shadow-sm' : 'text-gray-500 hover:text-black'}`}
                 >
                   {lang === 'Vietnamese' ? 'VN' : 'EN'}
                 </button>
@@ -1070,7 +1070,7 @@ export default function Home() {
                 >
                   <MessageSquare className="w-3 h-3 text-black" />
                   <span className="w-4 text-center text-[10px] font-bold text-black">{turnCount === 0 ? 'M' : turnCount}</span>
-                  <span className="text-[8px] font-black text-gray-500 uppercase tracking-tighter">Turns</span>
+                  <span className="text-[8px] font-bold text-gray-500 uppercase tracking-tighter">Turns</span>
                 </button>
 
                 {showTurnsPopup && (
@@ -1090,7 +1090,7 @@ export default function Home() {
                 ) : (
                   <Music className="w-4 h-4" />
                 )}
-                <span className="text-[10px] font-black uppercase tracking-tight">
+                <span className="text-[10px] font-bold uppercase tracking-tight">
                   {isMerging ? 'Preparing' : (mergedAudioUrl ? 'BG READY' : 'WAIT')}
                 </span>
               </div>
@@ -1229,7 +1229,7 @@ export default function Home() {
                               </div>
 
                               <div className="flex justify-between items-start gap-4">
-                                <p className={`text-lg md:text-2xl font-black text-black mb-0 leading-tight flex-1 text-left ${isActive ? 'tracking-tight' : ''}`}>{line.text}</p>
+                                <p className={`text-lg md:text-2xl font-bold text-black mb-0 leading-tight flex-1 text-left ${isActive ? 'tracking-tight' : ''}`}>{line.text}</p>
                               </div>
                             </div>
                           </div>
@@ -1242,7 +1242,7 @@ export default function Home() {
                                 <div className="bg-gray-50 rounded-xl p-1.5 md:p-2 border border-gray-200">
                                   <div className="flex items-center gap-2 mb-2 text-black">
                                     <Languages className="w-4 h-4" />
-                                    <span className="text-[10px] font-black uppercase tracking-widest">Translation</span>
+                                    <span className="text-[10px] font-bold uppercase tracking-widest">Translation</span>
                                   </div>
                                   <p className="text-black font-bold leading-relaxed">{line.translation}</p>
                                 </div>
@@ -1256,7 +1256,7 @@ export default function Home() {
                                   <div className="space-y-2">
                                     <div className="flex items-center gap-2 text-emerald-700 pl-1">
                                       <BookOpen className="w-4 h-4" />
-                                      <span className="text-[10px] font-black uppercase tracking-widest">Word Analysis</span>
+                                      <span className="text-[10px] font-bold uppercase tracking-widest">Word Analysis</span>
                                     </div>
                                     <div className="bg-white border border-gray-300 rounded-2xl overflow-hidden shadow-sm">
                                       {Array.isArray(line.word_analysis) ? (
@@ -1530,7 +1530,7 @@ export default function Home() {
           <div className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
             <div className="p-6 space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-black text-gray-800 uppercase tracking-tight">Enter Context</h3>
+                <h3 className="text-lg font-bold text-gray-800 uppercase tracking-tight">Enter Context</h3>
                 <button onClick={() => setShowInputModal(false)} className="p-2 hover:bg-gray-100 rounded-full text-gray-400"><X className="w-5 h-5" /></button>
               </div>
               <textarea
@@ -1538,7 +1538,7 @@ export default function Home() {
                 value={tempInput}
                 onChange={(e) => setTempInput(e.target.value)}
                 placeholder={mode === 'roleplay' ? "Describe a situation, conversation topic, or just a word..." : "Paste the sentence you want to analyze verbatim..."}
-                className="w-full h-48 bg-gray-50 border border-gray-200 rounded-2xl p-4 text-black font-medium focus:ring-2 focus:ring-black outline-none resize-none"
+                className="w-full h-48 bg-gray-50 border border-gray-200 rounded-2xl p-4 text-black font-semibold focus:ring-2 focus:ring-black outline-none resize-none"
               />
               <div className="flex gap-2 pt-2">
                 <button
