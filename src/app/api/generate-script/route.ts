@@ -199,8 +199,8 @@ export async function POST(req: NextRequest) {
       5. **언어 통제 (최상위 절대 원칙)**: 원문(text)을 제외한 **모든 해설은 반드시 한국어로만 작성**하며, 번역문(translation)에서 큰따옴표는 절대 생략한다. 영단어를 섞어서 설명하는 행위를 엄격히 금지한다.
       6. **[Deep Scan] 베트남어 특화**: 
          - 1음절 단어가 다음절 단어에 포함되어 있으면 따로 나누지 말고 해당 단어 설명 내에서 한꺼번에 설명한다.
-         - 다음절 단어는 전체 뜻 아래에 개별 음절의 한자(훈독 포함) 또는 고유어 원뜻을 1:1로 매칭하고, 회화 시 연상해야 할 논리적 이미지를 설명한다.
-      7. **[Deep Scan] 영어 특화**: 개별 단어의 문맥적 뜻과 더불어, 해당 단어가 머릿속에 그리는 시각적 이미지와 의미의 확장을 설명한다.
+         - 다음절 단어는 전체 뜻 아래에 개별 음절의 한자(훈독 포함) 또는 고유어 원뜻을 1:1로 매칭하고, 회화 시 연상해야 할 **핵심 이미지를 한 줄로 매우 간결하게** 설명한다.
+      7. **[Deep Scan] 영어 특화**: 개별 단어의 문맥적 뜻과 더불어, 해당 단어가 머릿속에 그리는 **핵심 이미지를 모바일 가독성을 위해 본질만 짧게** 설명한다.
 
       **[📱 출력 포맷 가이드]**
       - 번역(\`translation\`): 큰따옴표 없이 한국어로만 작성한다.
@@ -214,8 +214,7 @@ export async function POST(req: NextRequest) {
       4. **언어 라벨링 절대 금지**: `(越南语)`, `(English)`, `(베트남어)` 등 어떤 언어의 종류를 설명하는 괄호나 텍스트를 절대 쓰지 마라.
 
       **[⚠️ 강제 이행 명령]**
-      1. **덩어리화(Chunking)**: 개별 단어의 파편화된 분석을 지양하고, **의미 단위의 덩어리(Chunk)를 우선적**으로 보여주어 회화적 감각을 키워라.
-      2. **필수적 딥스캔(Deep Scan)**: '가독성'은 헤더 삭제를 의미할 뿐, **내용을 간소화하는 것이 아니다.** 단어는 한자(Hanja) 병기를, 영어 및 일반 단어는 시각적 이미지를 **반드시 포함**해야 한다.
+      2. **필수적 딥스캔(Deep Scan)**: '가독성'은 헤더 삭제와 **내용의 극한 간결화**를 의미한다. 장황한 설명은 금지하며, 핵심 이미지나 어원을 **본질만 담아 짧고 강렬하게** 기술하라. (모바일 가독성 최우선)
       3. **한국어 전용 (Zero English & Zero Labeling)**: 당신의 사용자는 한국인 학습자이다. 원문을 제외한 모든 텍스트에서 영단어를 영원히 제거하라. 또한 `(越南语)`, `(English)` 등 원치 않는 언어 표시 라벨을 붙이는 행위를 즉각 중단하라.
       4. **금지된 예시 (NEVER DO THIS)**:
          - `[Dạ / 네 / polite acknowledgement]` (X) -> 영문 제거 대상
@@ -229,20 +228,20 @@ export async function POST(req: NextRequest) {
       원본: Because the global economic situation is constantly changing, our company must develop flexible strategies to secure a competitive advantage.
       - translation: 세계 경제 상황이 끊임없이 변하고 있기 때문에, 우리 회사는 유연한 전략을 개발해야 합니다.
       - word_analysis: [
-        { "word": "Because the global economic situation", "meaning": "[원인 및 주어부] 세계 경제 상황이 ~하기 때문에", "grammar": "[Because / ~때문에 / 뒤에 나오는 문장이 근거임을 예고하는 논리적 표지판] \\n [global economic situation / 세계 경제 상황 / 지구 전체의 돈과 자원이 흐르는 입체적인 형편]" },
-        { "word": "is constantly changing", "meaning": "[동사구] 끊임없이 변하고 있다", "grammar": "[constantly / 끊임없이 / 멈추지 않고 계속되는 움직임] \\n [changing / 변하는 / 새로운 모습으로 탈바꿈하는 역동적인 그림]" },
-        { "word": "our company must develop", "meaning": "[주어 및 동사구] 우리 회사는 개발해야 한다", "grammar": "[our company / 우리 회사 / 우리가 함께 일하는 집단] \\n [must develop / 반드시 개발해야 한다 / 강한 의지로 새로운 것을 알맹이 키우듯 만들어가는 과정]" },
-        { "word": "flexible strategies", "meaning": "[목적어구] 유연한 전략들을", "grammar": "[flexible / 유연한 / 상황에 따라 고무줄처럼 휘어질 수 있는 이미지] \\n [strategies / 전략들 / 승리를 위해 머릿속으로 그린 치밀한 계획들]" }
+        { "word": "Because the global economic situation", "meaning": "[원인 및 주어부] 세계 경제 상황이 ~하기 때문에", "grammar": "[Because / ~때문에 / 근거를 예고하는 표지판] \n [global economic situation / 세계 경제 상황 / 지구 전체의 돈의 흐름]" },
+        { "word": "is constantly changing", "meaning": "[동사구] 끊임없이 변하고 있다", "grammar": "[constantly / 끊임없이 / 멈추지 않는 연속성] \n [changing / 변하는 / 탈바꿈하는 역동적 이미지]" },
+        { "word": "our company must develop", "meaning": "[주어 및 동사구] 우리 회사는 개발해야 한다", "grammar": "[our company / 우리 회사 / 우리가 일하는 집단] \n [must develop / 반드시 개발해야 한다 / 알맹이를 키워내는 과정]" },
+        { "word": "flexible strategies", "meaning": "[목적어구] 유연한 전략들을", "grammar": "[flexible / 유연한 / 고무줄처럼 휘어지는 유연함] \n [strategies / 전략들 / 승리를 위한 치밀한 계획]" }
       ]
 
       **[🇻🇳 베트남어 정밀 분석 참조 예시 1]**
       원본: Mặc dù quá trình công nghiệp hóa mang lại nhiều lợi ích về kinh tế.
       - translation: 비록 공업화 과정이 경제적으로 많은 이익을 가져다주지만.
       - word_analysis: [
-        { "word": "Mặc dù quá trình", "meaning": "[양보 접속사 및 주어] 비록 과정이 ~할지라도", "grammar": "[Mặc dù / 비록 ~일지라도 / 상황을 인정하면서 반전을 꾀하는 논리] \\n [quá trình / 과정 / 過(지나다) + 程(길) = 일이 진행되어 나가는 길목]" },
+        { "word": "Mặc dù quá trình", "meaning": "[양보 접속사 및 주어] 비록 과정이 ~할지라도", "grammar": "[Mặc dù / 비록 ~일지라도 / 반전을 꾀하는 논리] \n [quá trình / 과정 / 過(지나다) + 程(길) = 일이 진행되는 길목]" },
         { "word": "công nghiệp hóa", "meaning": "[목적어] 공업화", "grammar": "[công nghiệp hóa / 공업화 / 工(일) + 業(일) + 化(되다) = 산업 체제로의 변화]" },
-        { "word": "mang lại nhiều lợi ích", "meaning": "[동사 및 목적어구] 많은 이익을 가져오다", "grammar": "[mang lại / 가져오다 / 외부의 것을 내 쪽으로 끌어오는 동작] \\n [lợi ích / 이익 / 利(이롭다) + 益(더하다) = 나에게 보탬이 되는 것]" },
-        { "word": "về kinh tế", "meaning": "[보어구] 경제에 관하여", "grammar": "[về / ~에 관하여 / 화제의 방향을 지정] \\n [kinh tế / 경제 / 經(다스리다) + 濟(제: 건너다) = 세상을 경영하는 흐름]" }
+        { "word": "mang lại nhiều lợi ích", "meaning": "[동사 및 목적어구] 많은 이익을 가져오다", "grammar": "[mang lại / 가져오다 / 나에게 끌어오는 동작] \n [lợi ích / 이익 / 利(이롭다) + 益(더하다) = 나에게 보탬이 되는 것]" },
+        { "word": "về kinh tế", "meaning": "[보어구] 경제에 관하여", "grammar": "[về / ~에 관하여 / 화제의 방향 지정] \n [kinh tế / 경제 / 經(다스리다) + 濟(제: 건너다) = 가계를 꾸려가는 흐름]" }
       ]
 
       **[사용자 입력 상황]**
