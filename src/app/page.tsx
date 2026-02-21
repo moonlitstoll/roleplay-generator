@@ -1273,7 +1273,7 @@ export default function Home() {
                                               <div className="flex-1">
                                                 <p className="text-[#1a1a1a] font-semibold text-sm leading-[1.7]">{item.meaning}</p>
                                                 {item.grammar && (
-                                                  <p className="text-gray-600 text-xs mt-0.5 leading-[1.7]">{item.grammar}</p>
+                                                  <p className="text-gray-600 text-xs mt-0.5 whitespace-pre-wrap leading-[1.7]">{item.grammar}</p>
                                                 )}
                                               </div>
                                             </div>
@@ -1293,7 +1293,7 @@ export default function Home() {
                                               <div className="flex-1">
                                                 <p className="text-black font-bold text-sm leading-snug">{meaning}</p>
                                                 {grammarRole && (
-                                                  <p className="text-black text-xs mt-0.5 leading-snug">{grammarRole}</p>
+                                                  <p className="text-black text-xs mt-0.5 whitespace-pre-wrap leading-snug">{grammarRole}</p>
                                                 )}
                                               </div>
                                             </div>
