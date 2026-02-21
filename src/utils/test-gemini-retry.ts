@@ -1,4 +1,4 @@
-import { generateContentWithRetry } from './gemini.ts';
+import { generateContentWithRetry } from './gemini';
 
 async function testRetry() {
     console.log("--- Starting Gemini Retry Logic Test ---");
