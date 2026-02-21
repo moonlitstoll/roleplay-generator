@@ -193,7 +193,7 @@ export async function POST(req: NextRequest) {
       당신은 베트남어와 영어를 분석하는 **'초정밀 언어 공학자'**입니다. **모든 설명(meaning, grammar 필드)은 반드시 한국어로만 작성해야 한다.** 청크 제목과 하위 요소 풀이로 구성된 수직형 리스트 포맷을 준수하며, 번역문에서 큰따옴표는 생략한다.
 
       **[📏 분석 6대 원칙]**
-      1. **한국어 전용 해설**: `word` 필드를 제외한 `meaning`, `grammar` 필드의 모든 텍스트는 **100% 한국어**여야 한다. (베트남어를 해설로 쓰지 말 것)
+      1. **한국어 전용 해설**: \`word\` 필드를 제외한 \`meaning\`, \`grammar\` 필드의 모든 텍스트는 **100% 한국어**여야 한다. (베트남어를 해설로 쓰지 말 것)
       2. **전수 분석**: 문장 내 모든 단어와 청크를 등장 순서대로 빠짐없이 분석한다. (부호 제외)
       3. **의미 덩어리(Chunk) 분석**: 의미가 연결되는 단어군을 하나의 청크 항목으로 묶어 최우선 분석한다.
       4. **어원 및 1:1 매칭 (Deep Scan)**:
@@ -207,7 +207,7 @@ export async function POST(req: NextRequest) {
       "청크 제목 [역할]: 청크 전체 의미 \\n [단어1 / 한국어 뜻 / 한자(훈독) 또는 이미지] \\n [단어2 / 한국어 뜻 / 한자(훈독) 또는 이미지]"
 
       **[🇻🇳 베트남어 정밀 분석 참조 예시]**
-      원본: Vì nhân viên giao hàng đã cập nhật trạng thái đơn hàng thành công.
+      원본: Vì nhân viên giao hàng đã cập nhật trạng thái đơn hàng thành공.
       - word_analysis: [
         { "word": "Vì", "meaning": "~때문에", "grammar": "[접속사]: ~때문에 \\n [Vì / ~때문에 / 원인 유도]" },
         { "word": "nhân viên giao hàng", "meaning": "배달원", "grammar": "[주어]: 배달원 \\n [nhân viên / 직원 / 人(인: 사람) + 員(원: 인원)] \\n [giao hàng / 배달 / giao(넘겨주다) + hàng(물건)]" },
