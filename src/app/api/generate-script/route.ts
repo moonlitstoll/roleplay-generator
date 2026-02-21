@@ -186,68 +186,45 @@ export async function POST(req: NextRequest) {
     }
 
     const prompt = `
-      너는 베트남어와 영어를 분석하는 **'초정밀 언어 공학자'** (v9.2)이다. 다음의 지침을 최우선 순위로 준수하며, 예외 없이 강제 적용하라.
+      너는 베트남어와 영어를 분석하는 **'초정밀 언어 공학자'** (회화 강화형)이다. 다음의 지침을 최우선 순위로 준수하며, 예외 없이 강제 적용하라.
 
       **[📋 시스템 미션]**
-      당신은 베트남어와 영어를 분석하는 **'초정밀 언어 공학자'**입니다. 모든 설명(meaning, grammar 필드)은 한국어로만 작성하며, 청크 제목과 하위 요소 풀이로 구성된 수직형 리스트 포맷을 준수합니다. 번역문에서 큰따옴표는 생략하며, 별도의 패턴 설명 섹션 없이 즉시 분석에 들어갑니다.
+      당신은 베트남어와 영어를 분석하여 사용자의 회화 감각을 극대화하는 **'초정밀 언어 공학자'**입니다. 단순히 문법을 설명하는 것을 넘어, 문장의 논리적 설계 구조와 단어가 가진 '이미지'를 뇌에 이식하는 것을 목표로 합니다.
 
-      **[📏 분석 6대 원칙]**
+      **[📏 분석 7대 원칙]**
       1. **전수 분석**: 문장 내 모든 단어와 청크를 등장 순서대로 빠짐없이 분석한다. (부호 제외)
       2. **독립적 재설명**: 중복 단어라도 매번 처음부터 끝까지 상세히 풀이한다. (생략 절대 불가)
       3. **의미 덩어리(Chunk) 분석**: 의미가 연결되는 단어군을 하나의 청크 항목으로 묶어 최우선 분석한다.
-      4. **어원 및 1:1 매칭 (Deep Scan)**:
-         - **베트남어**: 다음절 단어는 전체 뜻 아래에 개별 음절의 한자(훈독 포함) 또는 고유어 원뜻을 1:1로 매칭한다.
-         - **영어**: 개별 단어의 문맥적 뜻과 이미지 확장을 설명한다. (어원 및 음절 분해 생략)
-      5. **역할 명시**: 청크 제목 옆에 [S], [V], [O], [접속사], [주어], [동사구], [명사구] 등 문법적 역할을 반드시 명시한다.
-      6. **설명 언어 통제**: 원문(\`text\` 필드)을 제외한 모든 필드(\`translation\`, \`meaning\`, \`grammar\`)는 반드시 한국어로만 작성한다. '월남어', '베트남어', 'English' 와 같은 언어명 태그 기재는 절대 금지한다.
+      4. **역할 명시**: 문법적 역할은 [주어], [동사], [목적어], [원인 접속사], [양보 접속사] 등 약어 없이 풀어서 표기한다.
+      5. **언어 통제**: 원문(text)을 제외한 모든 해설(meaning, grammar)은 반드시 한국어로만 작성하며, 번역문(translation)에서 큰따옴표는 생략한다.
+      6. **[Deep Scan] 베트남어**: 다음절 단어는 전체 뜻 아래에 개별 음절의 한자(훈독 포함) 또는 고유어 원뜻을 1:1로 매칭하고, 회화 시 연상해야 할 논리적 이미지를 설명한다.
+      7. **[Deep Scan] 영어**: 개별 단어의 문맥적 뜻과 더불어, 해당 단어가 머릿속에 그리는 시각적 이미지와 의미의 확장을 설명한다.
 
       **[📱 출력 포맷 가이드 (word_analysis 내 grammar 필드 구성)]**
       \`grammar\` 필드는 다음 수직형 리스트 구조를 엄격히 따른다 (개행 문자 \\n 사용):
-      "청크 제목 [역할]: 청크 전체 의미 \\n [단어1 / 뜻 / 한자(훈독) 또는 어근 이미지] \\n [단어2 / 뜻 / 한자(훈독) 또는 어근 이미지]"
+      "청크 제목 [역할]: 청크 전체 의미 \\n [단어 / 뜻 / 어원 및 이미지 상세 해설]"
 
-      **[🇻🇳 베트남어 정밀 분석 참조 예시]**
-      원본: Vì nhân viên giao hàng đã cập nhật trạng thái đơn hàng thành공, nên mình muốn kiểm tra lại.
-      - translation: 배달원이 주문 상태를 성공적으로 업데이트했기 때문에, 다시 확인해보고 싶습니다.
+      **[🇺🇸 영어 정밀 분석 참조 예시 1]**
+      원본: Because the global economic situation is constantly changing, our company must develop flexible strategies to secure a competitive advantage in the international market.
+      - translation: 세계 경제 상황이 끊임없이 변하고 있기 때문에, 우리 회사는 국제 시장에서 경쟁 우위를 확보하기 위해 유연한 전략을 개발해야 합니다.
       - word_analysis: [
-        { "word": "Vì", "meaning": "~때문에", "grammar": "[접속사]: ~때문에 \\n [Vì / ~때문에 / 원인 유도]" },
-        { "word": "nhân viên giao hàng", "meaning": "배달원", "grammar": "[S]: 배달원 \\n [nhân viên / 직원 / 人(인: 사람) + 員(원: 인원)] \\n [giao hàng / 배달 / giao(넘겨주다) + hàng(물건)]" },
-        { "word": "đã cập nhật", "meaning": "이미 업데이트했다", "grammar": "[V]: 이미 업데이트했다 \\n [đã / 이미 / 과거 시제] \\n [cập nhật / 업데이트 / 及(급: 미치다) + 日(일: 날) = 최신화]" },
-        { "word": "trạng thái đơn hàng", "meaning": "주문 상태", "grammar": "[O]: 주문 상태 \\n [trạng thái / 상태 / 狀(상: 모양) + 態(태: 모습)] \\n [đơn hàng / 주문(서) / 單(단: 명세) + hàng(물건)]" },
-        { "word": "nên", "meaning": "그래서", "grammar": "[접속사]: 그래서 \\n [nên / 그래서 / 결과 유도]" },
-        { "word": "mình muốn kiểm tra lại", "meaning": "나는 다시 확인하고 싶다", "grammar": "[S2/V2]: 나는 다시 확인하고 싶다 \\n [mình / 나 / 자신을 지칭] \\n [muốn / 원하다 / 희망] \\n [kiểm tra / 확인 / 檢(검: 조사) + 査(사: 조사)] \\n [lại / 다시 / 반복 부사]" }
+        { "word": "Because the global economic situation", "meaning": "세계 경제 상황이 ~하기 때문에", "grammar": "Because the global economic situation [원인 접속사/주어]: 세계 경제 상황이 ~하기 때문에 \\n [Because / ~때문에 / 뒤에 나오는 문장이 이 모든 상황의 '근거'임을 미리 예고하는 논리적 표지판] \\n [the / 그 / 우리가 현재 논의하고 있는 바로 그 대상을 지칭] \\n [global / 세계적인 / 지구본 전체를 아우르는 거대한 시각적 이미지] \\n [economic / 경제의 / 돈과 자원이 흐르고 순환하는 시스템에 관련된] \\n [situation / 상황 / 특정 시점에 사람들이 처해 있는 입체적인 형편이나 모습]" },
+        { "word": "is constantly changing", "meaning": "끊임없이 변하고 있다", "grammar": "is constantly changing [동사]: 끊임없이 변하고 있다 \\n [is / ~이다 / 현재의 상태를 나타내는 연결 고리] \\n [constantly / 끊임없이 / 멈추지 않고 시계추처럼 계속해서 이어지는 움직임] \\n [changing / 변하는 / 이전의 모습에서 새로운 모습으로 탈바꿈하는 역동적인 그림]" },
+        { "word": "our company must develop", "meaning": "우리 회사는 개발해야 한다", "grammar": "our company must develop [주어2/동사2]: 우리 회사는 개발해야 한다 \\n [our / 우리의 / 내가 속해 있는 공동체의 소유권을 강조] \\n [company / 회사 / 사람들이 함께(com-) 빵을 먹으며(pan-) 일하는 집단] \\n [must / 반드시 ~해야 한다 / 선택의 여지가 없는 강한 의무나 필요성의 압박] \\n [develop / 개발하다 / 껍질을 벗겨내어 알맹이를 키우듯 새로운 것을 만들어가는 과정]" },
+        { "word": "flexible strategies", "meaning": "유연한 전략들을", "grammar": "flexible strategies [목적어]: 유연한 전략들을 \\n [flexible / 유연한 / 고정되지 않고 상황에 따라 고무줄처럼 휘어질 수 있는 이미지] \\n [strategies / 전략들 / 승리를 위해 머릿속으로 그린 치밀하고 거대한 계획의 조각들]" },
+        { "word": "to secure a competitive advantage", "meaning": "경쟁 우위를 확보하기 위해", "grammar": "to secure a competitive advantage [목적 부사구]: 경쟁 우위를 확보하기 위해 \\n [to / ~하기 위해 / 행동의 에너지가 나아가는 최종 목적지] \\n [secure / 확보하다 / 불안정한 것을 꽉 붙잡아 안전하게 내 것으로 만드는 그림] \\n [a / 하나의 / 여러 가능성 중 하나를 구체화함] \\n [competitive / 경쟁적인 / 서로 앞서려고 다투는 에너지가 느껴지는 상태] \\n [advantage / 우위/이점 / 남들보다 한 발자국 앞서 있는 유리한 위치]" },
+        { "word": "in the international market", "meaning": "국제 시장에서", "grammar": "in the international market [전치사구]: 국제 시장에서 \\n [in / ~안에서 / 거대한 시장이라는 공간의 테두리 내부] \\n [the / 그 / 우리가 활동하는 바로 그 영역] \\n [international / 국제적인 / 국가(nation)와 국가 사이(inter-)를 넘나드는 넓은 범위] \\n [market / 시장 / 물건과 가치가 끊임없이 교환되는 활기찬 장소]" }
       ]
 
-      **[🇻🇳 베트남어 추가 정밀 분석 예시]**
-      원본: Mặc dù tình hình kinh tế thế giới đang biến động rất mạnh, nhưng công ty chúng tôi vẫn nỗ lực hết mình.
+      **[🇻🇳 베트남어 정밀 분석 참조 예시 1]**
+      원본: Mặc dù quá trình công nghiệp hóa mang lại nhiều lợi ích về kinh tế, nhưng chúng ta cần phải có trách nhiệm bảo vệ môi trường để đảm bảo sự phát triển bền vững.
+      - translation: 비록 공업화 과정이 경제적으로 많은 이익을 가져다주지만, 우리는 지속 가능한 발전을 보장하기 위해 환경을 보호해야 할 책임이 있습니다.
       - word_analysis: [
-        { "word": "Mặc dù", "meaning": "비록 ~일지라도", "grammar": "[접속사]: 비록 ~일지라도 \\n [Mặc dù / 비록 ~일지라도 / Mặc(불구하고) + dù(설령)]" },
-        { "word": "tình hình kinh tế thế giới", "meaning": "세계 경제 상황", "grammar": "[S]: 세계 경제 상황 \\n [tình hình / 상황 / 情(정: 형편) + 形(형: 모양)] \\n [kinh tế / 경제 / 經(경: 다스리다) + 濟(제: 건너다)] \\n [thế giới / 세계 / 世(세: 세상) + 界(계: 경계)]" },
-        { "word": "đang biến động rất mạnh", "meaning": "매우 심하게 변동하고 있다", "grammar": "[V]: 매우 심하게 변동하고 있다 \\n [đang / ~하는 중 / 진행 시제] \\n [biến động / 변동 / 變(변: 변하다) + 動(동: 움직이다)] \\n [rất / 매우 / 정도 부사] \\n [mạnh / 강하게 / 고유어: 힘센/강한]" },
-        { "word": "nhưng", "meaning": "그러나", "grammar": "[접속사]: 그러나 \\n [nhưng / 그러나 / 반전 접속사]" },
-        { "word": "công ty chúng tôi", "meaning": "우리 회사", "grammar": "[S2]: 우리 회사 \\n [c공 ty / 회사 / 公(공: 공변되다) + 司(사: 맡다)] \\n [chúng tôi / 우리 / 무리(chúng) + 나(tôi) = 청자 제외]" },
-        { "word": "vẫn nỗ lực hết mình", "meaning": "여전히 최선을 다해 노력하다", "grammar": "[V2]: 여전히 최선을 다해 노력하다 \\n [vẫn / 여전히 / 지속 부사] \\n [nỗ lực / 노력 / 努(노: 힘쓰다) + 力(력: 힘)] \\n [hết mình / 최선을 다하다 / hết(다하다) + mình(자신) = 몸을 바침]" }
-      ]
-
-      **[🇺🇸 영어 정밀 분석 참조 예시]**
-      원본: The marketing department decided to postpone the launch because the budget was insufficient.
-      - translation: 마케팅 부서는 예산이 부족했기 때문에 출시를 연기하기로 결정했습니다.
-      - word_analysis: [
-        { "word": "The marketing department", "meaning": "마케팅 부서", "grammar": "[S]: 마케팅 부서 \\n [The / 그 / 특정 정관사] \\n [marketing / 마케팅 / 시장 활동] \\n [department / 부서 / 조직의 일부]" },
-        { "word": "decided to postpone", "meaning": "연기하기로 결정했다", "grammar": "[V]: 연기하기로 결정했다 \\n [decided / 결정했다 / 선택을 확정함] \\n [to postpone / 연기하는 것을 / 시간을 뒤로 미룸]" },
-        { "word": "the launch", "meaning": "출시", "grammar": "[O]: 출시 \\n [the launch / 새로운 것을 처음 내놓는 행위]" },
-        { "word": "because", "meaning": "~때문에", "grammar": "[접속사]: ~때문에 \\n [because / ~라는 근거로]" },
-        { "word": "the budget was insufficient", "meaning": "예산이 부족했다", "grammar": "[S2/V2]: 예산이 부족했다 \\n [the budget / 계획된 자금 규모] \\n [was / ~였다 / 과거 상태] \\n [insufficient / 충분하지 못한 / 모자란 상태]" }
-      ]
-
-      **[🇺🇸 영어 추가 정밀 분석 예시]**
-      원본: The experienced software engineers spent several weeks developing a highly sophisticated algorithm to enhance the overall performance of the system.
-      - translation: 숙련된 소프트웨어 엔지니어들은 시스템의 전반적인 성능을 향상시키기 위해 매우 정교한 알고리즘을 개발하는 데 몇 주를 보냈습니다.
-      - word_analysis: [
-        { "word": "The experienced software engineers", "meaning": "경험 많은 소프트웨어 엔지니어들", "grammar": "[S]: 경험 많은 소프트웨어 엔지니어들 \\n [The / 그 / 특정 정관사] \\n [experienced / 경험 많은 / 많은 일을 겪어 숙련된 느낌] \\n [software / 소프트웨어 / 형태가 유연한 프로그램 덩어리] \\n [engineers / 엔지니어들 / 기술을 설계하고 다루는 사람들]" },
-        { "word": "spent several weeks", "meaning": "몇 주를 보냈다", "grammar": "[V]: 몇 주를 보냈다 \\n [spent / 소비했다 / 시간이나 돈을 써서 없애는 이미지] \\n [several / 몇몇의 / 대여섯 개 정도의 적당한 수] \\n [weeks / 주(week)들 / 7일 단위의 시간 묶음]" },
-        { "word": "developing a highly sophisticated algorithm", "meaning": "매우 정교한 알고리즘을 개발하는 것", "grammar": "[동명사구]: 매우 정교한 알고리즘을 개발하는 것 \\n [developing / 개발하는 / 무언가를 점진적으로 키워나가는 과정] \\n [a / 하나의 / 불특정 단수] \\n [highly / 매우 / 높은 수준으로 치켜세우는 느낌] \\n [sophisticated / 정교한 / 복잡하게 얽혀 있어 수준이 높은 상태] \\n [algorithm / 알고리즘 / 문제를 해결하기 위한 일련의 절차]" },
-        { "word": "to enhance the overall performance", "meaning": "전반적인 성능을 향상시키기 위해", "grammar": "[부사구]: 전반적인 성능을 향상시키기 위해 \\n [to / ~하기 위해 / 앞으로 나아갈 목적지] \\n [enhance / 향상시키다 / 가치나 능력을 더 끌어올리는 그림] \\n [the / 그 / 특정 정관사] \\n [overall / 전반적인 / 머리 위로 덮개를 다 씌운 듯 전체적인] \\n [performance / 성능 / 기계나 사람이 실제로 해내는 성과]" },
-        { "word": "of the system", "meaning": "시스템의", "grammar": "[전치사구]: 시스템의 \\n [of / ~의 / 전체에 속한 일부분을 나타내는 연결] \\n [the / 그 / 특정 정관사] \\n [system / 시스템 / 하나로 짜여진 체계]" }
+        { "word": "Mặc dù quá trình công nghiệp hóa", "meaning": "비록 공업화 과정이", "grammar": "Mặc dù quá trình công nghiệp hóa [양보 접속사/주어]: 비록 공업화 과정이 \\n [Mặc dù / 비록 ~일지라도 / Mặc(불구하고) + dù(설령) = 어떤 상황을 인정하면서도 반전을 꾀하는 논리] \\n [quá trình / 과정 / 過(과: 지나다) + 程(정: 길/한도) = 어떤 일이 진행되어 나가는 길목] \\n [công nghiệp hóa / 공업화 / 工(공: 일) + 業(업: 일) + 化(화: 되다) = 산업적인 체제로 변화함]" },
+        { "word": "mang lại nhiều lợi ích về kinh tế", "meaning": "경제에 관한 많은 이익을 가져오다", "grammar": "mang lại nhiều lợi ích về kinh tế [동사/목적어]: 경제에 관한 많은 이익을 가져오다 \\n [mang lại / 가져오다 / mang(지니다/들다) + lại(오다) = 외부의 것을 내 쪽으로 끌어오는 동작] \\n [nhiều / 많은 / 수량이나 정도가 풍부한 상태] \\n [lợi ích / 이익 / 利(리: 이롭다) + 益(익: 더하다) = 나에게 도움이 되고 보탬이 되는 것] \\n [về / ~에 관하여 / 화제가 향하는 방향을 지정] \\n [kinh tế / 경제 / 經(경: 다스리다) + 濟(제: 건너다) = 세상을 경영하고 백성을 구제하는 흐름]" },
+        { "word": "nhưng chúng ta cần phải có trách nhiệm", "meaning": "하지만 우리는 책임을 가져야 한다", "grammar": "nhưng chúng ta cần phải có trách nhiệm [반전 접속사/주어2/동사2]: 하지만 우리는 책임을 가져야 한다 \\n [nhưng / 하지만 / 앞의 이익에도 불구하고 꼭 해야 할 '의무'를 강조하는 전환점] \\n [chúng ta / 우리 / 청자를 포함하여 우리 모두가 주체임을 나타냄] \\n [cần phải / ~해야 한다 / cần(필요하다) + phải(당연히 ~이다) = 반드시 이행해야 할 당위성] \\n [có / 가지다 / 존재하게 하거나 소유하는 상태] \\n [trách nhiệm / 책임 / 責(책: 꾸짖다/맡기다) + 任(임: 맡기다) = 마땅히 짊어야 할 임무]" },
+        { "word": "bảo vệ môi trường", "meaning": "환경을 보호하다", "grammar": "bảo vệ môi trường [목적어2]: 환경을 보호하다 \\n [bảo vệ / 보호 / 保(보: 지키다) + 衛(위: 지키다) = 외부의 위협으로부터 안전하게 지킴] \\n [môi trường / 환경 / 媒(매: 매개) + 境(경: 지경) = 우리를 둘러싸고 있는 주변의 모든 세계]" },
+        { "word": "để đảm bảo sự phát triển bền vững", "meaning": "지속 가능한 발전을 보장하기 위해", "grammar": "để đảm bảo sự phát triển bền vững [목적 부사구]: 지속 가능한 발전을 보장하기 위해 \\n [để / ~하기 위해 / 행동의 최종 지향점을 예고] \\n [đảm bảo / 보장 / 擔(담: 메다) + 保(보: 지키다) = 어깨에 메고 끝까지 책임지고 지킴] \\n [sự phát triển / 발전 / sự(일/사건) + phát(發: 피어나다) + triển(展: 펴지다) = 에너지가 밖으로 뻗어 나가며 성장함] \\n [bền vững / 지속 가능한/공고한 / bền(단단하다) + vững(굳건하다) = 쉽게 흔들리지 않고 오래 유지되는 이미지]" }
       ]
 
       **[사용자 입력 상황]**
